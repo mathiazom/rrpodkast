@@ -35,8 +35,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
 
-// VERSION 1.1
-
 public class MainActivity extends AppCompatActivity
 
         implements
