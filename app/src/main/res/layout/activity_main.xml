@@ -7,19 +7,13 @@
     android:background="@color/colorPrimary"
     tools:context="com.rrpm.mzom.projectrrpm.MainActivity">
 
-    <FrameLayout
-        android:id="@+id/temp_frame"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"></FrameLayout>
-
     <android.support.v4.widget.DrawerLayout
         android:id="@+id/drawer_layout"
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true">
-
-        <!-- The main content view
+        <!-- The main content view -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
@@ -166,35 +160,6 @@
             </RelativeLayout>
 
         </RelativeLayout>
--->
-
-        <android.support.constraint.ConstraintLayout
-            android:layout_width="0dp"
-            android:layout_height="0dp">
-
-            <!-- Main Fragment Frame -->
-            <FrameLayout
-                android:id="@+id/frame_podlist"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="@id/frame_podplayer"/>
-
-            <!-- Podplayer Fragment Frame -->
-            <FrameLayout
-                android:id="@+id/frame_podplayer"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                app:layout_constraintTop_toBottomOf="@id/frame_podlist"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
-
-        </android.support.constraint.ConstraintLayout>
-
-
         <!-- The navigation drawer -->
         <ListView
             android:paddingTop="10dp"
@@ -208,7 +173,6 @@
             android:dividerHeight="0dp" />
 
     </android.support.v4.widget.DrawerLayout>
-
 
     <FrameLayout
         android:id="@+id/full_screen_loading_frame"

@@ -1,6 +1,7 @@
 package com.rrpm.mzom.projectrrpm;
 
 import android.Manifest;
+import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -16,6 +17,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -26,14 +28,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity
 
@@ -49,8 +56,8 @@ public class MainActivity extends AppCompatActivity
     private static final int OFFLINE_ONLY_PODCASTS = 1;
     private static final int ARCHIVE_ONLY_PODCASTS = 2;
 
-    private ArrayList<ArrayList<RRPod>> podLists;
-    private ArrayList<RRPod> offlinePods;
+    private ArrayList<ArrayList<RRPod>> masterlist;
+    private ArrayList<RRPod> offlinelist;
 
     // FRAGMENTS
     private PodListFragment podListFragment;
@@ -65,49 +72,23 @@ public class MainActivity extends AppCompatActivity
     // "LIFECYCLE OVERRIDES"
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //setTitle("Alle podkaster");
-
-        registerDownloadStateReciever();
-
-        restoreFragments(savedInstanceState);
-
-        // PERMISSION GETTER
-        verifyPermissions();
-
-        // APP DRAWER ASSEMBLY
-        createAppDrawer();
-
-        // CREATE APP TOOLBAR/ACTIONBAR
-        //loadToolbar();
-
-
-        //PRINT ALL SHAREDPREFERENCES
-        /*Map<String, ?> allPrefs = PreferenceManager.getDefaultSharedPreferences(this).getAll();
-        Set<String> set = allPrefs.keySet();
-        for(String s : set) System.out.println( s + "<" + allPrefs.get(s).getClass().getSimpleName() +"> =  " + allPrefs.get(s).toString());*/
-
-    }
-
-    private void registerDownloadStateReciever(){
+        setTitle("Alle podkaster");
 
         // DOWNLOAD BROADCAST RECEIVER AND INTENTFILTER
-        IntentFilter progressIntentFilter = new IntentFilter(DownloadService.Constants.BROADCAST_ACTION);
-        DownloadStateReceiver mDownloadStateReceiver = new DownloadStateReceiver(new DownloadStateReceiver.DownloadStateReceiverListener() {
-            @Override
-            public void updateDownloadProgress(String podName, float progress) {
-                updateInAppProgressBar((int)progress);
-                updateDownloadNotificationProgress(podName, (int)progress);
-            }
-        });
-        LocalBroadcastManager.getInstance(this).registerReceiver(mDownloadStateReceiver,progressIntentFilter);
 
-    }
+            IntentFilter progressIntentFilter = new IntentFilter(DownloadService.Constants.BROADCAST_ACTION);
+            DownloadStateReceiver mDownloadStateReceiver = new DownloadStateReceiver(new DownloadStateReceiver.DownloadStateReceiverListener() {
+                @Override
+                public void updateDownloadProgress(String podName, float progress) {
+                    updateInAppProgressBar((int)progress);
+                    updateDownloadNotificationProgress(podName, (int)progress);
+                }
+            });
+            LocalBroadcastManager.getInstance(this).registerReceiver(mDownloadStateReceiver,progressIntentFilter);
 
-    private void restoreFragments(Bundle savedInstanceState){
+
 
         // RESTORE POD PLAYER FRAGMENT (IF AVAILABLE)
         if (savedInstanceState != null && getSupportFragmentManager().getFragment(savedInstanceState, "PodPlayerFragment") != null) {
@@ -118,7 +99,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         // INSERT POD PLAYER
-        getSupportFragmentManager().beginTransaction().replace(R.id.frame_podplayer, podPlayer).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.podplayer_frame, podPlayer).commit();
 
         // RESTORE RANDOM POD FRAGMENT (IF AVAILABLE)
         if (savedInstanceState != null && getSupportFragmentManager().getFragment(savedInstanceState, "RandomPodFragment") != null) {
@@ -147,7 +128,7 @@ public class MainActivity extends AppCompatActivity
                 podListFragment = PodListFragment.newInstance(ALL_PODCASTS);
             }
             // INSERT POD LIST
-            getSupportFragmentManager().beginTransaction().replace(R.id.temp_frame, podListFragment).commit();
+            getSupportFragmentManager().beginTransaction().replace(R.id.main_content_frame, podListFragment).commit();
         }
 
         // RESTORE QUEUE && RECEIVER FOR DOWNLOAD
@@ -171,6 +152,21 @@ public class MainActivity extends AppCompatActivity
             newFilter();
         }
 
+        // PERMISSION GETTER
+        verifyPermissions();
+
+        // APP DRAWER ASSEMBLY
+        createAppDrawer();
+
+        // CREATE APP TOOLBAR/ACTIONBAR
+        loadToolbar();
+
+
+        //PRINT ALL SHAREDPREFERENCES
+        /*Map<String, ?> allPrefs = PreferenceManager.getDefaultSharedPreferences(this).getAll();
+        Set<String> set = allPrefs.keySet();
+        for(String s : set) System.out.println( s + "<" + allPrefs.get(s).getClass().getSimpleName() +"> =  " + allPrefs.get(s).toString());*/
+
     }
 
     @Override
@@ -187,10 +183,10 @@ public class MainActivity extends AppCompatActivity
             outState.putInt("podListMode",podListFragment.getPodListMode());
         }
 
-        /*if (searchFragment != null && searchFragment.isAdded()){
+        if (searchFragment != null && searchFragment.isAdded()){
             outState.putBoolean("searching_state", findViewById(R.id.search_frame).getVisibility() == View.VISIBLE);
             getSupportFragmentManager().putFragment(outState, "SearchFragment", searchFragment);
-        }*/
+        }
 
         if (randomPodFragment != null && randomPodFragment.isAdded())
             getSupportFragmentManager().putFragment(outState, "RandomPodFragment", randomPodFragment);
@@ -211,21 +207,21 @@ public class MainActivity extends AppCompatActivity
     // INTERFACE OVERRIDES (FRAGMENTS)
 
     @Override
-    public void onPlayOrStreamPod(RRPod pod) {
+    public void OnPlayOrStreamPod(RRPod pod) {
         if (podPlayer == null) podPlayer = new PodPlayerFragment();
 
         android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.frame_podplayer, podPlayer);
+        transaction.replace(R.id.podplayer_frame, podPlayer);
         transaction.commit();
 
         podPlayer.PlayOrStreamPod(pod);
     }
 
-    public void onPlayOrStreamPod(RRPod pod, int progress) {
+    public void OnPlayOrStreamPod(RRPod pod,int progress) {
         if (podPlayer == null) podPlayer = new PodPlayerFragment();
 
         android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.frame_podplayer, podPlayer);
+        transaction.replace(R.id.podplayer_frame, podPlayer);
         transaction.commit();
 
         podPlayer.PlayOrStreamPod(pod,true,progress);
@@ -237,26 +233,26 @@ public class MainActivity extends AppCompatActivity
     // PLAY RANDOM POD (THAT IS NOT LISTENED TO)
     private ArrayList<Integer> random_pods = new ArrayList<>();
     @Override
-    public void onPlayRandomPod() {
+    public void OnPlayRandomPod() {
 
-        if(podLists == null){
-            loadPods(ALL_PODCASTS);
+        if(masterlist == null){
+            LoadPods(ALL_PODCASTS);
         }
 
-        /*if(random_pods.size() == podLists.get(0).size()){
+        if(random_pods.size() == masterlist.get(0).size()){
             Snackbar.make(findViewById(R.id.drawer_relative),getResources().getString(R.string.random_select_no_result),Snackbar.LENGTH_LONG).show();
             random_pods = new ArrayList<>();
             return;
-        }*/
+        }
 
-        ArrayList<RRPod> pods = podLists.get(ALL_PODCASTS);
+        ArrayList<RRPod> pods = masterlist.get(ALL_PODCASTS);
 
         int randomInt = new Random().nextInt(pods.size());
 
         if(random_pods.indexOf(randomInt) == -1){
             random_pods.add(randomInt);
         }else{
-            onPlayRandomPod();
+            OnPlayRandomPod();
             return;
         }
 
@@ -274,36 +270,36 @@ public class MainActivity extends AppCompatActivity
 
         if(!checkedItems[0]){
             if(!checkedItems[1] && !randomPod.getListenedToState()){
-                onPlayRandomPod();
+                OnPlayRandomPod();
                 return;
             }
             if(!checkedItems[2] && randomPod.getListenedToState()){
-                onPlayRandomPod();
+                OnPlayRandomPod();
                 return;
             }
             if(!checkedItems[3] && !randomPod.getDownloadState()){
-                onPlayRandomPod();
+                OnPlayRandomPod();
                 return;
             }
             if(!checkedItems[4] && randomPod.getDownloadState()) {
-                onPlayRandomPod();
+                OnPlayRandomPod();
                 return;
             }
         }
 
-        onPlayOrStreamPod(randomPod);
+        OnPlayOrStreamPod(randomPod);
     }
 
     @Override
-    public void onPodBuild(int podListMode) {
+    public void OnPodBuild(int podListMode) {
         if (searchFragment == null){
             newFilter();
         }
 
-        loadPodList(podListMode);
+        LoadPodList(podListMode);
         changeToolbarUI(ENABLED_FILTER_UI);
 
-        /*if(findViewById(R.id.search_frame).getVisibility() == View.VISIBLE){
+        if(findViewById(R.id.search_frame).getVisibility() == View.VISIBLE){
             changeToolbarUI(VISIBLE_FILTER_UI);
         }else{
             changeToolbarUI(INVISIBLE_FILTER_UI);
@@ -314,24 +310,24 @@ public class MainActivity extends AppCompatActivity
         final String recent_pod_name = podkastStorage.getString("recent_pod_name",null);
         final int recent_pod_progress = podkastStorage.getInt("recent_pod_progress",0);
 
-        if(recent_pod_name != null && recent_pod_progress != 0 && podLists != null){
-            for(RRPod _pod : podLists.get(ALL_PODCASTS)){
+        if(recent_pod_name != null && recent_pod_progress != 0 && masterlist != null){
+            for(RRPod _pod : masterlist.get(ALL_PODCASTS)){
                 if(_pod.getTitle().equals(recent_pod_name)){
                     podPlayer.nullifyMP();
-                    onPlayOrStreamPod(_pod,recent_pod_progress);
+                    OnPlayOrStreamPod(_pod,recent_pod_progress);
                 }
             }
-        }*/
+        }
     }
 
     @Override
-    public void onBuildWithDate(int day, int month, int year, boolean notListenedTo) {
+    public void OnBuildWithDate(int day, int month, int year,boolean notListenedTo) {
         podListFragment.BuildPodcastViewsWithDate(this, day, month, year,notListenedTo);
     }
 
     //UPDATE SEARCH RESULT TEXT AFTER PODLIST FILTERING
     @Override
-    public void onPodcastViewsBuilt(int validpods) {
+    public void OnPodcastViewsBuilt(int validpods) {
         if (searchFragment != null) searchFragment.viewResultStats(validpods);
         stopTopLoading();
     }
@@ -343,50 +339,46 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onEnableSelectionMode() {
+    public void OnEnableSelectionMode() {
         changeToolbarUI(DISABLED_FILTER_UI,VISIBLE_SELECTION_UI);
         findViewById(R.id.clear_selected_pods).setVisibility(View.VISIBLE);
         findViewById(R.id.selection_actions).setVisibility(View.VISIBLE);
     }
 
     @Override
-    public void onDisableSelectionMode() {
-        /*if(findViewById(R.id.search_frame).getVisibility() == View.GONE){
+    public void OnDisableSelectionMode() {
+        if(findViewById(R.id.search_frame).getVisibility() == View.GONE){
             changeToolbarUI(INVISIBLE_SELECTION_UI,ENABLED_FILTER_UI);
-        }*/
+        }
         findViewById(R.id.clear_selected_pods).setVisibility(View.GONE);
         findViewById(R.id.selection_actions).setVisibility(View.GONE);
     }
 
     @Override
-    public void onHidePodFilter() {
+    public void OnHidePodFilter() {
         changeToolbarUI(INVISIBLE_FILTER_UI);
     }
 
 
     // LOAD PODS
-    void loadPodList(int podListMode){
-
-        loadPods(podListMode);
-
+    void LoadPodList(int podListMode){
+        LoadPods(podListMode);
         ArrayList<RRPod> pods;
-
         switch (podListMode){
             case OFFLINE_ONLY_PODCASTS:
-                pods = offlinePods;
+                pods = offlinelist;
                 break;
             case ARCHIVE_ONLY_PODCASTS:
-                pods = podLists.get(1);
+                pods = masterlist.get(1);
                 break;
             default:
-                pods = podLists.get(0);
+                pods = masterlist.get(0);
                 break;
         }
-
         initiatePodListFragment(pods,podListMode);
     }
 
-    void loadPods(int podListMode) {
+    void LoadPods(int podListMode) {
 
         final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -395,11 +387,11 @@ public class MainActivity extends AppCompatActivity
             if (json != null) {
                 ArrayList<RRPod> registered_offlinepods = new Gson().fromJson(json, new TypeToken<ArrayList<RRPod>>() {
                 }.getType());
-                offlinePods = new ArrayList<>();
+                offlinelist = new ArrayList<>();
                 final String dir = Environment.getExternalStoragePublicDirectory("RR-Podkaster") + File.separator;
                 for (RRPod pod : registered_offlinepods) {
                     if (new File(dir + pod.getTitle()).exists()) {
-                        offlinePods.add(pod);
+                        offlinelist.add(pod);
                     }
                 }
             }
@@ -407,7 +399,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         // USE READER TO GET PODS
-        final RRReader rrr = new RRReader(this, podLists);
+        final RRReader rrr = new RRReader(this,masterlist);
         rrr.start();
 
         try {
@@ -417,13 +409,13 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-        podLists = rrr.RetrievePods();
+        masterlist = rrr.RetrievePods();
 
         // STORING OFFLINE PODS FOR OFFLINE USE
         final ArrayList<RRPod> offlinepods = new ArrayList<>();
         final String dir = Environment.getExternalStoragePublicDirectory("RR-Podkaster") + File.separator;
 
-        for(ArrayList<RRPod> podlist : podLists){
+        for(ArrayList<RRPod> podlist : masterlist){
             for (RRPod pod:podlist){
                 if (new File(dir + pod.getTitle()).exists()) {
                     offlinepods.add(pod);
@@ -444,17 +436,38 @@ public class MainActivity extends AppCompatActivity
         podListFragment.setAllpods(podlist);
         // CHECK IF POD LIST IS VISIBLE
         if (!podListFragment.isAdded()) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.frame_podlist, podListFragment).commit();
+            getSupportFragmentManager().beginTransaction().replace(R.id.main_content_frame, podListFragment).commit();
         }else{
             podListFragment.BuildPodcastViews(this);
         }
     }
 
-
     // DOWNLOAD PODS
-
     private boolean downloading;
     private ArrayList<RRPod> downloadQueue = new ArrayList<>();
+    private void DownloadPod(final RRPod pod, final Context context) {
+        if (!verifyPermissions()) return;
+
+        downloadQueue.add(pod);
+
+        if (downloading) {
+            podListFragment.setLoadingText("Laster ned " + String.valueOf(downloadQueue.size() + 1) + " podkaster");
+            return;
+        }
+        podListFragment.startLoadingScreen();
+
+        /* Starting Download Service */
+        mReceiver = new DownloadResultReceiver(new Handler());
+        mReceiver.setReceiver(getDownloadReceiver(pod, context));
+        Intent intent = new Intent(Intent.ACTION_SYNC, null, this, DownloadService.class);
+
+        intent.putExtra("url", pod.getUrl()).putExtra("podName", pod.getTitle()).putExtra("receiver", mReceiver).putExtra("requestId", 101);
+        startService(intent);
+
+        downloading = true;
+    }
+
+        // DOWNLOAD RECEIVER
     private DownloadResultReceiver mReceiver;
     private DownloadResultReceiver.Receiver getDownloadReceiver(final RRPod pod, final Context context) {
         return new DownloadResultReceiver.Receiver() {
@@ -483,7 +496,7 @@ public class MainActivity extends AppCompatActivity
                         }
 
                         // DOWNLOAD NEXT IN QUEUE
-                        downloadPod(downloadQueue.get(0), context);
+                        DownloadPod(downloadQueue.get(0), context);
                         downloadQueue.remove(downloadQueue.get(0));
                         break;
                     case 0:
@@ -491,11 +504,11 @@ public class MainActivity extends AppCompatActivity
                         if (downloadQueue.isEmpty())
                             podListFragment.startLoadingScreen();
                         break;
-                    /*case 2:
+                    case 2:
                         // ERROR HANDLER
                         Snackbar.make(findViewById(R.id.drawer_relative),"En feil oppstod, sjekk ledig lagringsplass",Snackbar.LENGTH_LONG).show();
                         podListFragment.stopLoadingScreen();
-                        break;*/
+                        break;
                     /*case 3:
                         // PROGRESS UPDATE
                         if (podListFragment.viewAvailable())
@@ -522,32 +535,8 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
-    private void downloadPod(final RRPod pod, final Context context) {
-
-        if (!verifyPermissions()) return;
-
-        downloadQueue.add(pod);
-
-        if (downloading) {
-            podListFragment.setLoadingText("Laster ned " + String.valueOf(downloadQueue.size() + 1) + " podkaster");
-            return;
-        }
-        podListFragment.startLoadingScreen();
-
-        /* Starting Download Service */
-        mReceiver = new DownloadResultReceiver(new Handler());
-        mReceiver.setReceiver(getDownloadReceiver(pod, context));
-        Intent intent = new Intent(Intent.ACTION_SYNC, null, this, DownloadService.class);
-
-        intent.putExtra("url", pod.getUrl()).putExtra("podName", pod.getTitle()).putExtra("receiver", mReceiver).putExtra("requestId", 101);
-        startService(intent);
-
-        downloading = true;
-    }
-
-
     // DELETE ONE OR MULTIPLE PODS FROM DEVICE
-    public void deleteBulk(final ArrayList<RRPod> pods) {
+    public void DeleteBulk(final ArrayList<RRPod> pods) {
         String msg = pods.size() == 1 ?
                 "Er du sikker på at du vil slette " + pods.get(0).getTitle() + " fra enheten?":
                 "Er du sikker på at du vil slette " + pods.size() + " podkaster fra enheten?";
@@ -609,8 +598,8 @@ public class MainActivity extends AppCompatActivity
                                     res = "Slettet " + deleteCount + " podkaster, " + String.valueOf(pods.size() - deleteCount) + " kunne ikke slettes";
                                 }
 
-                                /*// SHOW SNACKBAR
-                                Snackbar.make(findViewById(R.id.drawer_relative),res,Snackbar.LENGTH_LONG).show();*/
+                                // SHOW SNACKBAR
+                                Snackbar.make(findViewById(R.id.drawer_relative),res,Snackbar.LENGTH_LONG).show();
                             }
                         })
                 .setNegativeButton("Nei", new DialogInterface.OnClickListener() {
@@ -637,10 +626,10 @@ public class MainActivity extends AppCompatActivity
         ImageView showFilter = (ImageView) findViewById(R.id.pod_filter_show);
         ImageView hideFilter = (ImageView) findViewById(R.id.pod_filter_hide);
 
-        /*// CHECK IF ALREADY FILTERING (ACTIVITY RESTART AFTER SCREEN-ROTATION ETC.)
+        // CHECK IF ALREADY FILTERING (ACTIVITY RESTART AFTER SCREEN-ROTATION ETC.)
         if (searchFragment != null && searchFragment.isAdded() && findViewById(R.id.search_frame).getVisibility() == View.VISIBLE) {
             changeToolbarUI(VISIBLE_FILTER_UI);
-        }*/
+        }
 
         // CLICK LISTENERS
         showFilter.setOnClickListener(new View.OnClickListener() {
@@ -660,7 +649,7 @@ public class MainActivity extends AppCompatActivity
         findViewById(R.id.selection_actions).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onSelectedPodsClick(podListFragment.getSelectedPods());
+                OnSelectedPodsClick(podListFragment.getSelectedPods());
             }
         });
 
@@ -675,7 +664,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void changeToolbarUI(int... prefs){
-        /*// SEARCH FRAME
+        // SEARCH FRAME
         final FrameLayout search_frame = (FrameLayout) findViewById(R.id.search_frame);
 
         // TOOLBAR BUTTONS
@@ -717,7 +706,7 @@ public class MainActivity extends AppCompatActivity
                 case DISABLE_ALL_UI:
                     changeToolbarUI(DISABLED_FILTER_UI,INVISIBLE_SELECTION_UI);
             }
-        }*/
+        }
     }
 
     private void updateToolbarTitle(){
@@ -730,12 +719,12 @@ public class MainActivity extends AppCompatActivity
 
         // RESET SEARCH FRAGMENT
     private void newFilter() {
-        /*searchFragment = new SearchFragment();
-        getSupportFragmentManager().beginTransaction().replace(R.id.search_frame, searchFragment).commit();*/
+        searchFragment = new SearchFragment();
+        getSupportFragmentManager().beginTransaction().replace(R.id.search_frame, searchFragment).commit();
     }
 
         // POD SELECTION
-    private void onSelectedPodsClick(final ArrayList<RRPod> pods) {
+    private void OnSelectedPodsClick(final ArrayList<RRPod> pods) {
 
         // DIALOG ITEMS LIST
         ArrayList<String> items = new ArrayList<>();
@@ -797,12 +786,12 @@ public class MainActivity extends AppCompatActivity
                                 // CLICKED DOWNLOAD
                                 if(which == DOWNLOAD_LABEL){
                                     for (RRPod currPod : pods) {
-                                        if (!currPod.getDownloadState()) downloadPod(currPod,ctx);
+                                        if (!currPod.getDownloadState()) DownloadPod(currPod,ctx);
                                     }
                                 }
                                 // CLICKED DELETE
                                 else if(which == DELETE_LABEL){
-                                    deleteBulk(pods);
+                                    DeleteBulk(pods);
                                 }
                                 // CLICKED MARK AS LISTENED/NOT LISTENED TO
                                 else if(which == MARK_LABEL){
@@ -834,11 +823,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void startTopLoading(){
-        /*findViewById(R.id.top_progress).setVisibility(View.VISIBLE);*/
+        findViewById(R.id.top_progress).setVisibility(View.VISIBLE);
     }
 
     private void stopTopLoading(){
-        /*findViewById(R.id.top_progress).setVisibility(View.GONE);*/
+        findViewById(R.id.top_progress).setVisibility(View.GONE);
     }
 
 
@@ -930,7 +919,7 @@ public class MainActivity extends AppCompatActivity
 
         newFilter();
         podListFragment = PodListFragment.newInstance(podListMode);
-        loadPodList(podListMode);
+        LoadPodList(podListMode);
         changeToolbarUI(INVISIBLE_FILTER_UI);
         updateToolbarTitle();
     }
@@ -943,18 +932,18 @@ public class MainActivity extends AppCompatActivity
             randomPodFragment = RandomPodFragment.newInstance();
         }
 
-        getSupportFragmentManager().beginTransaction().replace(R.id.frame_podlist, randomPodFragment).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.main_content_frame, randomPodFragment).commit();
         stopTopLoading();
     }
 
     private void goToSettings() {
         changeToolbarUI(DISABLE_ALL_UI);
 
-        if(podLists == null){
-            loadPods(ALL_PODCASTS);
+        if(masterlist == null){
+            LoadPods(ALL_PODCASTS);
         }
 
-        ArrayList<RRPod> allpods = podLists.get(0);
+        ArrayList<RRPod> allpods = masterlist.get(0);
 
         float spaceUsage = 0;
         int podnum = 0;
@@ -977,7 +966,7 @@ public class MainActivity extends AppCompatActivity
 
         // SETTINGS FRAGMENT INIT
         settingsFragment = new SettingsFragment();
-        getSupportFragmentManager().beginTransaction().replace(R.id.frame_podlist, settingsFragment).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.main_content_frame, settingsFragment).commit();
         stopTopLoading();
     }
 
@@ -986,7 +975,7 @@ public class MainActivity extends AppCompatActivity
 
         // ABOUT FRAGMENT INIT
         aboutFragment = new AboutFragment();
-        getSupportFragmentManager().beginTransaction().replace(R.id.frame_podlist, aboutFragment).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.main_content_frame, aboutFragment).commit();
         stopTopLoading();
     }
 
