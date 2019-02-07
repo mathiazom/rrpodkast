@@ -84,6 +84,8 @@ class RRReader extends Thread {
                     String rawDate = eElement.getElementsByTagName("pubDate").item(0).getTextContent();
                     String url = eElement.getElementsByTagName("enclosure").item(0).getAttributes().getNamedItem("url").getNodeValue();
 
+                    String duration = eElement.getElementsByTagName("itunes:duration").item(0).getTextContent();
+
                     String desc = eElement.getElementsByTagName("description").item(0).getTextContent();
                     if (desc.length() < 3) {
                         desc = "";
@@ -109,7 +111,7 @@ class RRReader extends Thread {
                     String date = String.valueOf(dager[cal.get(Calendar.DAY_OF_WEEK) - 2]) + " " + String.valueOf(cal.get(Calendar.DATE)) + ". " + String.valueOf(måneder[cal.get(Calendar.MONTH)]) + " " + String.valueOf(cal.get(Calendar.YEAR));
 
                     if (allpods.size() == 0 || !allpods.get(allpods.size() - 1).getTitle().equals(date)) {
-                        RRPod newpod = new RRPod(date, dateObj, url, desc);
+                        RRPod newpod = new RRPod(date, dateObj, url, desc, duration);
                         allpods.add(newpod);
                     }
                 }
@@ -161,6 +163,8 @@ class RRReader extends Thread {
                         String rawDate = eElement.getElementsByTagName("pubDate").item(0).getTextContent();
                         String url = eElement.getElementsByTagName("enclosure").item(0).getAttributes().getNamedItem("url").getNodeValue();
 
+                        String duration = eElement.getElementsByTagName("itunes:duration").item(0).getTextContent();
+
                         String title = eElement.getElementsByTagName("title").item(0).getTextContent();
 
                         String desc = eElement.getElementsByTagName("description").item(0).getTextContent();
@@ -180,7 +184,7 @@ class RRReader extends Thread {
                         cal.setTime(dateObj);
 
                         if (archivepods.size() == 0 || !archivepods.get(archivepods.size() - 1).getTitle().equals(title)) {
-                            RRPod newpod = new RRPod(title, dateObj, url, desc);
+                            RRPod newpod = new RRPod(title, dateObj, url, desc, duration);
                             archivepods.add(newpod);
                         }
 
@@ -192,11 +196,15 @@ class RRReader extends Thread {
         }
     }
 
-    ArrayList<ArrayList<RRPod>> RetrievePods() {
+    ArrayList<ArrayList<RRPod>> retrievePods() {
+
         ArrayList<ArrayList<RRPod>> masterlist = new ArrayList<>();
+
         masterlist.add(allpods);
         masterlist.add(archivepods);
+
         return masterlist;
+
     }
 
 }

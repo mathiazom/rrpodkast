@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_height="match_parent"
+<android.support.constraint.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="wrap_content"
     android:layout_width="match_parent"
     android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:padding="0dp">
+    android:padding="0dp"
+    android:layout_marginBottom="2dp">
 
     <LinearLayout
         android:id="@+id/month_divider_cont"
@@ -13,7 +14,10 @@
         android:orientation="vertical" android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#eeeeee"
-        android:visibility="gone">
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
             android:textAlignment="center"
@@ -25,48 +29,67 @@
 
     </LinearLayout>
 
-    <android.support.constraint.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/podcastViewContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/podcastViewContent"
-        android:padding="0dp">
+        android:background="@color/colorPrimary"
+        android:paddingStart="30dp"
+        android:paddingEnd="0dp"
+        android:paddingTop="17dp"
+        android:paddingBottom="17dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/month_divider_cont">
 
         <TextView
-            xmlns:android="http://schemas.android.com/apk/res/android"
-            android:orientation="vertical"
+            android:id="@+id/podItemTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:text="Mon. DD. Month 0000"
             android:textColor="#eee"
             android:textSize="17sp"
-            android:padding="10dp"
-            android:paddingStart="15dp"
-            android:paddingEnd="75dp"
-            android:layout_margin="20dp"
-            android:id="@+id/podText"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
         </TextView>
 
         <TextView
-            android:visibility="gone"
+            android:id="@+id/podItemDuration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/new_pod_mark"
-            android:layout_margin="0dp"
-            android:padding="3dp"
-            android:paddingStart="10dp"
-            android:paddingEnd="20dp"
-            android:background="@color/myPodcasts"
-            android:textColor="@color/app_white"
-            android:layout_gravity="center"
+            android:layout_marginTop="5dp"
+            android:orientation="vertical"
+            android:text="00 min"
+            android:textColor="#b7b7b7"
+            android:textSize="12sp"
+            android:paddingStart="0dp"
+            android:paddingEnd="28dp"
+            app:layout_constraintTop_toBottomOf="@id/podItemTitle"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:id="@+id/new_pod_mark"
+            app:layout_constraintStart_toStartOf="parent">
+
+        </TextView>
+
+        <TextView
+            android:id="@+id/podItemNewMark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="0dp"
             android:layout_marginEnd="8dp"
-            app:layout_constraintRight_toRightOf="parent" />
+            android:background="@color/myPodcasts"
+            android:padding="3dp"
+            android:paddingEnd="20dp"
+            android:paddingStart="10dp"
+            android:text="@string/new_pod_mark"
+            android:textColor="@color/app_white"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
     </android.support.constraint.ConstraintLayout>
 
-</LinearLayout>
+</android.support.constraint.ConstraintLayout>

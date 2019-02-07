@@ -2,7 +2,7 @@
 
 <android.support.constraint.ConstraintLayout    android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimaryDark"
+    android:background="@color/colorPrimary"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
@@ -28,7 +28,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="10dp"
-                android:text="AllPodsFragment"
+                android:text="@string/filter_title_all"
                 android:textColor="#eee"
                 android:textSize="19sp"
                 app:layout_constraintStart_toStartOf="parent"
@@ -107,10 +107,14 @@
 
     </android.support.v7.widget.Toolbar>
 
-    <android.support.constraint.ConstraintLayout
+    <LinearLayout
         android:id="@+id/drawerMainContent"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:orientation="vertical"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -213,16 +217,14 @@
         </LinearLayout>
 
         <!-- POD LIST -->
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/podsRecycler"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        <ListView
+            android:id="@+id/podListView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp">
 
-    </android.support.constraint.ConstraintLayout>
+        </ListView>
+
+    </LinearLayout>
 
 
 

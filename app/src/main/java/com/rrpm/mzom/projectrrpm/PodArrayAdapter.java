@@ -38,7 +38,7 @@ class PodArrayAdapter extends ArrayAdapter<RRPod> {
             convertView = inflater.inflate(R.layout.template_podkast, parent, false);
         }
 
-        TextView tv = (TextView) convertView.findViewById(R.id.podText);
+        TextView tv = (TextView) convertView.findViewById(R.id.podItemTitle);
         tv.setText(pod.getTitle());
 
         LinearLayout mdc = (LinearLayout) convertView.findViewById(R.id.month_divider_cont);
@@ -78,9 +78,9 @@ class PodArrayAdapter extends ArrayAdapter<RRPod> {
 
         // MARK AS NEW IF NOT OLDER THAN 2 DAYS AND NOT LISTENED TO NOR DOWNLOADED
         if(timeSince <= 172800000 && !pod.getListenedToState() && !pod.getDownloadState()){
-            content.findViewById(R.id.new_pod_mark).setVisibility(View.VISIBLE);
+            content.findViewById(R.id.podItemNewMark).setVisibility(View.VISIBLE);
         }else{
-            content.findViewById(R.id.new_pod_mark).setVisibility(View.GONE);
+            content.findViewById(R.id.podItemNewMark).setVisibility(View.GONE);
         }
 
         return convertView;

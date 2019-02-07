@@ -75,7 +75,7 @@ public class PodListFragment extends android.support.v4.app.Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         setRetainInstance(true);
-        view = inflater.inflate(R.layout.fragment_podlist_all, null);
+        view = inflater.inflate(R.layout.fragment_podlist_all_old, null);
         return view;
     }
 

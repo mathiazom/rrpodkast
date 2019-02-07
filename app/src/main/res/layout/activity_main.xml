@@ -7,10 +7,6 @@
     android:background="@color/colorPrimary"
     tools:context="com.rrpm.mzom.projectrrpm.MainActivity">
 
-    <FrameLayout
-        android:id="@+id/temp_frame"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"></FrameLayout>
 
     <android.support.v4.widget.DrawerLayout
         android:id="@+id/drawer_layout"
@@ -175,8 +171,9 @@
             <!-- Main Fragment Frame -->
             <FrameLayout
                 android:id="@+id/frame_podlist"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="0dp"
+                android:background="@color/colorAccent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
