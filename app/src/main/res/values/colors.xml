@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#212121</color>
+    <color name="colorPrimaryDark">#101010</color>
+    <color name="colorAccent">#b71c1c</color>
+    <color name="myPodcasts">#b71c1c</color>
+
+    <color name="offline">#bf360c</color>
+
+    <color name="downloaded">#b71c1c</color>
+    <color name="downloaded_dark">#6b1010</color>
+    <color name="streamable">#212121</color>
+    <color name="listened">#484848</color>
+
+    <color name="transparent">#00000000</color>
+
+    <color name="podplayer_bg">#212121</color>
+
+    <color name="dark_blur">#cc000000</color>
+
+    <color name="app_white">#eee</color>
+</resources>

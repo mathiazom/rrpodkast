@@ -1,0 +1,82 @@
+<resources>
+    <string name="app_name">RRPodkast</string>
+    <string-array name="DrawerArray">
+        <item>Alle podkaster</item>
+        <item>Høydepunkter</item>
+        <item>Nedlastede podkaster</item>
+        <item>Tilfeldig podkast</item>
+        <item>Facebook-side</item>
+        <!-- <item>Live nettspiller</item> -->
+        <item>Innstillinger</item>
+        <item>Om appen</item>
+    </string-array>
+
+    <string name="about_app">Om appen</string>
+    <string name="about_app_disclaimer">
+        Denne appen er ikke laget i sammarbeid med NRK. Appen er basert på NRKs RSS-feed og ment for RR-lyttere på jakt etter gode gamle RR-podkaster.
+    </string>
+    <string name="about_app_version">Versjon: 1.3.0</string>
+    <string name="action_filter">Filtrer</string>
+    <string name="action_filter_ext">Filtrer podkaster</string>
+    <string name="action_close">Lukk</string>
+    <string name="action_play_random_pod">Spill tilfeldig podkast</string>
+    <string name="filter_title_all">Alle podkaster</string>
+
+    <string name="filter_not_listened_to">Ikke lyttet til</string>
+
+    <string name="result_num_suffix">som passer søket ditt</string>
+
+    <string name="no_result_msg">Ingen resultater for søket</string>
+    <string name="no_result_msg_offline">Ingen nedlastede podkaster</string>
+
+    <string name="no_pod">Ingen podkaster</string>
+    <string name="no_pod_selected">Ingen podkast er valgt</string>
+
+    <string name="connect">Koble til</string>
+    <string name="downloading">Laster ned …</string>
+
+    <string name="new_pod_mark">NY</string>
+
+    <string name="random_select_no_result">Kunne ikke finne tilfeldig podkast som passer, sjekk filter-innstillinger</string>
+
+    <string-array name="months">
+        <item>Januar</item>
+        <item>Februar</item>
+        <item>Mars</item>
+        <item>April</item>
+        <item>Mai</item>
+        <item>Juni</item>
+        <item>Juli</item>
+        <item>August</item>
+        <item>September</item>
+        <item>Oktober</item>
+        <item>November</item>
+        <item>Desember</item>
+    </string-array>
+
+
+    <!-- SETTINGS STRINGS -->
+    <string name="random_pod_section">Tilfeldige podkaster</string>
+    <string name="random_select_setting_name">Velg fra</string>
+    <string name="random_select_setting_title">Velg filter for tilfeldige podkaster</string>
+
+    <string-array name="random_select_from_array">
+        <item>Alle</item>
+        <item>Ikke lyttet til</item>
+        <item>Lyttet til</item>
+        <item>Ikke lastet ned</item>
+        <item>Lastet ned</item>
+    </string-array>
+
+    <string name="filter_pod_section">Filtrer podkaster</string>
+    <string name="filter_select_setting_name">"Ikke lyttet til"-filter</string>
+    <string name="filter_select_setting_title">""Ikke lyttet til"-filter</string>
+
+    <string-array name="activated_or_not">
+        <item>Aktivert</item>
+        <item>Deaktivert</item>
+    </string-array>
+
+    <string name="space_usage_title">Bruk av plass på enheten:</string>
+
+</resources>

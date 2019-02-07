@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "897552501435",
+    "firebase_url": "https://rrpodkast.firebaseio.com",
+    "project_id": "rrpodkast",
+    "storage_bucket": "rrpodkast.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:897552501435:android:b8cf4e0e357dd202",
+        "android_client_info": {
+          "package_name": "com.rrpm.mzom.projectrrpm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "897552501435-u0bje8al5ospm3lu6ei6061ljs3evm7c.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDTFGgoiDjTVEq98EXDMNi9NgW-UH7BKoQ"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
