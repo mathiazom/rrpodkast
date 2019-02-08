@@ -459,9 +459,9 @@ public class MainActivity extends AppCompatActivity
                 ArrayList<RRPod> registered_offlinepods = new Gson().fromJson(json, new TypeToken<ArrayList<RRPod>>() {
                 }.getType());
                 offlinePods = new ArrayList<>();
-                final String dir = Environment.getExternalStoragePublicDirectory("RR-Podkaster") + File.separator;
+                final File dir = new File(getFilesDir(),"RR-Podkaster");
                 for (RRPod pod : registered_offlinepods) {
-                    if (new File(dir + pod.getTitle()).exists()) {
+                    if (new File(dir + File.separator + pod.getTitle()).exists()) {
                         offlinePods.add(pod);
                     }
                 }
@@ -486,11 +486,11 @@ public class MainActivity extends AppCompatActivity
 
         // STORING OFFLINE PODS FOR OFFLINE USE
         final ArrayList<RRPod> offlinepods = new ArrayList<>();
-        final String dir = Environment.getExternalStoragePublicDirectory("RR-Podkaster") + File.separator;
+        final File dir = new File(getFilesDir(),"RR-Podkaster");
 
         for(ArrayList<RRPod> podlist : podLists){
             for (RRPod pod:podlist){
-                if (new File(dir + pod.getTitle()).exists()) {
+                if (new File(dir + File.separator + pod.getTitle()).exists()) {
                     offlinepods.add(pod);
                 }
             }
@@ -628,12 +628,12 @@ public class MainActivity extends AppCompatActivity
                             public void onClick(DialogInterface dialog, int which) {
                                 int deleteCount = 0;
                                 final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(context);
-                                String dir = Environment.getExternalStoragePublicDirectory("RR-Podkaster") + File.separator;
+                                final File dir = new File(getFilesDir(),"RR-Podkaster");
                                 for (RRPod pod : pods) {
                                     if (!pod.getDownloadState()) {
                                         continue;
                                     }
-                                    File file = new File(dir + pod.getTitle());
+                                    File file = new File(dir + File.separator + pod.getTitle());
                                     if (file.delete()) {
                                         deleteCount++;
 
@@ -1025,9 +1025,12 @@ public class MainActivity extends AppCompatActivity
 
         float spaceUsage = 0;
         int podnum = 0;
+
+        final File dir = new File(getFilesDir(),"RR-Podkaster");
+
         for(int p = 0;p<allpods.size();p++){
             if(allpods.get(p).getDownloadState()) {
-                spaceUsage += Environment.getExternalStoragePublicDirectory("RR-Podkaster" + File.separator + allpods.get(p).getTitle()).length() / Math.pow(1024, 2);
+                spaceUsage += new File( dir + File.separator + allpods.get(p).getTitle()).length() / Math.pow(1024, 2);
                 podnum++;
             }
         }

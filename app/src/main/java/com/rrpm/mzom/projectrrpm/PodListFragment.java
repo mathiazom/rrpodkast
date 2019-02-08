@@ -75,7 +75,7 @@ public class PodListFragment extends android.support.v4.app.Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         setRetainInstance(true);
-        view = inflater.inflate(R.layout.fragment_podlist_all_old, null);
+        view = inflater.inflate(R.layout.podlist_fragment, container, false).findViewById(R.id.drawerMainContent);
         return view;
     }
 
@@ -101,7 +101,7 @@ public class PodListFragment extends android.support.v4.app.Fragment {
                 break;
         }
 
-        podListFragmentListener.onPodBuild(podListMode);
+        podListFragmentListener.OnPodBuild(podListMode);
 
     }
 
@@ -142,19 +142,19 @@ public class PodListFragment extends android.support.v4.app.Fragment {
         mMonth = month;
         mYear = year;
 
-        /*if (!isOnline()) {
+        if (!isOnline()) {
             final TextView offline_msg = (TextView) view.findViewById(R.id.offline_msg_text);
             offline_msg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (isOnline()) podListFragmentListener.onPodBuild(podListMode);
+                    if (isOnline()) podListFragmentListener.OnPodBuild(podListMode);
                 }
             });
             final LinearLayout placeholder = (LinearLayout) view.findViewById(R.id.connection_msg_placeholder);
             placeholder.setVisibility(View.VISIBLE);
 
             final LinearLayout subcont = (LinearLayout) view.findViewById(R.id.connection_msg_subplaceholder);
-                subcont.setAlpha(0);
+            subcont.setAlpha(0);
             subcont.animate().setDuration(500).alpha(1).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
@@ -165,7 +165,7 @@ public class PodListFragment extends android.support.v4.app.Fragment {
             podListMode = OFFLINE_ONLY_PODCASTS;
         } else {
             view.findViewById(R.id.connection_msg_placeholder).setVisibility(View.GONE);
-        }*/
+        }
 
         int curr_mo = -1;
         int curr_ye = -1;
@@ -268,15 +268,15 @@ public class PodListFragment extends android.support.v4.app.Fragment {
                             content.setBackgroundResource(R.color.streamable);
                         }
                         if (selectedPods.size() == 0) {
-                            podListFragmentListener.onDisableSelectionMode();
+                            podListFragmentListener.OnDisableSelectionMode();
                         } else {
-                            podListFragmentListener.onEnableSelectionMode();
+                            podListFragmentListener.OnEnableSelectionMode();
                         }
                     }
                     selectedTitleUpdate();
                     return;
                 }
-                podListFragmentListener.onPlayOrStreamPod(pods[position]);
+                podListFragmentListener.OnPlayOrStreamPod(pods[position]);
 
 
             }
@@ -324,7 +324,7 @@ public class PodListFragment extends android.support.v4.app.Fragment {
         listView.setSelectionFromTop(index, top);
 
         // BUILD FINISHED
-        podListFragmentListener.onPodcastViewsBuilt(validPods.size());
+        podListFragmentListener.OnPodcastViewsBuilt(validPods.size());
     }
 
     private String addZero(int i){
@@ -334,9 +334,9 @@ public class PodListFragment extends android.support.v4.app.Fragment {
 
     void selectedTitleUpdate(){
         if (selectedPods.size() == 0) {
-            podListFragmentListener.onDisableSelectionMode();
+            podListFragmentListener.OnDisableSelectionMode();
         } else {
-            podListFragmentListener.onEnableSelectionMode();
+            podListFragmentListener.OnEnableSelectionMode();
         }
     }
 
@@ -360,17 +360,17 @@ public class PodListFragment extends android.support.v4.app.Fragment {
 
     // INTERFACE
     interface PodListFragmentListener {
-        void onPlayOrStreamPod(RRPod pod);
+        void OnPlayOrStreamPod(RRPod pod);
 
-        void onPodcastViewsBuilt(int validpods);
+        void OnPodcastViewsBuilt(int validpods);
 
-        void onPodBuild(int podListMode);
+        void OnPodBuild(int podListMode);
 
         void toolbarTextChange(String title);
 
-        void onEnableSelectionMode();
+        void OnEnableSelectionMode();
 
-        void onDisableSelectionMode();
+        void OnDisableSelectionMode();
     }
 
     // MISC
