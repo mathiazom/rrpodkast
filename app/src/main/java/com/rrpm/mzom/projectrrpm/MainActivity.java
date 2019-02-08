@@ -1,7 +1,6 @@
 package com.rrpm.mzom.projectrrpm;
 
 import android.Manifest;
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -26,18 +25,17 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.Switch;
 import android.widget.TextView;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -50,6 +48,8 @@ public class MainActivity extends AppCompatActivity
         SettingsFragment.SettingsFragmentListener,
         AboutFragment.AboutFragmentListener,
         RandomPodFragment.RandomPodFragmentListener{
+
+    private static final String TAG = "RRP-MainActivity";
 
     // PODLIST MODE CONSTANTS
     private static final int ALL_PODCASTS = 0;
@@ -125,7 +125,12 @@ public class MainActivity extends AppCompatActivity
                 podListFragment = (PodListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "PodListFragment");
             }
             else {
-                podListFragment = PodListFragment.newInstance(ALL_PODCASTS);
+                if(!isOnline()){
+                    podListFragment = PodListFragment.newInstance(OFFLINE_ONLY_PODCASTS);
+                }else{
+                    podListFragment = PodListFragment.newInstance(ALL_PODCASTS);
+                }
+
             }
             // INSERT POD LIST
             getSupportFragmentManager().beginTransaction().replace(R.id.main_content_frame, podListFragment).commit();
@@ -163,9 +168,9 @@ public class MainActivity extends AppCompatActivity
 
 
         //PRINT ALL SHAREDPREFERENCES
-        /*Map<String, ?> allPrefs = PreferenceManager.getDefaultSharedPreferences(this).getAll();
+        Map<String, ?> allPrefs = PreferenceManager.getDefaultSharedPreferences(this).getAll();
         Set<String> set = allPrefs.keySet();
-        for(String s : set) System.out.println( s + "<" + allPrefs.get(s).getClass().getSimpleName() +"> =  " + allPrefs.get(s).toString());*/
+        for(String s : set) System.out.println( s + "<" + allPrefs.get(s).getClass().getSimpleName() +"> =  " + allPrefs.get(s).toString());
 
     }
 
@@ -322,7 +327,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void OnBuildWithDate(int day, int month, int year,boolean notListenedTo) {
-        podListFragment.BuildPodcastViewsWithDate(this, day, month, year,notListenedTo);
+        podListFragment.buildPodcastViewsWithDate(this, day, month, year,notListenedTo);
     }
 
     //UPDATE SEARCH RESULT TEXT AFTER PODLIST FILTERING
@@ -382,15 +387,19 @@ public class MainActivity extends AppCompatActivity
 
         final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(this);
 
+        final String json = podkastStorage.getString("offlinepods", null);
+        Log.i(TAG,"Download json: " + json);
+
         if(podListMode == OFFLINE_ONLY_PODCASTS){
-            final String json = podkastStorage.getString("offlinepods", null);
+            /*final String json = podkastStorage.getString("offlinepods", null);
+            Log.i(TAG,"Download json: " + json);*/
             if (json != null) {
                 ArrayList<RRPod> registered_offlinepods = new Gson().fromJson(json, new TypeToken<ArrayList<RRPod>>() {
                 }.getType());
                 offlinelist = new ArrayList<>();
-                final String dir = Environment.getExternalStoragePublicDirectory("RR-Podkaster") + File.separator;
+                final File dir = new File(getFilesDir(),"RR-Podkaster");
                 for (RRPod pod : registered_offlinepods) {
-                    if (new File(dir + pod.getTitle()).exists()) {
+                    if (new File(dir + File.separator + pod.getTitle()).exists()) {
                         offlinelist.add(pod);
                     }
                 }
@@ -413,11 +422,12 @@ public class MainActivity extends AppCompatActivity
 
         // STORING OFFLINE PODS FOR OFFLINE USE
         final ArrayList<RRPod> offlinepods = new ArrayList<>();
-        final String dir = Environment.getExternalStoragePublicDirectory("RR-Podkaster") + File.separator;
+
+        final File dir = new File(getFilesDir(),"RR-Podkaster");
 
         for(ArrayList<RRPod> podlist : masterlist){
             for (RRPod pod:podlist){
-                if (new File(dir + pod.getTitle()).exists()) {
+                if (new File(dir + File.separator + pod.getTitle()).exists()) {
                     offlinepods.add(pod);
                 }
             }
@@ -438,7 +448,7 @@ public class MainActivity extends AppCompatActivity
         if (!podListFragment.isAdded()) {
             getSupportFragmentManager().beginTransaction().replace(R.id.main_content_frame, podListFragment).commit();
         }else{
-            podListFragment.BuildPodcastViews(this);
+            podListFragment.buildPodcastViews(this);
         }
     }
 
@@ -477,17 +487,18 @@ public class MainActivity extends AppCompatActivity
                     case 1:
                         // SAVE AS OFFLINE POD
                         final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(context);
-                        final String json = podkastStorage.getString("offlinepods", null);
-                        if (json != null) {
-                            ArrayList<RRPod> offlinepods = new Gson().fromJson(json, new TypeToken<ArrayList<RRPod>>() {
-                            }.getType());
-                            offlinepods.add(pod);
-                            podkastStorage.edit().putString("offlinepods", new Gson().toJson(offlinepods)).apply();
+                        String json = podkastStorage.getString("offlinepods", null);
+                        if(json == null){
+                            json = "";
                         }
+
+                        final ArrayList<RRPod> offlinepods = new Gson().fromJson(json, new TypeToken<ArrayList<RRPod>>() {}.getType());
+                        offlinepods.add(pod);
+                        podkastStorage.edit().putString("offlinepods", new Gson().toJson(offlinepods)).apply();
 
                         // UPDATE AFTER DOWNLOAD
                         downloading = false;
-                        podListFragment.BuildPodcastViews(context);
+                        podListFragment.buildPodcastViews(context);
 
                         downloadQueue.remove(pod);
                         if (downloadQueue.isEmpty()) {
@@ -552,12 +563,12 @@ public class MainActivity extends AppCompatActivity
                             public void onClick(DialogInterface dialog, int which) {
                                 int deleteCount = 0;
                                 final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(context);
-                                String dir = Environment.getExternalStoragePublicDirectory("RR-Podkaster") + File.separator;
+                                final File dir = new File(getFilesDir(),"RR-Podkaster");
                                 for (RRPod pod : pods) {
                                     if (!pod.getDownloadState()) {
                                         continue;
                                     }
-                                    File file = new File(dir + pod.getTitle());
+                                    File file = new File(dir + File.separator + pod.getTitle());
                                     if (file.delete()) {
                                         deleteCount++;
 
@@ -579,7 +590,7 @@ public class MainActivity extends AppCompatActivity
                                         podkastStorage.edit().putString("offlinepods", json).apply();
 
                                         // Refresh podlist
-                                        podListFragment.BuildPodcastViews(context);
+                                        podListFragment.buildPodcastViews(context);
                                     }
                                 }
 
@@ -658,7 +669,7 @@ public class MainActivity extends AppCompatActivity
         findViewById(R.id.clear_selected_pods).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                podListFragment.BuildPodcastViews(ctx);
+                podListFragment.buildPodcastViews(ctx);
             }
         });
     }
@@ -801,7 +812,7 @@ public class MainActivity extends AppCompatActivity
                                     }
                                 }
                                 // REFRESH PODLIST
-                                podListFragment.BuildPodcastViews(ctx);
+                                podListFragment.buildPodcastViews(ctx);
                             }
                         })
                 .create()
@@ -812,14 +823,14 @@ public class MainActivity extends AppCompatActivity
         pod.setListenedToState(true);
         final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(this);
         podkastStorage.edit().putBoolean(pod.getTitle() + "(LT)", true).apply();
-        podListFragment.BuildPodcastViews(this);
+        podListFragment.buildPodcastViews(this);
     }
 
     private void unMarkAsListenedTo(RRPod pod) {
         pod.setListenedToState(false);
         final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(this);
         podkastStorage.edit().putBoolean(pod.getTitle() + "(LT)", false).apply();
-        podListFragment.BuildPodcastViews(this);
+        podListFragment.buildPodcastViews(this);
     }
 
     private void startTopLoading(){
@@ -947,9 +958,12 @@ public class MainActivity extends AppCompatActivity
 
         float spaceUsage = 0;
         int podnum = 0;
+
+        final File dir = new File(getFilesDir(),"RR-Podkaster");
+
         for(int p = 0;p<allpods.size();p++){
             if(allpods.get(p).getDownloadState()) {
-                spaceUsage += Environment.getExternalStoragePublicDirectory("RR-Podkaster" + File.separator + allpods.get(p).getTitle()).length() / Math.pow(1024, 2);
+                spaceUsage += new File(dir + File.separator + allpods.get(p).getTitle()).length() / Math.pow(1024, 2);
                 podnum++;
             }
         }
