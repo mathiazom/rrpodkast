@@ -7,8 +7,8 @@ android {
         applicationId "com.rrpm.mzom.projectrrpm"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 4
-        versionName "1.3.1"
+        versionCode 6
+        versionName "1.4.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
