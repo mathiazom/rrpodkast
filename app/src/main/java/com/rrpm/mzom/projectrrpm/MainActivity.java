@@ -418,7 +418,7 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-        masterlist = rrr.RetrievePods();
+        masterlist = rrr.retrievePods();
 
         // STORING OFFLINE PODS FOR OFFLINE USE
         final ArrayList<RRPod> offlinepods = new ArrayList<>();
@@ -429,6 +429,7 @@ public class MainActivity extends AppCompatActivity
             for (RRPod pod:podlist){
                 if (new File(dir + File.separator + pod.getTitle()).exists()) {
                     offlinepods.add(pod);
+
                 }
             }
         }
