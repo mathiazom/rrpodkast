@@ -7,9 +7,9 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.constraint.ConstraintLayout;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,8 +29,6 @@ import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
  */
 
 public class PodListFragment extends android.support.v4.app.Fragment {
-
-    private static final String TAG = "RRP-PodListFragment";
 
     // PODLIST MODE CONSTANTS
     private static final int ALL_PODCASTS = 0;
@@ -77,7 +75,7 @@ public class PodListFragment extends android.support.v4.app.Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         setRetainInstance(true);
-        view = inflater.inflate(R.layout.podlist_fragment, container, false).findViewById(R.id.drawerMainContent);
+        view = inflater.inflate(R.layout.fragment_podlist_all_old, null);
         return view;
     }
 
@@ -103,7 +101,7 @@ public class PodListFragment extends android.support.v4.app.Fragment {
                 break;
         }
 
-        podListFragmentListener.OnPodBuild(podListMode);
+        podListFragmentListener.onPodBuild(podListMode);
 
     }
 
@@ -120,19 +118,19 @@ public class PodListFragment extends android.support.v4.app.Fragment {
     }
 
     // MAIN METHODS
-    void buildPodcastViews(final Context ctx) {
-        buildPodcastViewsWithDate(ctx, mDay, mMonth, mYear,false);
+    void BuildPodcastViews(final Context ctx) {
+        BuildPodcastViewsWithDate(ctx, mDay, mMonth, mYear,false);
     }
 
-    void buildPodcastViewsWithDate(final Context ctx, final int day, final int month, final int year){
-        buildPodcastViewsWithDate(ctx, day, month, year,false);
+    void BuildPodcastViewsWithDate(final Context ctx, final int day, final int month, final int year){
+        BuildPodcastViewsWithDate(ctx, day, month, year,false);
     }
 
-    void buildPodcastViewsListenedTo(final Context ctx){
-        buildPodcastViewsWithDate(ctx, mDay, mMonth, mYear,true);
+    void BuildPodcastViewsListenedTo(final Context ctx){
+        BuildPodcastViewsWithDate(ctx, mDay, mMonth, mYear,true);
     }
 
-    void buildPodcastViewsWithDate(final Context ctx, final int day, final int month, final int year, boolean notListenedTo) {
+    void BuildPodcastViewsWithDate(final Context ctx, final int day, final int month, final int year,boolean notListenedTo) {
 
         // SAVE SCROLLING POSITION
         final ListView listView = (ListView) view.findViewById(R.id.podListView);
@@ -144,12 +142,12 @@ public class PodListFragment extends android.support.v4.app.Fragment {
         mMonth = month;
         mYear = year;
 
-        if (!isOnline()) {
+        /*if (!isOnline()) {
             final TextView offline_msg = (TextView) view.findViewById(R.id.offline_msg_text);
             offline_msg.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (isOnline()) podListFragmentListener.OnPodBuild(podListMode);
+                    if (isOnline()) podListFragmentListener.onPodBuild(podListMode);
                 }
             });
             final LinearLayout placeholder = (LinearLayout) view.findViewById(R.id.connection_msg_placeholder);
@@ -167,7 +165,7 @@ public class PodListFragment extends android.support.v4.app.Fragment {
             podListMode = OFFLINE_ONLY_PODCASTS;
         } else {
             view.findViewById(R.id.connection_msg_placeholder).setVisibility(View.GONE);
-        }
+        }*/
 
         int curr_mo = -1;
         int curr_ye = -1;
@@ -180,11 +178,9 @@ public class PodListFragment extends android.support.v4.app.Fragment {
 
         final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(ctx);
 
-        final File dir = new File(getContext().getFilesDir(),"RR-Podkaster");
+        final String dir = Environment.getExternalStoragePublicDirectory("RR-Podkaster") + File.separator;
 
         selectedPods = new ArrayList<>();
-
-        Log.i(TAG,"Pods: " + allpods);
 
         for (RRPod currPod : allpods) {
 
@@ -192,11 +188,7 @@ public class PodListFragment extends android.support.v4.app.Fragment {
 
             String podName = currPod.getTitle();
 
-            final boolean downloaded = new File(dir + File.separator + podName).exists();
-
-            Log.i(TAG,"Pod downloaded: " + downloaded);
-
-            currPod.setDownloadedState(downloaded);
+            currPod.setDownloadedState(new File(dir + podName).exists());
 
             currPod.setListenedToState(podkastStorage.getBoolean(podName + "(LT)", false));
 
@@ -276,15 +268,15 @@ public class PodListFragment extends android.support.v4.app.Fragment {
                             content.setBackgroundResource(R.color.streamable);
                         }
                         if (selectedPods.size() == 0) {
-                            podListFragmentListener.OnDisableSelectionMode();
+                            podListFragmentListener.onDisableSelectionMode();
                         } else {
-                            podListFragmentListener.OnEnableSelectionMode();
+                            podListFragmentListener.onEnableSelectionMode();
                         }
                     }
                     selectedTitleUpdate();
                     return;
                 }
-                podListFragmentListener.OnPlayOrStreamPod(pods[position]);
+                podListFragmentListener.onPlayOrStreamPod(pods[position]);
 
 
             }
@@ -332,7 +324,7 @@ public class PodListFragment extends android.support.v4.app.Fragment {
         listView.setSelectionFromTop(index, top);
 
         // BUILD FINISHED
-        podListFragmentListener.OnPodcastViewsBuilt(validPods.size());
+        podListFragmentListener.onPodcastViewsBuilt(validPods.size());
     }
 
     private String addZero(int i){
@@ -342,9 +334,9 @@ public class PodListFragment extends android.support.v4.app.Fragment {
 
     void selectedTitleUpdate(){
         if (selectedPods.size() == 0) {
-            podListFragmentListener.OnDisableSelectionMode();
+            podListFragmentListener.onDisableSelectionMode();
         } else {
-            podListFragmentListener.OnEnableSelectionMode();
+            podListFragmentListener.onEnableSelectionMode();
         }
     }
 
@@ -368,17 +360,17 @@ public class PodListFragment extends android.support.v4.app.Fragment {
 
     // INTERFACE
     interface PodListFragmentListener {
-        void OnPlayOrStreamPod(RRPod pod);
+        void onPlayOrStreamPod(RRPod pod);
 
-        void OnPodcastViewsBuilt(int validpods);
+        void onPodcastViewsBuilt(int validpods);
 
-        void OnPodBuild(int podListMode);
+        void onPodBuild(int podListMode);
 
         void toolbarTextChange(String title);
 
-        void OnEnableSelectionMode();
+        void onEnableSelectionMode();
 
-        void OnDisableSelectionMode();
+        void onDisableSelectionMode();
     }
 
     // MISC

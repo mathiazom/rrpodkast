@@ -20,8 +20,6 @@ import java.net.URL;
 
 public class DownloadService extends IntentService {
 
-    private static final String TAG = "RRP-DownloadService";
-
     private static final int STATUS_RUNNING = 0;
     private static final int STATUS_FINISHED = 1;
     private static final int STATUS_ERROR = 2;
@@ -49,7 +47,7 @@ public class DownloadService extends IntentService {
 
         String url = intent.getStringExtra("url");
 
-        Log.i("RRP-Download",url);
+        Log.i("DOWNLOAD-RR",url);
 
         podName = intent.getStringExtra("podName");
 
@@ -63,7 +61,7 @@ public class DownloadService extends IntentService {
                 bundle.putString("path", uri.getPath());
                 receiver.send(STATUS_FINISHED, bundle);
             } catch (Exception e) {
-                Log.i("RRP-Download","Download error",e);
+                Log.i("DOWNLOAD-RR","Download error",e);
                 bundle.putString(Intent.EXTRA_TEXT, e.toString());
                 receiver.send(STATUS_ERROR, bundle);
             }
@@ -87,14 +85,7 @@ public class DownloadService extends IntentService {
 
         if (statusCode == 200) {
 
-            final File dir = new File(getFilesDir(),"RR-Podkaster");
-            if(!dir.exists()){
-                if(!dir.mkdir()) throw new DownloadException("Directory \"RR-Podkaster\" could not be created");
-            }
-
-            final File file = new File(dir,podName);
-
-            Log.i(TAG,"File exists: " + file.exists());
+            File file = new File(getApplicationContext().getFilesDir(),"RR-Podkaster" + File.separator + podName);
 
             inputStream = new BufferedInputStream(urlConnection.getInputStream());
             FileOutputStream f = new FileOutputStream(file);
@@ -121,11 +112,11 @@ public class DownloadService extends IntentService {
 
             Uri uri = Uri.fromFile(getFileStreamPath(podName));
 
-            Log.i("RRP-Download",String.valueOf(uri));
+            Log.i("DOWNLOAD-RR",String.valueOf(uri));
 
             return uri;
         } else {
-            throw new DownloadException("Failed to fetch data");
+            throw new DownloadException("Failed to fetch data!!");
         }
     }
 

@@ -7,10 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.Random;
 
 
 // FINDS AND PLAYS A PSEUDORANDOM POD FROM ARRAYLIST OF AVAILABLE PODS
@@ -45,19 +41,19 @@ public class RandomPodFragment extends android.support.v4.app.Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         setRetainInstance(true);
-        View view= inflater.inflate(R.layout.randompod_fragment,container,false);
+        View view= inflater.inflate(R.layout.fragment_randompod,container,false);
         final ImageView rpbtn = (ImageView) view.findViewById(R.id.random_pod_play_button);
         rpbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                randomPodFragmentListener.OnPlayRandomPod();
+                randomPodFragmentListener.onPlayRandomPod();
             }
         });
         return view;
     }
 
     interface RandomPodFragmentListener{
-        void OnPlayRandomPod();
+        void onPlayRandomPod();
         void toolbarTextChange(String title);
     }
 }
