@@ -38,7 +38,6 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity
 
         implements
-        PodListFragment.PodListFragmentListener,
         SearchFragment.SearchFragmentListener,
         SettingsFragment.SettingsFragmentListener,
         AboutFragment.AboutFragmentListener,
@@ -270,30 +269,6 @@ public class MainActivity extends AppCompatActivity
         outState.putParcelable("receiver", mReceiver);
     }
 
-    // INTERFACE OVERRIDES (FRAGMENTS)
-
-    @Override
-    public void onPlayOrStreamPod(RRPod pod) {
-
-        if (podPlayer == null) podPlayer = new PodPlayerFragment();
-
-        android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.frame_podplayer, podPlayer);
-        transaction.commit();
-
-        podPlayer.playOrStreamPod(pod);
-    }
-
-    public void onPlayOrStreamPod(RRPod pod, int progress) {
-        if (podPlayer == null) podPlayer = new PodPlayerFragment();
-
-        android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.frame_podplayer, podPlayer);
-        transaction.commit();
-
-        podPlayer.playOrStreamPod(pod,true,progress);
-    }
-
 
     private static final String SETTINGS_PREFS_NAME = "SettingsPreferences";
     private static final String RANDOM_SELECT_KEY = "RANDOM_SELECT_OPTION";
@@ -302,15 +277,15 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onPlayRandomPod() {
 
-        if(podLists == null){
+        /*if(podLists == null){
             loadPods(ALL_PODCASTS);
         }
 
-        /*if(random_pods.size() == podLists.get(0).size()){
+        *//*if(random_pods.size() == podLists.get(0).size()){
             Snackbar.make(findViewById(R.id.drawer_relative),getResources().getString(R.string.random_select_no_result),Snackbar.LENGTH_LONG).show();
             random_pods = new ArrayList<>();
             return;
-        }*/
+        }*//*
 
         ArrayList<RRPod> pods = podLists.get(ALL_PODCASTS);
 
@@ -354,37 +329,7 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        onPlayOrStreamPod(randomPod);
-    }
-
-    @Override
-    public void onPodBuild(int podListMode) {
-        if (searchFragment == null){
-            newFilter();
-        }
-
-        loadPodList(podListMode);
-        changeToolbarUI(ENABLED_FILTER_UI);
-
-        /*if(findViewById(R.id.search_frame).getVisibility() == View.VISIBLE){
-            changeToolbarUI(VISIBLE_FILTER_UI);
-        }else{
-            changeToolbarUI(INVISIBLE_FILTER_UI);
-        }
-
-        final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(this);
-
-        final String recent_pod_name = podkastStorage.getString("recent_pod_name",null);
-        final int recent_pod_progress = podkastStorage.getInt("recent_pod_progress",0);
-
-        if(recent_pod_name != null && recent_pod_progress != 0 && podLists != null){
-            for(RRPod _pod : podLists.get(ALL_PODCASTS)){
-                if(_pod.getTitle().equals(recent_pod_name)){
-                    podPlayer.nullifyMP();
-                    onPlayOrStreamPod(_pod,recent_pod_progress);
-                }
-            }
-        }*/
+        onPlayOrStreamPod(randomPod);*/
     }
 
     @Override
@@ -392,33 +337,10 @@ public class MainActivity extends AppCompatActivity
         podListFragment.BuildPodcastViewsWithDate(this, day, month, year,notListenedTo);
     }
 
-    //UPDATE SEARCH RESULT TEXT AFTER PODLIST FILTERING
-    @Override
-    public void onPodcastViewsBuilt(int validpods) {
-        if (searchFragment != null) searchFragment.viewResultStats(validpods);
-        stopTopLoading();
-    }
-
     @Override
     public void toolbarTextChange(String title) {
         TextView toolbarTextView = ((TextView) (findViewById(R.id.toolbar)).findViewById(R.id.toolbar_text));
         toolbarTextView.setText(title);
-    }
-
-    @Override
-    public void onEnableSelectionMode() {
-        /*changeToolbarUI(DISABLED_FILTER_UI,VISIBLE_SELECTION_UI);
-        findViewById(R.id.clear_selected_pods).setVisibility(View.VISIBLE);
-        findViewById(R.id.selection_actions).setVisibility(View.VISIBLE);*/
-    }
-
-    @Override
-    public void onDisableSelectionMode() {
-        /*if(findViewById(R.id.search_frame).getVisibility() == View.GONE){
-            changeToolbarUI(INVISIBLE_SELECTION_UI,ENABLED_FILTER_UI);
-        }
-        findViewById(R.id.clear_selected_pods).setVisibility(View.GONE);
-        findViewById(R.id.selection_actions).setVisibility(View.GONE);*/
     }
 
     @Override
@@ -1160,7 +1082,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onPlayPod(RRPod pod) {
 
-        onPlayOrStreamPod(pod);
+        if (podPlayer == null) podPlayer = new PodPlayerFragment();
+
+        android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.frame_podplayer, podPlayer);
+        transaction.commit();
+
+        podPlayer.playOrStreamPod(pod);
 
     }
 }
