@@ -8,9 +8,10 @@ import java.util.Date;
 class RRPod implements Parcelable {
 
     private final String title;
-    private final String desc;
+    private final String description;
     private final Date dateObj;
     private final String url;
+    private final String duration;
 
     private boolean isSelected;
 
@@ -19,11 +20,12 @@ class RRPod implements Parcelable {
     private boolean listenedTo;
 
     // DEFAULT CONSTRUCTOR
-    RRPod(String title,Date dateObj, String url, String desc) {
+    RRPod(String title, Date dateObj, String url, String description, String duration) {
         this.title = title;
         this.url = url;
         this.dateObj = dateObj;
-        this.desc = desc;
+        this.description = description;
+        this.duration = duration;
     }
 
     // PARCEL CONSTRUCTOR
@@ -32,7 +34,8 @@ class RRPod implements Parcelable {
         this.title = in.readString();
         this.url = in.readString();
         this.dateObj = new Date(in.readLong());
-        this.desc = in.readString();
+        this.description = in.readString();
+        this.duration = in.readString();
     }
 
     // GETTERS & SETTERS
@@ -44,8 +47,16 @@ class RRPod implements Parcelable {
         return this.title;
     }
 
+    String getDescription(){
+        return this.description;
+    }
+
     String getUrl() {
         return this.url;
+    }
+
+    String getDuration(){
+        return this.duration;
     }
 
     int getMonth() {
@@ -107,7 +118,8 @@ class RRPod implements Parcelable {
         dest.writeString(this.title);
         dest.writeString(this.url);
         dest.writeLong(this.dateObj.getTime());
-        dest.writeString(this.desc);
+        dest.writeString(this.description);
+        dest.writeString(this.duration);
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
