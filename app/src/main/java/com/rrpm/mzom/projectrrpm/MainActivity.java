@@ -16,6 +16,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -136,6 +137,7 @@ public class MainActivity extends AppCompatActivity
         DownloadStateReceiver mDownloadStateReceiver = new DownloadStateReceiver(new DownloadStateReceiver.DownloadStateReceiverListener() {
             @Override
             public void updateDownloadProgress(String podName, float progress) {
+                Log.i(TAG,"Progress: " + String.valueOf(progress));
                 updateInAppProgressBar((int)progress);
                 updateDownloadNotificationProgress(podName, (int)progress);
             }
@@ -389,7 +391,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBuildWithDate(int day, int month, int year, boolean notListenedTo) {
-        podListFragment.BuildPodcastViewsWithDate(this, day, month, year,notListenedTo);
+        podListFragment.buildPodcastViewsWithDate(this, day, month, year,notListenedTo);
     }
 
     //UPDATE SEARCH RESULT TEXT AFTER PODLIST FILTERING
@@ -453,15 +455,17 @@ public class MainActivity extends AppCompatActivity
 
         final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(this);
 
+        final String json = podkastStorage.getString("offlinepods", null);
+        Log.i(TAG,"Download json: " + json);
+
         if(podListMode == OFFLINE_ONLY_PODCASTS){
-            final String json = podkastStorage.getString("offlinepods", null);
             if (json != null) {
                 ArrayList<RRPod> registered_offlinepods = new Gson().fromJson(json, new TypeToken<ArrayList<RRPod>>() {
                 }.getType());
                 offlinePods = new ArrayList<>();
-                final String dir = Environment.getExternalStoragePublicDirectory("RR-Podkaster") + File.separator;
+                final File dir = new File(getFilesDir(),"RR-Podkaster");
                 for (RRPod pod : registered_offlinepods) {
-                    if (new File(dir + pod.getTitle()).exists()) {
+                    if (new File(dir + File.separator + pod.getTitle()).exists()) {
                         offlinePods.add(pod);
                     }
                 }
@@ -486,11 +490,11 @@ public class MainActivity extends AppCompatActivity
 
         // STORING OFFLINE PODS FOR OFFLINE USE
         final ArrayList<RRPod> offlinepods = new ArrayList<>();
-        final String dir = Environment.getExternalStoragePublicDirectory("RR-Podkaster") + File.separator;
+        final File dir = new File(getFilesDir(),"RR-Podkaster");
 
         for(ArrayList<RRPod> podlist : podLists){
             for (RRPod pod:podlist){
-                if (new File(dir + pod.getTitle()).exists()) {
+                if (new File(dir + File.separator +  pod.getTitle()).exists()) {
                     offlinepods.add(pod);
                 }
             }
@@ -511,7 +515,7 @@ public class MainActivity extends AppCompatActivity
         if (!podListFragment.isAdded()) {
             getSupportFragmentManager().beginTransaction().replace(R.id.frame_podlist, podListFragment).commit();
         }else{
-            podListFragment.BuildPodcastViews(this);
+            podListFragment.buildPodcastViews(this);
         }
     }
 
@@ -529,17 +533,18 @@ public class MainActivity extends AppCompatActivity
                     case 1:
                         // SAVE AS OFFLINE POD
                         final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(context);
-                        final String json = podkastStorage.getString("offlinepods", null);
-                        if (json != null) {
-                            ArrayList<RRPod> offlinepods = new Gson().fromJson(json, new TypeToken<ArrayList<RRPod>>() {
-                            }.getType());
-                            offlinepods.add(pod);
-                            podkastStorage.edit().putString("offlinepods", new Gson().toJson(offlinepods)).apply();
+                        String json = podkastStorage.getString("offlinepods", null);
+                        if(json == null){
+                            json = "";
                         }
+
+                        final ArrayList<RRPod> offlinepods = new Gson().fromJson(json, new TypeToken<ArrayList<RRPod>>() {}.getType());
+                        offlinepods.add(pod);
+                        podkastStorage.edit().putString("offlinepods", new Gson().toJson(offlinepods)).apply();
 
                         // UPDATE AFTER DOWNLOAD
                         downloading = false;
-                        podListFragment.BuildPodcastViews(context);
+                        podListFragment.buildPodcastViews(context);
 
                         downloadQueue.remove(pod);
                         if (downloadQueue.isEmpty()) {
@@ -548,7 +553,7 @@ public class MainActivity extends AppCompatActivity
                         }
 
                         // DOWNLOAD NEXT IN QUEUE
-                        downloadPod(downloadQueue.get(0), context);
+                        downloadPod(downloadQueue.get(0));
                         downloadQueue.remove(downloadQueue.get(0));
                         break;
                     case 0:
@@ -587,11 +592,32 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
-    private void downloadPod(final RRPod pod, final Context context) {
-
-        if (!verifyPermissions()) return;
+    private void downloadPod(final RRPod pod) {
 
         downloadQueue.add(pod);
+
+        if (!verifyPermissions()){
+
+            Log.i(TAG,"Permissions not granted");
+
+            Snackbar snackbar = Snackbar
+                    .make(findViewById(R.id.drawer_layout), "Trenger tillatelse til å laste ned",Snackbar.LENGTH_LONG)
+                    .setAction("GI TILLATELSE", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST);
+                        }
+                    })
+                    .setActionTextColor(getResources().getColor(R.color.app_white));
+            snackbar.show();
+
+
+            podListFragment.stopLoadingScreen();
+
+            return;
+        }
+
+        Log.i(TAG,"Downloading " + pod);
 
         if (downloading) {
             podListFragment.setLoadingText("Laster ned " + String.valueOf(downloadQueue.size() + 1) + " podkaster");
@@ -601,7 +627,7 @@ public class MainActivity extends AppCompatActivity
 
         /* Starting Download Service */
         mReceiver = new DownloadResultReceiver(new Handler());
-        mReceiver.setReceiver(getDownloadReceiver(pod, context));
+        mReceiver.setReceiver(getDownloadReceiver(pod, this));
         Intent intent = new Intent(Intent.ACTION_SYNC, null, this, DownloadService.class);
 
         intent.putExtra("url", pod.getUrl()).putExtra("podName", pod.getTitle()).putExtra("receiver", mReceiver).putExtra("requestId", 101);
@@ -628,12 +654,12 @@ public class MainActivity extends AppCompatActivity
                             public void onClick(DialogInterface dialog, int which) {
                                 int deleteCount = 0;
                                 final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(context);
-                                String dir = Environment.getExternalStoragePublicDirectory("RR-Podkaster") + File.separator;
+                                final File dir = new File(getFilesDir(),"RR-Podkaster");
                                 for (RRPod pod : pods) {
                                     if (!pod.getDownloadState()) {
                                         continue;
                                     }
-                                    File file = new File(dir + pod.getTitle());
+                                    File file = new File(dir + File.separator + pod.getTitle());
                                     if (file.delete()) {
                                         deleteCount++;
 
@@ -655,7 +681,7 @@ public class MainActivity extends AppCompatActivity
                                         podkastStorage.edit().putString("offlinepods", json).apply();
 
                                         // Refresh podlist
-                                        podListFragment.BuildPodcastViews(context);
+                                        podListFragment.buildPodcastViews(context);
                                     }
                                 }
 
@@ -734,7 +760,7 @@ public class MainActivity extends AppCompatActivity
         findViewById(R.id.clear_selected_pods).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                podListFragment.BuildPodcastViews(ctx);
+                podListFragment.buildPodcastViews(ctx);
             }
         });
     }*/
@@ -853,7 +879,7 @@ public class MainActivity extends AppCompatActivity
         String title = pods.size() > 1 ? (pods.size() + " podkaster valgt") : pods.get(0).getTitle();
 
         final Context ctx = this;
-        new AlertDialog.Builder(ctx)
+        new AlertDialog.Builder(this)
                 .setTitle(title)
                 .setItems(listitems,
                         new DialogInterface.OnClickListener() {
@@ -862,7 +888,11 @@ public class MainActivity extends AppCompatActivity
                                 // CLICKED DOWNLOAD
                                 if(which == DOWNLOAD_LABEL){
                                     for (RRPod currPod : pods) {
-                                        if (!currPod.getDownloadState()) downloadPod(currPod,ctx);
+                                        if (!currPod.getDownloadState()){
+                                            downloadPod(currPod);
+                                        }else{
+                                            Log.i(TAG,"Already downloaded");
+                                        }
                                     }
                                 }
                                 // CLICKED DELETE
@@ -877,7 +907,7 @@ public class MainActivity extends AppCompatActivity
                                     }
                                 }
                                 // REFRESH PODLIST
-                                podListFragment.BuildPodcastViews(ctx);
+                                podListFragment.buildPodcastViews(ctx);
                             }
                         })
                 .create()
@@ -888,14 +918,14 @@ public class MainActivity extends AppCompatActivity
         pod.setListenedToState(true);
         final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(this);
         podkastStorage.edit().putBoolean(pod.getTitle() + "(LT)", true).apply();
-        podListFragment.BuildPodcastViews(this);
+        podListFragment.buildPodcastViews(this);
     }
 
     private void unMarkAsListenedTo(RRPod pod) {
         pod.setListenedToState(false);
         final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(this);
         podkastStorage.edit().putBoolean(pod.getTitle() + "(LT)", false).apply();
-        podListFragment.BuildPodcastViews(this);
+        podListFragment.buildPodcastViews(this);
     }
 
     private void startTopLoading(){
@@ -1025,9 +1055,12 @@ public class MainActivity extends AppCompatActivity
 
         float spaceUsage = 0;
         int podnum = 0;
+
+        final File dir = new File(getFilesDir(),"RR-Podkaster");
+
         for(int p = 0;p<allpods.size();p++){
             if(allpods.get(p).getDownloadState()) {
-                spaceUsage += Environment.getExternalStoragePublicDirectory("RR-Podkaster" + File.separator + allpods.get(p).getTitle()).length() / Math.pow(1024, 2);
+                spaceUsage += new File(dir + File.separator + allpods.get(p).getTitle()).length() / Math.pow(1024, 2);
                 podnum++;
             }
         }
@@ -1136,10 +1169,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void getPermissions() {
+
+        Log.i(TAG, String.valueOf(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)));
+
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                 || ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST);
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[]{
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS_REQUEST);
+
             ALL_PERMISSIONS_GRANTED = false;
             return;
         }
@@ -1149,8 +1190,21 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
-        if (requestCode == MY_PERMISSIONS_REQUEST)
+
+        if (requestCode == MY_PERMISSIONS_REQUEST){
             ALL_PERMISSIONS_GRANTED = (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED);
+
+            if(ALL_PERMISSIONS_GRANTED && downloadQueue.size() > 0){
+
+                // Continue download
+                final RRPod recentDownload = downloadQueue.get(downloadQueue.size()-1);
+                downloadQueue.remove(recentDownload);
+                downloadPod(recentDownload);
+
+            }
+
+
+        }
     }
 
 

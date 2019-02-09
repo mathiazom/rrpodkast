@@ -38,19 +38,19 @@ class PodArrayAdapter extends ArrayAdapter<RRPod> {
             convertView = inflater.inflate(R.layout.template_podkast, parent, false);
         }
 
-        TextView tv = (TextView) convertView.findViewById(R.id.podItemTitle);
+        TextView tv = convertView.findViewById(R.id.podItemTitle);
         tv.setText(pod.getTitle());
 
-        LinearLayout mdc = (LinearLayout) convertView.findViewById(R.id.month_divider_cont);
+        LinearLayout mdc = convertView.findViewById(R.id.month_divider_cont);
         if (pod.getMonthEnd()) {
-            TextView mdtv = (TextView) mdc.findViewById(R.id.month_divider_text);
+            TextView mdtv = mdc.findViewById(R.id.month_divider_text);
             mdtv.setText(måneder[pod.getMonth()] + " " + pod.getYear());
             mdc.setVisibility(View.VISIBLE);
         } else {
             mdc.setVisibility(View.GONE);
         }
 
-        ConstraintLayout content = (ConstraintLayout) convertView.findViewById(R.id.podcastViewContent);
+        ConstraintLayout content = convertView.findViewById(R.id.podcastViewContent);
 
         if(pod.getSelectionState()){
             if(pod.getDownloadState()){

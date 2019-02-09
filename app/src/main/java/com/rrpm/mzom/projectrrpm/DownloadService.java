@@ -20,6 +20,8 @@ import java.net.URL;
 
 public class DownloadService extends IntentService {
 
+    private static final String TAG = "RRP-DownloadService";
+
     private static final int STATUS_RUNNING = 0;
     private static final int STATUS_FINISHED = 1;
     private static final int STATUS_ERROR = 2;
@@ -47,7 +49,7 @@ public class DownloadService extends IntentService {
 
         String url = intent.getStringExtra("url");
 
-        Log.i("DOWNLOAD-RR",url);
+        Log.i("RRP-Download",url);
 
         podName = intent.getStringExtra("podName");
 
@@ -61,7 +63,7 @@ public class DownloadService extends IntentService {
                 bundle.putString("path", uri.getPath());
                 receiver.send(STATUS_FINISHED, bundle);
             } catch (Exception e) {
-                Log.i("DOWNLOAD-RR","Download error",e);
+                Log.i("RRP-Download","Download error",e);
                 bundle.putString(Intent.EXTRA_TEXT, e.toString());
                 receiver.send(STATUS_ERROR, bundle);
             }
@@ -85,7 +87,14 @@ public class DownloadService extends IntentService {
 
         if (statusCode == 200) {
 
-            File file = new File(getApplicationContext().getFilesDir(),"RR-Podkaster" + File.separator + podName);
+            final File dir = new File(getFilesDir(),"RR-Podkaster");
+            if(!dir.exists()){
+                if(!dir.mkdir()) throw new DownloadException("Directory \"RR-Podkaster\" could not be created");
+            }
+
+            final File file = new File(dir,podName);
+
+            Log.i(TAG,"File exists: " + file.exists());
 
             inputStream = new BufferedInputStream(urlConnection.getInputStream());
             FileOutputStream f = new FileOutputStream(file);
@@ -98,11 +107,6 @@ public class DownloadService extends IntentService {
                 f.write(buffer, 0, len);
                 progress = ((float) file.length() / (float) urlConnection.getContentLength()) * 100;
 
-                // UPDATE PROGRESS BAR
-                //Bundle bundle = new Bundle();
-                //bundle.putFloat("progress", progress);
-                //receiver.send(PROGRESS_UPDATE, bundle);
-
                 Intent progressIntent = new Intent(Constants.BROADCAST_ACTION).putExtra(Constants.EXTENDED_DATA_STATUS,progress).putExtra("DOWNLOADING_PODKAST_NAME",podName);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(progressIntent);
 
@@ -112,11 +116,11 @@ public class DownloadService extends IntentService {
 
             Uri uri = Uri.fromFile(getFileStreamPath(podName));
 
-            Log.i("DOWNLOAD-RR",String.valueOf(uri));
+            Log.i("RRP-Download",String.valueOf(uri));
 
             return uri;
         } else {
-            throw new DownloadException("Failed to fetch data!!");
+            throw new DownloadException("Failed to fetch data");
         }
     }
 

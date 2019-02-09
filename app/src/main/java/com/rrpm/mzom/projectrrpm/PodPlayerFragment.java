@@ -364,7 +364,9 @@ public class PodPlayerFragment extends android.support.v4.app.Fragment {
 
         mp = new MediaPlayer();
 
-        Uri fileRealUri = Uri.fromFile(Environment.getExternalStoragePublicDirectory("RR-Podkaster" + File.separator + pod.getTitle()));
+        final File dir = new File(getContext().getFilesDir(),"RR-Podkaster");
+
+        Uri fileRealUri = Uri.fromFile(new File(dir + File.separator + pod.getTitle()));
 
         try {
             mp.setDataSource(getContext(), fileRealUri);
