@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.Calendar;
+import java.util.Date;
 
 class PodArrayAdapter extends ArrayAdapter<RRPod> {
 
@@ -35,11 +36,14 @@ class PodArrayAdapter extends ArrayAdapter<RRPod> {
 
         if (convertView == null) {
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = inflater.inflate(R.layout.template_podkast, parent, false);
+            convertView = inflater.inflate(R.layout.podkast_template, parent, false);
         }
 
-        TextView tv = (TextView) convertView.findViewById(R.id.podItemTitle);
-        tv.setText(pod.getTitle());
+        final TextView itemTitle = convertView.findViewById(R.id.podItemTitle);
+        itemTitle.setText(pod.getTitle());
+
+        final TextView itemDuration = convertView.findViewById(R.id.podItemDuration);
+        itemDuration.setText(pod.getDescription());
 
         LinearLayout mdc = (LinearLayout) convertView.findViewById(R.id.month_divider_cont);
         if (pod.getMonthEnd()) {

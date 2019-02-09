@@ -1,6 +1,7 @@
 package com.rrpm.mzom.projectrrpm;
 
 import android.content.Context;
+import android.util.Log;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -26,6 +27,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 class RRReader extends Thread {
 
+    private static final String TAG = "RRP-RRReader";
+
     private Context context;
 
     private ArrayList<ArrayList<RRPod>> masterlist;
@@ -44,6 +47,7 @@ class RRReader extends Thread {
     }
 
     private void hovedPodkast(){
+
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         DocumentBuilder db = null;
         try {
@@ -57,17 +61,25 @@ class RRReader extends Thread {
         Document doc = null;
 
         try {
-            doc = db.parse(new URL("http://podkast.nrk.no/program/radioresepsjonen.rss").openStream());
+            doc = db.parse(new URL("https://podkast.nrk.no/program/radioresepsjonen.rss").openStream());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        if (doc == null) return;
+        if (doc == null){
+
+            Log.e(TAG,"Pod doc was null");
+            return;
+        }
 
         doc.getDocumentElement().normalize();
         NodeList nList = doc.getElementsByTagName("item");
 
-        if (nList == null) return;
+        if (nList == null){
+
+            Log.e(TAG,"Item list was null");
+            return;
+        }
 
         if(!(masterlist != null && masterlist.get(0).size() > 0 && nList.getLength() == masterlist.get(0).size())){
             for (int temp = 0; temp < nList.getLength(); temp++) {
@@ -115,6 +127,8 @@ class RRReader extends Thread {
                         allpods.add(newpod);
                     }
                 }
+
+
             }
         }
     }
@@ -134,7 +148,7 @@ class RRReader extends Thread {
         Document doc = null;
 
         try {
-            doc = db.parse(new URL("http://podkast.nrk.no/program/radioresepsjonens_arkivpodkast.rss").openStream());
+            doc = db.parse(new URL("https://podkast.nrk.no/program/radioresepsjonens_arkivpodkast.rss").openStream());
         } catch (Exception e) {
             e.printStackTrace();
         }

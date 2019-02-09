@@ -94,7 +94,7 @@ public class DownloadService extends IntentService {
 
             final File file = new File(dir,podName);
 
-            Log.i(TAG,"File exists: " + file.exists());
+            //Log.i(TAG,"File exists: " + file.exists());
 
             inputStream = new BufferedInputStream(urlConnection.getInputStream());
             FileOutputStream f = new FileOutputStream(file);

@@ -52,7 +52,7 @@ public class SearchFragment extends android.support.v4.app.Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         setRetainInstance(true);
-        view = inflater.inflate(R.layout.fragment_search, container, false).findViewById(R.id.search_fragment);
+        view = inflater.inflate(R.layout.search_fragment, container, false).findViewById(R.id.search_fragment);
         spinnerYear = (Spinner) view.findViewById(R.id.spinnerYear);
         spinnerMonth = (Spinner) view.findViewById(R.id.spinnerMonth);
         spinnerDay = (Spinner) view.findViewById(R.id.spinnerDay);
@@ -62,9 +62,9 @@ public class SearchFragment extends android.support.v4.app.Fragment {
     }
 
     interface SearchFragmentListener {
-        void onBuildWithDate(int day, int month, int year, boolean onlyListenedTo);
+        void OnBuildWithDate(int day, int month, int year, boolean onlyListenedTo);
 
-        void onHidePodFilter();
+        void OnHidePodFilter();
     }
 
     private void getSelectedTime(Spinner spinnerDay, Spinner spinnerMonth, Spinner spinnerYear) {
@@ -80,7 +80,7 @@ public class SearchFragment extends android.support.v4.app.Fragment {
             currMonth = _currMonth;
             currYear = _currYear;
             notListenedTo = notListenedToSwitch.isChecked();
-            searchFragmentListener.onBuildWithDate(currDay, currMonth, currYear,notListenedTo);
+            searchFragmentListener.OnBuildWithDate(currDay, currMonth, currYear,notListenedTo);
         } else viewResultStats(numOfPods);
 
     }
@@ -177,7 +177,7 @@ public class SearchFragment extends android.support.v4.app.Fragment {
         view.findViewById(R.id.pod_filter_result_cont).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                searchFragmentListener.onHidePodFilter();
+                searchFragmentListener.OnHidePodFilter();
             }
         });
     }

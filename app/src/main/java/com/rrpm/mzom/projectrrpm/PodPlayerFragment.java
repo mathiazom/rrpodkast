@@ -8,8 +8,11 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.ClipDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -18,19 +21,23 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.PowerManager;
 import android.preference.PreferenceManager;
+import android.provider.OpenableColumns;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -88,7 +95,7 @@ public class PodPlayerFragment extends android.support.v4.app.Fragment {
             } else if (fromNotification) {
                 final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 int storedProgress = podkastStorage.getInt("recent_pod_progress", 0);
-                playOrStreamPod(pod, true, storedProgress);
+                PlayOrStreamPod(pod, true, storedProgress);
                 final LinearLayout podPlayerLayout = (LinearLayout) view.findViewById(R.id.podplayer_fragment);
                 final TextView podPlayerElapsed = (TextView) podPlayerLayout.findViewById(R.id.podplayer_elapsed);
                 podPlayerElapsed.setText(getCleanTime(storedProgress));
@@ -335,18 +342,18 @@ public class PodPlayerFragment extends android.support.v4.app.Fragment {
         podPlayerLayout.setBackgroundResource(R.color.podplayer_bg);
     }
 
-    public void playOrStreamPod(RRPod pod) {
-        playOrStreamPod(pod,false,0);
+    public void PlayOrStreamPod(RRPod pod) {
+        PlayOrStreamPod(pod,false,0);
     }
 
-    public void playOrStreamPod(RRPod pod, boolean onlyPrepare, int msec) {
-        if (pod.getDownloadState()) playPod(pod, onlyPrepare, msec);
-        else streamPod(pod, onlyPrepare, msec);
+    public void PlayOrStreamPod(RRPod pod, boolean onlyPrepare, int msec) {
+        if (pod.getDownloadState()) PlayPod(pod, onlyPrepare, msec);
+        else StreamPod(pod, onlyPrepare, msec);
     }
 
 
 
-    public void playPod(RRPod _pod, boolean onlyPrepare, int msec) {
+    public void PlayPod(RRPod _pod, boolean onlyPrepare, int msec) {
 
         if (pod == _pod && !onlyPrepare) {
             return;
@@ -361,7 +368,9 @@ public class PodPlayerFragment extends android.support.v4.app.Fragment {
 
         mp = new MediaPlayer();
 
-        Uri fileRealUri = Uri.fromFile(Environment.getExternalStoragePublicDirectory("RR-Podkaster" + File.separator + pod.getTitle()));
+        final File dir = new File(getContext().getFilesDir(),"RR-Podkaster");
+
+        Uri fileRealUri = Uri.fromFile(new File(dir + File.separator + pod.getTitle()));
 
         try {
             mp.setDataSource(getContext(), fileRealUri);
@@ -385,7 +394,7 @@ public class PodPlayerFragment extends android.support.v4.app.Fragment {
         viewPodPlayer();
     }
 
-    public void streamPod(final RRPod _pod, final boolean onlyPrepare, final int msec) {
+    public void StreamPod(final RRPod _pod, final boolean onlyPrepare, final int msec) {
 
         if (pod == _pod && !onlyPrepare) {
             return;
@@ -449,7 +458,7 @@ public class PodPlayerFragment extends android.support.v4.app.Fragment {
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
                         StopPod();
-                        playOrStreamPod(pod);
+                        PlayOrStreamPod(pod);
                     }
                 });
         builder.setNegativeButton("Nei", new DialogInterface.OnClickListener() {

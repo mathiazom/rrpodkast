@@ -7,9 +7,9 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.constraint.ConstraintLayout;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +29,8 @@ import me.zhanghai.android.materialprogressbar.MaterialProgressBar;
  */
 
 public class PodListFragment extends android.support.v4.app.Fragment {
+
+    private static final String TAG = "RRP-PodListFragment";
 
     // PODLIST MODE CONSTANTS
     private static final int ALL_PODCASTS = 0;
@@ -118,19 +120,19 @@ public class PodListFragment extends android.support.v4.app.Fragment {
     }
 
     // MAIN METHODS
-    void BuildPodcastViews(final Context ctx) {
-        BuildPodcastViewsWithDate(ctx, mDay, mMonth, mYear,false);
+    void buildPodcastViews(final Context ctx) {
+        buildPodcastViewsWithDate(ctx, mDay, mMonth, mYear,false);
     }
 
-    void BuildPodcastViewsWithDate(final Context ctx, final int day, final int month, final int year){
-        BuildPodcastViewsWithDate(ctx, day, month, year,false);
+    void buildPodcastViewsWithDate(final Context ctx, final int day, final int month, final int year){
+        buildPodcastViewsWithDate(ctx, day, month, year,false);
     }
 
-    void BuildPodcastViewsListenedTo(final Context ctx){
-        BuildPodcastViewsWithDate(ctx, mDay, mMonth, mYear,true);
+    void buildPodcastViewsListenedTo(final Context ctx){
+        buildPodcastViewsWithDate(ctx, mDay, mMonth, mYear,true);
     }
 
-    void BuildPodcastViewsWithDate(final Context ctx, final int day, final int month, final int year,boolean notListenedTo) {
+    void buildPodcastViewsWithDate(final Context ctx, final int day, final int month, final int year, boolean notListenedTo) {
 
         // SAVE SCROLLING POSITION
         final ListView listView = (ListView) view.findViewById(R.id.podListView);
@@ -154,7 +156,7 @@ public class PodListFragment extends android.support.v4.app.Fragment {
             placeholder.setVisibility(View.VISIBLE);
 
             final LinearLayout subcont = (LinearLayout) view.findViewById(R.id.connection_msg_subplaceholder);
-            subcont.setAlpha(0);
+                subcont.setAlpha(0);
             subcont.animate().setDuration(500).alpha(1).setListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationEnd(Animator animation) {
@@ -178,7 +180,7 @@ public class PodListFragment extends android.support.v4.app.Fragment {
 
         final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(ctx);
 
-        final String dir = Environment.getExternalStoragePublicDirectory("RR-Podkaster") + File.separator;
+        final File dir = new File(getContext().getFilesDir(),"RR-Podkaster");
 
         selectedPods = new ArrayList<>();
 
@@ -188,7 +190,9 @@ public class PodListFragment extends android.support.v4.app.Fragment {
 
             String podName = currPod.getTitle();
 
-            currPod.setDownloadedState(new File(dir + podName).exists());
+            final boolean downloaded = new File(dir + File.separator + podName).exists();
+
+            currPod.setDownloadedState(downloaded);
 
             currPod.setListenedToState(podkastStorage.getBoolean(podName + "(LT)", false));
 
