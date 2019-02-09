@@ -107,6 +107,11 @@ public class DownloadService extends IntentService {
                 f.write(buffer, 0, len);
                 progress = ((float) file.length() / (float) urlConnection.getContentLength()) * 100;
 
+                // UPDATE PROGRESS BAR
+                //Bundle bundle = new Bundle();
+                //bundle.putFloat("progress", progress);
+                //receiver.send(PROGRESS_UPDATE, bundle);
+
                 Intent progressIntent = new Intent(Constants.BROADCAST_ACTION).putExtra(Constants.EXTENDED_DATA_STATUS,progress).putExtra("DOWNLOADING_PODKAST_NAME",podName);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(progressIntent);
 
