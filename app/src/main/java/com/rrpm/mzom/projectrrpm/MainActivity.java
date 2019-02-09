@@ -472,9 +472,9 @@ public class MainActivity extends AppCompatActivity
                         public void onClick(View view) {
                             ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST);
                         }
-                    });
+                    })
+                    .setActionTextColor(getResources().getColor(R.color.app_white));
             snackbar.show();
-
 
 
             podListFragment.stopLoadingScreen();

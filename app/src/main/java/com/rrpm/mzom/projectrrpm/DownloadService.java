@@ -94,7 +94,7 @@ public class DownloadService extends IntentService {
 
             final File file = new File(dir,podName);
 
-            //Log.i(TAG,"File exists: " + file.exists());
+            Log.i(TAG,"File exists: " + file.exists());
 
             inputStream = new BufferedInputStream(urlConnection.getInputStream());
             FileOutputStream f = new FileOutputStream(file);
@@ -106,11 +106,6 @@ public class DownloadService extends IntentService {
             while ((len = inputStream.read(buffer)) > 0) {
                 f.write(buffer, 0, len);
                 progress = ((float) file.length() / (float) urlConnection.getContentLength()) * 100;
-
-                // UPDATE PROGRESS BAR
-                //Bundle bundle = new Bundle();
-                //bundle.putFloat("progress", progress);
-                //receiver.send(PROGRESS_UPDATE, bundle);
 
                 Intent progressIntent = new Intent(Constants.BROADCAST_ACTION).putExtra(Constants.EXTENDED_DATA_STATUS,progress).putExtra("DOWNLOADING_PODKAST_NAME",podName);
                 LocalBroadcastManager.getInstance(this).sendBroadcast(progressIntent);
