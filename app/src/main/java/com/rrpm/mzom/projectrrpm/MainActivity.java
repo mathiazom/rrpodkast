@@ -94,7 +94,6 @@ public class MainActivity extends AppCompatActivity
         // Insert PodPlayerFragment
         getSupportFragmentManager().beginTransaction().replace(R.id.frame_podplayer, podPlayerFragment).commit();
 
-
         restoreDownloadReceiverAndQueue(savedInstanceState);
 
         initDrawer();
@@ -157,7 +156,7 @@ public class MainActivity extends AppCompatActivity
 
     private void loadPodsFragment(@NonNull final ArrayList<RRPod> pods){
 
-        podsFragment = PodsFragment.newInstance(pods,podPlayerFragment.getPodPlayer());
+        podsFragment = PodsFragment.newInstance(pods,podPlayer);
 
         // INSERT POD LIST
         getSupportFragmentManager().beginTransaction().replace(R.id.frame_main, podsFragment).commit();
@@ -1119,6 +1118,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onPodStarted(@NonNull RRPod pod, int from) {
+
+        podPlayerFragment.onPodStarted(pod,from);
 
     }
 

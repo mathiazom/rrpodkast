@@ -81,8 +81,6 @@ class RRReader extends Thread {
             return;
         }
 
-        Log.i(TAG,"Passed");
-
         if(!(masterlist != null && masterlist.get(0).size() > 0 && nList.getLength() == masterlist.get(0).size())){
             for (int temp = 0; temp < nList.getLength(); temp++) {
                 Node nNode = null;

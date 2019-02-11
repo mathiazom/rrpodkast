@@ -11,6 +11,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -85,6 +86,8 @@ public class PodPlayerFragment extends Fragment implements PodPlayer.PodPlayerLi
 
 
     void viewPodPlayer(@Nullable final RRPod pod, @NonNull final Context context) throws NullPointerException {
+
+        Log.i(TAG,"Pod is null: " + String.valueOf(pod == null));
 
         final String podName = (pod == null) ? "" : pod.getTitle();
 
@@ -273,14 +276,18 @@ public class PodPlayerFragment extends Fragment implements PodPlayer.PodPlayerLi
     @Override
     public void onPodStarted(@NonNull RRPod pod, int from) {
 
-        displayProgressTimer.cancel();
-        displayProgressTimer.purge();
+        if(displayProgressTimer != null){
+            displayProgressTimer.cancel();
+            displayProgressTimer.purge();
+        }
 
-        saveProgressAndListenedToStateTimer.cancel();
-        displayProgressTimer.purge();
+        if(saveProgressAndListenedToStateTimer != null){
+            saveProgressAndListenedToStateTimer.cancel();
+            displayProgressTimer.purge();
+        }
 
         if(getContext() == null){
-            throw new NullPointerException("Context was not available when new pod started");
+            throw new NullPointerException("Context was not available when new pod was started");
         }
 
         viewPodPlayer(pod,getContext());

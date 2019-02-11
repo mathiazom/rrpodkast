@@ -50,8 +50,6 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
     @Override
     public void onBindViewHolder(final PodViewHolder holder, final int position) {
 
-        Log.i(TAG,"Bind ViewHolder");
-
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
