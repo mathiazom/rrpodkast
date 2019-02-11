@@ -88,8 +88,8 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
             super(podItemLayout);
 
             this.podItemLayout = podItemLayout;
-            this.podItemTitle = (TextView) podItemLayout.findViewById(R.id.podItemTitle);
-            this.podItemDuration = (TextView) podItemLayout.findViewById(R.id.podItemDuration);
+            this.podItemTitle = podItemLayout.findViewById(R.id.podItemTitle);
+            this.podItemDuration = podItemLayout.findViewById(R.id.podItemDuration);
 
         }
 
