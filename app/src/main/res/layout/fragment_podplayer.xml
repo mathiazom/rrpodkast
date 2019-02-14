@@ -7,10 +7,10 @@
     android:layout_gravity="center"
     android:background="@color/podplayer_bg"
     android:orientation="vertical"
-    android:paddingBottom="10dp"
+    android:paddingBottom="20dp"
     android:paddingLeft="20dp"
     android:paddingRight="20dp"
-    android:paddingTop="20dp"
+    android:paddingTop="10dp"
     android:visibility="gone">
 
     <ProgressBar
@@ -60,8 +60,7 @@
         android:id="@+id/player_main_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:paddingBottom="10dp">
+        android:orientation="vertical">
 
 
         <TableLayout
@@ -96,8 +95,7 @@
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="10dp">
+            android:layout_height="wrap_content">
 
             <ImageButton
                 android:id="@+id/podplayer_skipback"
@@ -136,11 +134,16 @@
                 app:layout_constraintLeft_toRightOf="@+id/podplayer_maincontrol"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <ProgressBar
+            <!--<ProgressBar
                 android:id="@+id/podplayer_loading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:visibility="gone" />
+                android:visibility="gone"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"/>-->
+
         </android.support.constraint.ConstraintLayout>
 
     </LinearLayout>

@@ -2,6 +2,8 @@ package com.rrpm.mzom.projectrrpm;
 
 import android.content.Context;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
+import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -20,7 +22,7 @@ class PodPlayer {
 
     private static final String TAG = "RRP-PodPlayer";
 
-    private final Context context;
+    @NonNull private final Context context;
 
     // Currently loaded podcast episode
     private RRPod pod;
@@ -28,11 +30,13 @@ class PodPlayer {
 
     private static MediaPlayerWrapper mp;
 
-    private PodPlayerListener listener;
+    @NonNull private PodPlayerLock podPlayerLock;
+
+    @NonNull private PodPlayerListener listener;
 
     interface PodPlayerListener{
 
-        void onCurrentPositionChanged(int position, @NonNull final RRPod pod);
+        void onCurrentPositionChanged(int position);
 
         void onPodStarted(@NonNull final RRPod pod, int from);
 
@@ -43,14 +47,13 @@ class PodPlayer {
     }
 
 
-    PodPlayer(Context context, PodPlayerListener listener){
+    PodPlayer(@NonNull final Context context, @NonNull final PodPlayerListener listener){
+
         this.context = context;
+
         this.listener = listener;
-    }
 
-
-    private void setPod(@NonNull final RRPod pod){
-        this.pod = pod;
+        this.podPlayerLock = new PodPlayerLock(context);
     }
 
     @Nullable
@@ -117,7 +120,7 @@ class PodPlayer {
 
     void playPod(@NonNull final RRPod pod, int from){
 
-        setPod(pod);
+        this.pod = pod;
 
         if(mp != null){
 
@@ -180,6 +183,12 @@ class PodPlayer {
         // Start playback
         mp.start();
 
+        podPlayerLock.activateWakeLock(mp);
+
+        if(pod.getDownloadState()){
+            podPlayerLock.activateWifiLock();
+        }
+
         listener.onPodStarted(pod,from);
 
     }
@@ -187,6 +196,75 @@ class PodPlayer {
     void playPod(@NonNull final RRPod pod){
 
         playPod(pod,0);
+
+    }
+
+    void pauseOrContinuePod(){
+
+        if(mp == null){
+
+            Log.e(TAG,"MediaPlayer was null, cannot pause/continue playback");
+
+            return;
+        }
+
+        if(!mp.isPlaying()){
+
+            continuePod();
+
+            return;
+        }
+
+        pausePod();
+
+    }
+
+    private void pausePod(){
+
+        mp.pause();
+
+        if(!pod.getDownloadState()){
+            podPlayerLock.disableWifiLock();
+        }
+
+        listener.onPlayerPaused();
+
+    }
+
+    private void continuePod(){
+
+        if(mp.isPlaying()){
+
+            Log.e(TAG,"Will not pause if pod is playing");
+
+            return;
+        }
+
+        if(pod == null){
+
+            Log.e(TAG,"Tried to continue playing when no pod was loaded");
+
+            return;
+
+        }
+
+        if(mp == null){
+
+            Log.e(TAG,"Tried to continue playing when MediaPlayer was null");
+
+            return;
+
+        }
+
+        mp.start();
+
+        podPlayerLock.activateWakeLock(mp);
+
+        if(!pod.getDownloadState()){
+            podPlayerLock.activateWifiLock();
+        }
+
+        listener.onPlayerContinued();
 
     }
 
@@ -261,71 +339,8 @@ class PodPlayer {
 
         mp.seekTo(timestamp);
 
-        listener.onCurrentPositionChanged(timestamp,pod);
+        listener.onCurrentPositionChanged(timestamp);
 
     }
-
-
-    void pauseOrContinuePod(){
-
-        if(mp == null){
-
-            Log.e(TAG,"MediaPlayer was null, cannot pause/continue playback");
-
-            return;
-        }
-
-        if(!mp.isPlaying()){
-
-            continuePod();
-
-            return;
-        }
-
-        pausePod();
-
-    }
-
-    private void pausePod(){
-
-        mp.pause();
-
-        listener.onPlayerPaused();
-
-    }
-
-    private void continuePod(){
-
-        if(mp.isPlaying()){
-
-            Log.e(TAG,"Will not pause if pod is playing");
-
-            return;
-        }
-
-        if(pod == null){
-
-            Log.e(TAG,"Tried to continue playing when no pod was loaded");
-
-            return;
-
-        }
-
-        if(mp == null){
-
-            Log.e(TAG,"Tried to continue playing when MediaPlayer was null");
-
-            return;
-
-        }
-
-        mp.pause();
-
-        listener.onPlayerContinued();
-
-    }
-
-
-
 
 }

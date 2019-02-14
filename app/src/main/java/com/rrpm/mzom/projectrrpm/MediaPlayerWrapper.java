@@ -14,6 +14,14 @@ import java.net.HttpCookie;
 import java.util.List;
 import java.util.Map;
 
+
+/**
+ *
+ *  Wrapper class to keep track of the MediaPlayer state according to the documentation's State Diagram:
+ *  https://developer.android.com/reference/android/media/MediaPlayer
+ *
+ */
+
 public class MediaPlayerWrapper extends MediaPlayer {
 
     enum MediaPlayerState{

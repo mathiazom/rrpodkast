@@ -4,6 +4,7 @@ package com.rrpm.mzom.projectrrpm;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,7 +15,7 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 
-public class PodsFragment extends android.support.v4.app.Fragment  {
+public class PodsFragment extends android.support.v4.app.Fragment implements PodPlayer.PodPlayerListener {
 
     private View view;
 
@@ -24,8 +25,6 @@ public class PodsFragment extends android.support.v4.app.Fragment  {
 
     private PodsFragmentListener podsFragmentListener;
 
-    private PodPlayer podPlayer;
-
 
     interface PodsFragmentListener{
 
@@ -34,12 +33,11 @@ public class PodsFragment extends android.support.v4.app.Fragment  {
     }
 
 
-    public static PodsFragment newInstance(ArrayList<RRPod> pods, PodPlayer podPlayer) {
+    public static PodsFragment newInstance(ArrayList<RRPod> pods) {
 
         final PodsFragment fragment = new PodsFragment();
 
         fragment.pods = pods;
-        fragment.podPlayer = podPlayer;
 
         return fragment;
     }
@@ -89,7 +87,7 @@ public class PodsFragment extends android.support.v4.app.Fragment  {
 
     }
 
-    public void ConfirmChangePod(final RRPod pod) {
+    /*public void ConfirmChangePod(final RRPod pod) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setCancelable(true);
         builder.setTitle("Er du sikker?");
@@ -111,6 +109,26 @@ public class PodsFragment extends android.support.v4.app.Fragment  {
 
         AlertDialog dialog = builder.create();
         dialog.show();
+
+    }*/
+
+    @Override
+    public void onCurrentPositionChanged(int position) {
+
+    }
+
+    @Override
+    public void onPodStarted(@NonNull RRPod pod, int from) {
+
+    }
+
+    @Override
+    public void onPlayerPaused() {
+
+    }
+
+    @Override
+    public void onPlayerContinued() {
 
     }
 }

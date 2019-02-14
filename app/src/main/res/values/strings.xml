@@ -78,5 +78,7 @@
     </string-array>
 
     <string name="space_usage_title">Bruk av plass på enheten:</string>
+    <string name="SPKey_recent_pod_progress">recent_pod_progress</string>
+    <string name="SP_listened_to_marker">(LT)</string>
 
 </resources>

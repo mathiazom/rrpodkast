@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity
 
     private void registerDownloadStateReceiver(){
 
-        // DOWNLOAD BROADCAST RECEIVER AND INTENTFILTER
+        // Download broadcast receiver and intentfilter
         IntentFilter progressIntentFilter = new IntentFilter(DownloadService.Constants.BROADCAST_ACTION);
         DownloadStateReceiver mDownloadStateReceiver = new DownloadStateReceiver(new DownloadStateReceiver.DownloadStateReceiverListener() {
             @Override
@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity
 
     private void loadPodsFragment(@NonNull final ArrayList<RRPod> pods){
 
-        podsFragment = PodsFragment.newInstance(pods,podPlayer);
+        podsFragment = PodsFragment.newInstance(pods);
 
         // INSERT POD LIST
         getSupportFragmentManager().beginTransaction().replace(R.id.frame_main, podsFragment).commit();
@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity
 
     private boolean restorePodPlayerFragment(Bundle savedInstanceState){
 
-        // RESTORE POD PLAYER FRAGMENT (IF AVAILABLE)
+        // Restore pod player fragment (if available)
         if (savedInstanceState != null && getSupportFragmentManager().getFragment(savedInstanceState, "PodPlayerFragment") != null) {
 
             podPlayerFragment = (PodPlayerFragment) getSupportFragmentManager().getFragment(savedInstanceState, "PodPlayerFragment");
@@ -1112,7 +1112,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onCurrentPositionChanged(int position, @NonNull RRPod pod) {
+    public void onCurrentPositionChanged(int position) {
 
     }
 
@@ -1120,16 +1120,21 @@ public class MainActivity extends AppCompatActivity
     public void onPodStarted(@NonNull RRPod pod, int from) {
 
         podPlayerFragment.onPodStarted(pod,from);
+        podsFragment.onPodStarted(pod,from);
 
     }
 
     @Override
     public void onPlayerPaused() {
 
+        podPlayerFragment.onPlayerPaused();
+
     }
 
     @Override
     public void onPlayerContinued() {
+
+        podPlayerFragment.onPlayerContinued();
 
     }
 }
