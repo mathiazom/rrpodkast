@@ -16,8 +16,8 @@ class RRPod implements Parcelable {
     private boolean isSelected;
 
     private boolean monthEnd;
-    private boolean downloaded;
-    private boolean listenedTo;
+    private boolean isDownloaded;
+    private boolean isListenedTo;
 
     // DEFAULT CONSTRUCTOR
     RRPod(String title, Date dateObj, String url, String description, String duration) {
@@ -92,19 +92,19 @@ class RRPod implements Parcelable {
     }
 
     void setDownloadedState(boolean downloaded) {
-        this.downloaded = downloaded;
+        this.isDownloaded = downloaded;
     }
 
-    boolean getDownloadState() {
-        return this.downloaded;
+    boolean isDownloaded() {
+        return this.isDownloaded;
     }
 
     void setListenedToState(boolean listenedTo) {
-        this.listenedTo = listenedTo;
+        this.isListenedTo = listenedTo;
     }
 
-    boolean getListenedToState() {
-        return this.listenedTo;
+    boolean isListenedTo() {
+        return this.isListenedTo;
     }
 
     // DESCRIBING CLASS FOR PARCEL
@@ -123,6 +123,7 @@ class RRPod implements Parcelable {
     }
 
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+
         public RRPod createFromParcel(Parcel in) {
             return new RRPod(in);
         }

@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = "RRP-MainActivity";
 
-    // PODLIST MODE CONSTANTS
     private static final int ALL_PODCASTS = 0;
     private static final int OFFLINE_ONLY_PODCASTS = 1;
     private static final int ARCHIVE_ONLY_PODCASTS = 2;
@@ -55,49 +54,57 @@ public class MainActivity extends AppCompatActivity
     private ArrayList<ArrayList<RRPod>> podLists;
     private ArrayList<RRPod> offlinePods;
 
-    private PodPlayer podPlayer;
+    @SuppressWarnings("NullableProblems")
+    @NonNull private PodPlayer podPlayer;
 
-    // FRAGMENTS
-    private PodListFragment podListFragment;
+    @SuppressWarnings("NullableProblems")
+    @NonNull private FragmentLoader fragmentLoader;
+
+    //private PodListFragment podListFragment;
     private SearchFragment searchFragment;
     private SettingsFragment settingsFragment;
     private AboutFragment aboutFragment;
     private RandomPodFragment randomPodFragment;
-
     private PodPlayerFragment podPlayerFragment;
-
     private PodsFragment podsFragment;
 
     private boolean ALL_PERMISSIONS_GRANTED;
+
+    private boolean downloading;
+    private ArrayList<RRPod> downloadQueue = new ArrayList<>();
+    private DownloadResultReceiver downloadReceiver;
+
 
     // "LIFECYCLE OVERRIDES"
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
+        podPlayer = new PodPlayer(this,this);
+
+        fragmentLoader = new FragmentLoader(this);
+
         setContentView(R.layout.activity_main);
 
-        verifyPermissions();
 
+        verifyPermissions();
 
         registerDownloadStateReceiver();
 
         // TODO: Create PodPlayer restoration
-        podPlayer = new PodPlayer(this,this);
 
-        if(restorePodPlayerFragment(savedInstanceState)){
-            podPlayerFragment.setPodPlayer(podPlayer);
-        }else{
-            podPlayerFragment = PodPlayerFragment.newInstance(podPlayer);
-        }
+        podPlayer = restorePodPlayer(savedInstanceState);
 
-        // Insert PodPlayerFragment
-        getSupportFragmentManager().beginTransaction().replace(R.id.frame_podplayer, podPlayerFragment).commit();
+        podPlayerFragment = restorePodPlayerFragment(savedInstanceState,podPlayer);
 
-        restoreDownloadReceiverAndQueue(savedInstanceState);
+        fragmentLoader.loadFragment(R.id.frame_podplayer,podPlayerFragment);
+
+        downloadQueue = restoreDownloadQueue(savedInstanceState);
+
+        downloadReceiver = restoreDownloadReceiver(savedInstanceState);
 
         initDrawer();
-
 
         final ArrayList<RRPod> retrievedPods = retrievePodsFromRSS();
 
@@ -108,7 +115,6 @@ public class MainActivity extends AppCompatActivity
             }
 
         }
-
 
         //PRINT ALL SHAREDPREFERENCES
         /*Map<String, ?> allPrefs = PreferenceManager.getDefaultSharedPreferences(this).getAll();
@@ -132,7 +138,7 @@ public class MainActivity extends AppCompatActivity
 
         podLists = rrr.retrievePods();
 
-        Log.i(TAG,"Pods: " + podLists);
+        //Log.i(TAG,"Pods: " + podLists);
 
         return podLists.get(0);
 
@@ -163,12 +169,53 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private boolean restorePodPlayerFragment(Bundle savedInstanceState){
+
+    @NonNull
+    private PodPlayer restorePodPlayer(final Bundle savedInstanceState){
+
+        if(savedInstanceState == null){
+            return new PodPlayer(this,this);
+        }
+
+        final RRPod restoredPod = savedInstanceState.getParcelable("currentPod");
+
+        final boolean wasPlaying = savedInstanceState.getBoolean("isPlaying");
+
+        final PodPlayer podPlayer = new PodPlayer(this,this);
+
+        if(restoredPod == null){
+
+            return podPlayer;
+
+        }
+
+        podPlayer.loadPod(restoredPod);
+
+        if(wasPlaying){
+
+            podPlayer.playPod(restoredPod);
+
+        }
+
+        return podPlayer;
+
+    }
+
+    @NonNull
+    private PodPlayerFragment restorePodPlayerFragment(final Bundle savedInstanceState, @NonNull final PodPlayer podPlayer){
 
         // Restore pod player fragment (if available)
         if (savedInstanceState != null && getSupportFragmentManager().getFragment(savedInstanceState, "PodPlayerFragment") != null) {
 
-            podPlayerFragment = (PodPlayerFragment) getSupportFragmentManager().getFragment(savedInstanceState, "PodPlayerFragment");
+            final PodPlayerFragment podPlayerFragment = (PodPlayerFragment) getSupportFragmentManager().getFragment(savedInstanceState, "PodPlayerFragment");
+
+            if(podPlayerFragment != null){
+
+                podPlayerFragment.setPodPlayer(podPlayer);
+
+                return podPlayerFragment;
+
+            }
 
             // TODO: Handle restored playing state
             /*boolean shouldPlay = savedInstanceState.getBoolean("playing_state");
@@ -177,32 +224,46 @@ public class MainActivity extends AppCompatActivity
                 podPlayer.
 
             }*/
-
-            return true;
         }
 
-        return false;
+        return PodPlayerFragment.newInstance(podPlayer);
     }
 
-    private void restoreDownloadReceiverAndQueue(Bundle savedInstanceState){
+    private ArrayList<RRPod> restoreDownloadQueue(final Bundle savedInstanceState){
 
-        // RESTORE QUEUE && RECEIVER FOR DOWNLOAD
-        final Context ctx = this;
-        if (savedInstanceState != null && savedInstanceState.getParcelable("receiver") != null) {
-            downloadQueue = new Gson().fromJson(savedInstanceState.getString("downloadQueue", null), new TypeToken<ArrayList<RRPod>>() {
-            }.getType());
-            if (downloadQueue.size() > 0) {
-                mReceiver = savedInstanceState.getParcelable("receiver");
-                mReceiver.setReceiver(getDownloadReceiver(downloadQueue.get(0), ctx));
-            }
+        if(savedInstanceState == null){
+            return null;
         }
+
+        return new Gson().fromJson(
+                savedInstanceState.getString("downloadQueue", null),
+                new TypeToken<ArrayList<RRPod>>() {}.getType()
+        );
+
+    }
+
+    private DownloadResultReceiver restoreDownloadReceiver(final Bundle savedInstanceState){
+
+        if(savedInstanceState == null){
+            return null;
+        }
+
+        final DownloadResultReceiver receiver = savedInstanceState.getParcelable("receiver");
+
+        if(receiver == null){
+            return null;
+        }
+
+        receiver.setReceiver(getDownloadReceiver(downloadQueue.get(0), this));
+
+        return receiver;
 
     }
 
     private boolean restoreFragments(Bundle savedInstanceState){
 
 
-        /*// RESTORE SEARCH FRAGMENT (IF AVAILABLE)
+        /*// RESTORE SEARCH FRAGMENT (IF ANY)
         if (savedInstanceState != null && getSupportFragmentManager().getFragment(savedInstanceState, "SearchFragment") != null) {
             searchFragment = (SearchFragment) getSupportFragmentManager().getFragment(savedInstanceState, "SearchFragment");
             if(savedInstanceState.getBoolean("searching_state")){
@@ -213,35 +274,36 @@ public class MainActivity extends AppCompatActivity
         }*/
 
 
-        // RESTORE RANDOM POD FRAGMENT (IF AVAILABLE)
+        // RESTORE RANDOM POD FRAGMENT (IF ANY)
         if (savedInstanceState != null && getSupportFragmentManager().getFragment(savedInstanceState, "RandomPodFragment") != null) {
 
             randomPodFragment = (RandomPodFragment) getSupportFragmentManager().getFragment(savedInstanceState, "RandomPodFragment");
             goToRandomPod();
         }
 
-        // RESTORE SETTINGS FRAGMENT (IF AVAILABLE)
+        // RESTORE SETTINGS FRAGMENT (IF ANY)
         else if (savedInstanceState != null && getSupportFragmentManager().getFragment(savedInstanceState, "SettingsFragment") != null) {
 
             settingsFragment = (SettingsFragment) getSupportFragmentManager().getFragment(savedInstanceState, "SettingsFragment");
             goToSettings();
         }
 
-        // RESTORE ABOUT FRAGMENT (IF AVAILABLE)
+        // RESTORE ABOUT FRAGMENT (IF ANY)
         else if (savedInstanceState != null && getSupportFragmentManager().getFragment(savedInstanceState, "AboutFragment") != null) {
 
             aboutFragment = (AboutFragment) getSupportFragmentManager().getFragment(savedInstanceState, "AboutFragment");
             goToAbout();
         }
 
-        // RESTORE POD LIST FRAGMENT
+        // TODO: Switch out podListFragment with podsFragment
+        /*// RESTORE POD LIST FRAGMENT
         else if (savedInstanceState != null && podListFragment == null && getSupportFragmentManager().getFragment(savedInstanceState, "PodListFragment") != null) {
 
             podListFragment = (PodListFragment) getSupportFragmentManager().getFragment(savedInstanceState, "PodListFragment");
 
             // INSERT POD LIST
             getSupportFragmentManager().beginTransaction().replace(R.id.frame_main, podListFragment).commit();
-        }
+        }*/
 
         else{
             return false;
@@ -253,6 +315,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+
         super.onSaveInstanceState(outState);
 
         if (podPlayerFragment != null && podPlayer.getPod() != null && podPlayerFragment.isAdded()) {
@@ -260,10 +323,11 @@ public class MainActivity extends AppCompatActivity
             outState.putBoolean("playing_state", podPlayer.isPlaying());
         }
 
-        if (podListFragment != null && podListFragment.isAdded()) {
+        // TODO: Switch out podListFragment with podsFragment
+        /*if (podListFragment != null && podListFragment.isAdded()) {
             getSupportFragmentManager().putFragment(outState, "PodListFragment", podListFragment);
             outState.putInt("podListMode",podListFragment.getPodListMode());
-        }
+        }*/
 
         /*if (searchFragment != null && searchFragment.isAdded()){
             outState.putBoolean("searching_state", findViewById(R.id.search_frame).getVisibility() == View.VISIBLE);
@@ -283,7 +347,10 @@ public class MainActivity extends AppCompatActivity
         Gson gson = new Gson();
         String json = gson.toJson(downloadQueue);
         outState.putString("downloadQueue", json);
-        outState.putParcelable("receiver", mReceiver);
+        outState.putParcelable("receiver", downloadReceiver);
+        outState.putParcelable("currentPod", podPlayer.getPod());
+        outState.putBoolean("isPlaying", podPlayer.isPlaying());
+
     }
 
 
@@ -328,19 +395,19 @@ public class MainActivity extends AppCompatActivity
         }
 
         if(!checkedItems[0]){
-            if(!checkedItems[1] && !randomPod.getListenedToState()){
+            if(!checkedItems[1] && !randomPod.isListenedTo()){
                 onPlayRandomPod();
                 return;
             }
-            if(!checkedItems[2] && randomPod.getListenedToState()){
+            if(!checkedItems[2] && randomPod.isListenedTo()){
                 onPlayRandomPod();
                 return;
             }
-            if(!checkedItems[3] && !randomPod.getDownloadState()){
+            if(!checkedItems[3] && !randomPod.isDownloaded()){
                 onPlayRandomPod();
                 return;
             }
-            if(!checkedItems[4] && randomPod.getDownloadState()) {
+            if(!checkedItems[4] && randomPod.isDownloaded()) {
                 onPlayRandomPod();
                 return;
             }
@@ -351,7 +418,20 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBuildWithDate(int day, int month, int year, boolean notListenedTo) {
-        podListFragment.buildPodcastViewsWithDate(this, day, month, year,notListenedTo);
+
+        Log.i(TAG,"Creating filter: \n"
+                + "day: " + String.valueOf(day) + "\n"
+                + "month: " + String.valueOf(month) + "\n"
+                + "year: " + String.valueOf(year) + "\n");
+
+        final PodsFilter filter = new PodsFilter()
+                .setDay(day)
+                .setMonth(month)
+                .setYear(year)
+                .setListenedToState(notListenedTo ? PodsFilter.FilterTriState.FALSE : PodsFilter.FilterTriState.ANY);
+
+        podsFragment.loadFilteredPods(filter);
+
     }
 
     @Override
@@ -422,9 +502,6 @@ public class MainActivity extends AppCompatActivity
 
     // DOWNLOAD PODS
 
-    private boolean downloading;
-    private ArrayList<RRPod> downloadQueue = new ArrayList<>();
-    private DownloadResultReceiver mReceiver;
     private DownloadResultReceiver.Receiver getDownloadReceiver(final RRPod pod, final Context context) {
         return new DownloadResultReceiver.Receiver() {
             @Override
@@ -444,11 +521,14 @@ public class MainActivity extends AppCompatActivity
 
                         // UPDATE AFTER DOWNLOAD
                         downloading = false;
-                        podListFragment.buildPodcastViews(context);
+
+                        // TODO: Switch out podListFragment with podsFragment
+                        //podListFragment.buildPodcastViews(context);
 
                         downloadQueue.remove(pod);
                         if (downloadQueue.isEmpty()) {
-                            podListFragment.stopLoadingScreen();
+                            // TODO: Switch out podListFragment with podsFragment
+                            //podListFragment.stopLoadingScreen();
                             return;
                         }
 
@@ -459,7 +539,8 @@ public class MainActivity extends AppCompatActivity
                     case 0:
                         // FIRST DOWNLOAD IN QUEUE
                         if (downloadQueue.isEmpty())
-                            podListFragment.startLoadingScreen();
+                            // TODO: Switch out podListFragment with podsFragment
+                            //podListFragment.startLoadingScreen();
                         break;
                     /*case 2:
                         // ERROR HANDLER
@@ -501,18 +582,18 @@ public class MainActivity extends AppCompatActivity
             Log.i(TAG,"Permissions not granted");
 
             Snackbar snackbar = Snackbar
-                    .make(findViewById(R.id.drawer_layout), "Trenger tillatelse til å laste ned",Snackbar.LENGTH_LONG)
+                    .make(findViewById(R.id.navigation_drawer_layout), "Trenger tillatelse til å laste ned",Snackbar.LENGTH_LONG)
                     .setAction("GI TILLATELSE", new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST);
                         }
                     })
-                    .setActionTextColor(getResources().getColor(R.color.app_white));
+                    .setActionTextColor(getResources().getColor(R.color.colorWhite));
             snackbar.show();
 
-
-            podListFragment.stopLoadingScreen();
+            // TODO: Switch out podListFragment with podsFragment
+            //podListFragment.stopLoadingScreen();
 
             return;
         }
@@ -520,17 +601,20 @@ public class MainActivity extends AppCompatActivity
         Log.i(TAG,"Downloading " + pod);
 
         if (downloading) {
-            podListFragment.setLoadingText("Laster ned " + String.valueOf(downloadQueue.size() + 1) + " podkaster");
+            // TODO: Switch out podListFragment with podsFragment
+            //podListFragment.setLoadingText("Laster ned " + String.valueOf(downloadQueue.size() + 1) + " podkaster");
             return;
         }
-        podListFragment.startLoadingScreen();
+
+        // TODO: Switch out podListFragment with podsFragment
+        //podListFragment.startLoadingScreen();
 
         /* Starting Download Service */
-        mReceiver = new DownloadResultReceiver(new Handler());
-        mReceiver.setReceiver(getDownloadReceiver(pod, this));
+        downloadReceiver = new DownloadResultReceiver(new Handler());
+        downloadReceiver.setReceiver(getDownloadReceiver(pod, this));
         Intent intent = new Intent(Intent.ACTION_SYNC, null, this, DownloadService.class);
 
-        intent.putExtra("url", pod.getUrl()).putExtra("podName", pod.getTitle()).putExtra("receiver", mReceiver).putExtra("requestId", 101);
+        intent.putExtra("url", pod.getUrl()).putExtra("podName", pod.getTitle()).putExtra("receiver", downloadReceiver).putExtra("requestId", 101);
         startService(intent);
 
         downloading = true;
@@ -556,7 +640,7 @@ public class MainActivity extends AppCompatActivity
                                 final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(context);
                                 final File dir = new File(getFilesDir(),"RR-Podkaster");
                                 for (RRPod pod : pods) {
-                                    if (!pod.getDownloadState()) {
+                                    if (!pod.isDownloaded()) {
                                         continue;
                                     }
                                     File file = new File(dir + File.separator + pod.getTitle());
@@ -580,8 +664,8 @@ public class MainActivity extends AppCompatActivity
                                         // Save to SP
                                         podkastStorage.edit().putString("offlinepods", json).apply();
 
-                                        // Refresh podlist
-                                        podListFragment.buildPodcastViews(context);
+                                        // TODO: Switch out podListFragment with podsFragment
+                                        //podListFragment.buildPodcastViews(context);
                                     }
                                 }
 
@@ -601,7 +685,7 @@ public class MainActivity extends AppCompatActivity
                                 }
 
                                 // SHOW SNACKBAR
-                                Snackbar.make(findViewById(R.id.drawer_layout),res,Snackbar.LENGTH_LONG).show();
+                                Snackbar.make(findViewById(R.id.navigation_drawer_layout),res,Snackbar.LENGTH_LONG).show();
                             }
                         })
                 .setNegativeButton("Nei", new DialogInterface.OnClickListener() {
@@ -711,14 +795,6 @@ public class MainActivity extends AppCompatActivity
         }*/
     }
 
-    private void updateToolbarTitle(){
-        if(podListFragment == null || !podListFragment.isAdded()){
-            return;
-        }
-        String[] toolbar_titles = new String[]{"Alle podkaster","Nedlastede podkaster","Høydepunkter"};
-        toolbarTextChange(toolbar_titles[podListFragment.getPodListMode()]);
-    }
-
         // RESET SEARCH FRAGMENT
     private void newFilter() {
         /*searchFragment = new SearchFragment();
@@ -736,8 +812,8 @@ public class MainActivity extends AppCompatActivity
         int downloadedCount = 0;
 
         for (RRPod pod : pods) {
-            if (pod.getListenedToState()) listenedToCount++;
-            if(pod.getDownloadState()) downloadedCount++;
+            if (pod.isListenedTo()) listenedToCount++;
+            if(pod.isDownloaded()) downloadedCount++;
         }
 
         final boolean listenedTo = listenedToCount > pods.size() / 2;
@@ -788,7 +864,7 @@ public class MainActivity extends AppCompatActivity
                                 // CLICKED DOWNLOAD
                                 if(which == DOWNLOAD_LABEL){
                                     for (RRPod currPod : pods) {
-                                        if (!currPod.getDownloadState()){
+                                        if (!currPod.isDownloaded()){
                                             downloadPod(currPod);
                                         }else{
                                             Log.i(TAG,"Already downloaded");
@@ -802,30 +878,31 @@ public class MainActivity extends AppCompatActivity
                                 // CLICKED MARK AS LISTENED/NOT LISTENED TO
                                 else if(which == MARK_LABEL){
                                     for (RRPod currPod : pods) {
-                                        if (listenedTo) unMarkAsListenedTo(currPod);
-                                        else markAsListenedTo(currPod);
+                                        updateListenedToState(currPod,listenedTo);
                                     }
                                 }
+
+                                // TODO: Switch out podListFragment with podsFragment
+
                                 // REFRESH PODLIST
-                                podListFragment.buildPodcastViews(ctx);
+                                //podListFragment.buildPodcastViews(ctx);
                             }
                         })
                 .create()
                 .show();
     }
 
-    private void markAsListenedTo(RRPod pod) {
-        pod.setListenedToState(true);
-        final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(this);
-        podkastStorage.edit().putBoolean(pod.getTitle() + "(LT)", true).apply();
-        podListFragment.buildPodcastViews(this);
-    }
+    private void updateListenedToState(@NonNull final RRPod pod, boolean listenedTo){
 
-    private void unMarkAsListenedTo(RRPod pod) {
-        pod.setListenedToState(false);
-        final SharedPreferences podkastStorage = PreferenceManager.getDefaultSharedPreferences(this);
-        podkastStorage.edit().putBoolean(pod.getTitle() + "(LT)", false).apply();
-        podListFragment.buildPodcastViews(this);
+        pod.setListenedToState(listenedTo);
+
+        final SharedPreferences podStorage = PreferenceManager.getDefaultSharedPreferences(this);
+        podStorage.edit().putBoolean(pod.getTitle() + "(LT)", listenedTo).apply();
+
+        // TODO: Switch out podListFragment with podsFragment
+        //podListFragment.buildPodcastViews(this);
+
+
     }
 
     private void startTopLoading(){
@@ -839,10 +916,11 @@ public class MainActivity extends AppCompatActivity
 
     int drawerPos;
     private void initDrawer() {
+
         String[] mPlanetTitles = getResources().getStringArray(R.array.DrawerArray);
         int[] imgOps = new int[]{R.drawable.ic_pod_list, R.drawable.ic_highlights,R.drawable.ic_signal_wifi_off, R.drawable.ic_shuffle, R.drawable.ic_webpage,R.drawable.ic_settings, R.drawable.ic_about_app};
         final ListView mDrawerList = findViewById(R.id.left_drawer);
-        final DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
+        final DrawerLayout drawerLayout = findViewById(R.id.navigation_drawer_layout);
 
         // SET LIST ADAPTER
         mDrawerList.setAdapter(new DrawerListAdapter(this, mPlanetTitles, imgOps));
@@ -945,7 +1023,7 @@ public class MainActivity extends AppCompatActivity
         final File dir = new File(getFilesDir(),"RR-Podkaster");
 
         for(int p = 0;p<allpods.size();p++){
-            if(allpods.get(p).getDownloadState()) {
+            if(allpods.get(p).isDownloaded()) {
                 spaceUsage += new File(dir + File.separator + allpods.get(p).getTitle()).length() / Math.pow(1024, 2);
                 podnum++;
             }
@@ -988,7 +1066,10 @@ public class MainActivity extends AppCompatActivity
     // DOWNLOAD PROGRESS
 
     private void updateInAppProgressBar(int progress){
-        // PROGRESS UPDATE
+
+        // TODO: Switch out podListFragment with podsFragment
+
+        /*// PROGRESS UPDATE
         if (podListFragment.viewAvailable())
             if (podListFragment.getLoadingState()) {
                 // UPDATING PROGRESS IF VISIBLE
@@ -1004,7 +1085,7 @@ public class MainActivity extends AppCompatActivity
             } else {
                 // MAKING PROGRESS VISIBLE
                 podListFragment.startLoadingScreen();
-            }
+            }*/
     }
 
 
@@ -1056,8 +1137,6 @@ public class MainActivity extends AppCompatActivity
 
     private void getPermissions() {
 
-        Log.i(TAG, String.valueOf(ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE)));
-
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
                 || ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 
@@ -1097,17 +1176,29 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void playPod(RRPod pod) {
 
-        if(podPlayer == null){
-            podPlayer = new PodPlayer(this,this);
+        if (podPlayerFragment == null){
+            podPlayerFragment = PodPlayerFragment.newInstance(podPlayer);
         }
 
-        if (podPlayerFragment == null) podPlayerFragment = PodPlayerFragment.newInstance(podPlayer);
-
-        android.support.v4.app.FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.frame_podplayer, podPlayerFragment);
-        transaction.commit();
+        fragmentLoader.loadFragment(R.id.frame_podplayer, podPlayerFragment);
 
         podPlayer.playPod(pod);
+
+    }
+
+    @Override
+    public void loadSearchFragment() {
+
+        final SearchFragment searchFragment = new SearchFragment();
+
+        fragmentLoader.loadFragment(R.id.frame_overlay,searchFragment);
+
+    }
+
+    @Override
+    public void onPodLoaded(@NonNull RRPod pod) {
+
+        podPlayerFragment.onPodLoaded(pod);
 
     }
 

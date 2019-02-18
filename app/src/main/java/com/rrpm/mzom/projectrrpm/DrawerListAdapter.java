@@ -12,15 +12,20 @@ import android.widget.TextView;
 
 class DrawerListAdapter extends ArrayAdapter<String> {
 
-    private final String[] stringOpts;
-    private final int[] imgOpts;
-    private final Context context;
+    @NonNull private final Context context;
 
-    DrawerListAdapter(Context context, String[] stringOpts, int[] imgOpts) {
+    @NonNull private final String[] stringOpts;
+    @NonNull private final int[] imgOpts;
+
+    DrawerListAdapter(@NonNull Context context, @NonNull String[] stringOpts, @NonNull int[] imgOpts) {
+
         super(context, -1, stringOpts);
+
+        this.context = context;
+
         this.stringOpts = stringOpts;
         this.imgOpts = imgOpts;
-        this.context = context;
+
     }
 
     @NonNull
@@ -28,15 +33,17 @@ class DrawerListAdapter extends ArrayAdapter<String> {
     public View getView(int position, View convertView, @NonNull ViewGroup parent) {
 
         if (convertView == null) {
-            LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
-            convertView = mInflater.inflate(R.layout.drawer_item, parent, false);
+
+            final LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+            convertView = mInflater.inflate(R.layout.navigation_drawer_item, parent, false);
+
         }
 
-        TextView itemTv = (TextView) convertView.findViewById(R.id.drawer_item_text);
-        ImageView itemIv = (ImageView) convertView.findViewById(R.id.drawer_item_img);
+        final TextView itemTextView = convertView.findViewById(R.id.drawer_item_text);
+        itemTextView.setText(stringOpts[position]);
 
-        itemIv.setImageResource(imgOpts[position]);
-        itemTv.setText(stringOpts[position]);
+        final ImageView itemImageView = convertView.findViewById(R.id.drawer_item_img);
+        itemImageView.setImageResource(imgOpts[position]);
 
         return convertView;
     }

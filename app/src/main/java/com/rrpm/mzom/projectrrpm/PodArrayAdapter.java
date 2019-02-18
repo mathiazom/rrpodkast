@@ -53,7 +53,7 @@ class PodArrayAdapter extends ArrayAdapter<RRPod> {
         ConstraintLayout content = convertView.findViewById(R.id.podcastViewContent);
 
         if(pod.getSelectionState()){
-            if(pod.getDownloadState()){
+            if(pod.isDownloaded()){
                 content.setBackgroundResource(R.drawable.selected_downloaded);
             }else{
                 content.setBackgroundResource(R.drawable.selected);
@@ -61,14 +61,14 @@ class PodArrayAdapter extends ArrayAdapter<RRPod> {
 
 
 
-        }else if(pod.getDownloadState()){
-            if(pod.getListenedToState()){
+        }else if(pod.isDownloaded()){
+            if(pod.isListenedTo()){
                 content.setBackgroundResource(R.drawable.downloaded_listened);
             }else{
                 content.setBackgroundResource(R.drawable.downloaded_streamable);
             }
 
-        }else if (pod.getListenedToState()) {
+        }else if (pod.isListenedTo()) {
             content.setBackgroundResource(R.color.listened);
         } else {
             content.setBackgroundResource(R.color.streamable);
@@ -77,7 +77,7 @@ class PodArrayAdapter extends ArrayAdapter<RRPod> {
         long timeSince = Calendar.getInstance().getTimeInMillis()-pod.getDateObj().getTime();
 
         // MARK AS NEW IF NOT OLDER THAN 2 DAYS AND NOT LISTENED TO NOR DOWNLOADED
-        if(timeSince <= 172800000 && !pod.getListenedToState() && !pod.getDownloadState()){
+        if(timeSince <= 172800000 && !pod.isListenedTo() && !pod.isDownloaded()){
             content.findViewById(R.id.podItemNewMark).setVisibility(View.VISIBLE);
         }else{
             content.findViewById(R.id.podItemNewMark).setVisibility(View.GONE);

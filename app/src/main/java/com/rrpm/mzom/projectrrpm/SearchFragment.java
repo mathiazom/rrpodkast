@@ -1,8 +1,8 @@
 package com.rrpm.mzom.projectrrpm;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +35,8 @@ public class SearchFragment extends android.support.v4.app.Fragment {
     Spinner spinnerMonth;
     Spinner spinnerDay;
 
+    private Switch notListenedToSwitch;
+
     private int numOfPods;
 
     @Override
@@ -50,70 +52,80 @@ public class SearchFragment extends android.support.v4.app.Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         setRetainInstance(true);
+
         view = inflater.inflate(R.layout.fragment_search, container, false).findViewById(R.id.search_fragment);
-        spinnerYear = (Spinner) view.findViewById(R.id.spinnerYear);
-        spinnerMonth = (Spinner) view.findViewById(R.id.spinnerMonth);
-        spinnerDay = (Spinner) view.findViewById(R.id.spinnerDay);
-        initSearchSpinners();
+
+        spinnerYear = view.findViewById(R.id.spinnerYear);
+        spinnerMonth = view.findViewById(R.id.spinnerMonth);
+        spinnerDay = view.findViewById(R.id.spinnerDay);
+
+        notListenedToSwitch = view.findViewById(R.id.notListenedToSwitch);
+
+        initTimeSearchSpinners();
+
         initSwitches();
+
         return view;
     }
 
     interface SearchFragmentListener {
+
         void onBuildWithDate(int day, int month, int year, boolean onlyListenedTo);
 
         void onHidePodFilter();
+
     }
 
     private void getSelectedTime(Spinner spinnerDay, Spinner spinnerMonth, Spinner spinnerYear) {
-        int _currDay = spinnerDay.getSelectedItemPosition();
-        int _currMonth = spinnerMonth.getSelectedItemPosition();
-        int _currYear = spinnerYear.getSelectedItemPosition() + 2011;
 
-        Switch notListenedToSwitch = (Switch) view.findViewById(R.id.notListenedToSwitch);
+        int selectedDayPosition = spinnerDay.getSelectedItemPosition();
+        int selectedDay = selectedDayPosition != 0 ? selectedDayPosition : -1;
+
+        int selectedMonthPosition = spinnerMonth.getSelectedItemPosition();
+        int selectedMonth = selectedMonthPosition != 0 ? selectedMonthPosition : -1;
+
+        int selectedYearPosition = spinnerYear.getSelectedItemPosition();
+        int selectedYear = selectedYearPosition != 0 ? selectedYearPosition + 2011 : -1;
+
+        notListenedToSwitch = view.findViewById(R.id.notListenedToSwitch);
 
         // IF SPINNERS HAVE CHANGED
-        if (!((_currDay == currDay) && (_currMonth == currMonth) && (_currYear == currYear) && (notListenedTo == notListenedToSwitch.isChecked()))) {
-            currDay = _currDay;
-            currMonth = _currMonth;
-            currYear = _currYear;
+        if (!((selectedDay == this.currDay) && (selectedMonth == currMonth) && (selectedYear == currYear) && (notListenedTo == notListenedToSwitch.isChecked()))) {
+
+            currDay = selectedDay;
+            currMonth = selectedMonth;
+            currYear = selectedYear;
+
             notListenedTo = notListenedToSwitch.isChecked();
-            searchFragmentListener.onBuildWithDate(currDay, currMonth, currYear,notListenedTo);
-        } else viewResultStats(numOfPods);
+
+            searchFragmentListener.onBuildWithDate(this.currDay, currMonth, currYear, notListenedTo);
+
+        } else {
+
+            viewResultStats(numOfPods);
+        }
 
     }
 
-    private void initSearchSpinners() {
-        if (view == null || getContext() == null) return;
+    // Populate and initialize year, month and day spinners
+    private void initTimeSearchSpinners() {
 
-
-        // YEAR DATA
-        ArrayList<String> spinnerArrayYear = new ArrayList<>();
-        final int year = Calendar.getInstance().get(Calendar.YEAR);
-        spinnerArrayYear.add("Alle år");
-        for (int y = 2012; y < year + 1; y++) {
-            spinnerArrayYear.add(String.valueOf(y));
+        if (view == null || getContext() == null){
+            return;
         }
 
-        // MONTH DATA
-        ArrayList<String> spinnerArrayMonth = new ArrayList<>(Arrays.asList(new String[]{
-                "Alle måneder", "Januar", "Februar", "Mars", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Desember"
-        }));
+        final List<Spinner> spinners = Arrays.asList(spinnerYear, spinnerMonth, spinnerDay);
 
-        // DAY DATA
-        ArrayList<String> spinnerArrayDay = new ArrayList<>();
-        spinnerArrayDay.add("Alle dager");
-        for (int d = 1; d < 32; d++) {
-            spinnerArrayDay.add(String.valueOf(d));
-        }
+        final List<ArrayList<String>> spinnerOptionsArray = Arrays.asList(
+                getYearSpinnerOptions(),
+                getMonthSpinnerOptions(),
+                getDaySpinnerOptions()
+        );
 
-        List<Spinner> spinners = Arrays.asList(spinnerYear, spinnerMonth, spinnerDay);
-        List<ArrayList<String>> spinnerArrays = Arrays.asList(spinnerArrayYear, spinnerArrayMonth, spinnerArrayDay);
-
-        // ON ITEM SELECTED LISTENER
-        AdapterView.OnItemSelectedListener onItemSelectedListener = new AdapterView.OnItemSelectedListener() {
+        final AdapterView.OnItemSelectedListener optionSelectedListener = new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 getSelectedTime(spinnerDay, spinnerMonth, spinnerYear);
@@ -124,30 +136,93 @@ public class SearchFragment extends android.support.v4.app.Fragment {
             }
         };
 
-        // GENERATE YEAR, MONTH AND DAY SPINNER
         for (int a = 0; a < 3; a++) {
-            Spinner spinner = spinners.get(a);
-            ArrayAdapter<String> temp_adapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, spinnerArrays.get(a));
-            temp_adapter.setDropDownViewResource(R.layout.spinner_item_search);
-            spinner.setAdapter(temp_adapter);
-            spinner.setPopupBackgroundResource(R.color.app_white);
-            spinner.setOnItemSelectedListener(onItemSelectedListener);
+
+            final ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, spinnerOptionsArray.get(a));
+            spinnerAdapter.setDropDownViewResource(R.layout.spinner_item_search);
+
+            final Spinner spinner = spinners.get(a);
+            spinner.setAdapter(spinnerAdapter);
+            spinner.setPopupBackgroundResource(R.color.colorWhite);
+            spinner.setOnItemSelectedListener(optionSelectedListener);
+
         }
     }
 
-    private static final String SETTINGS_PREFS_NAME = "SettingsPreferences";
-    private static final String FILTER_NOT_LISTENED_TO_KEY = "FILTER_NOT_LISTENED_TO_OPTION";
 
-    private void initSwitches(){
-        Switch notListenedToSwitch = (Switch) view.findViewById(R.id.notListenedToSwitch);
+    private ArrayList<String> getYearSpinnerOptions(){
 
-        ConstraintLayout notListenedToConstraint = (ConstraintLayout) view.findViewById(R.id.notListenedToConstraint);
+        // Year spinner options
+        final ArrayList<String> yearOptions = new ArrayList<>();
 
-        final SharedPreferences settings_prefs = getContext().getSharedPreferences(SETTINGS_PREFS_NAME,0);
+        // Year placeholder option
+        yearOptions.add("Alle år");
 
-        if(!settings_prefs.getBoolean(FILTER_NOT_LISTENED_TO_KEY,false)){
+        final int currentYear = Calendar.getInstance().get(Calendar.YEAR);
+
+        for (int y = 2012; y < currentYear + 1; y++) {
+            yearOptions.add(String.valueOf(y));
+        }
+
+        return yearOptions;
+
+    }
+
+    private ArrayList<String> getMonthSpinnerOptions(){
+
+        // Month spinner options
+        final ArrayList<String> monthOptions = new ArrayList<>();
+
+        // Month placeholder option
+        monthOptions.add("Alle måneder");
+
+        monthOptions.addAll(Arrays.asList(getResources().getStringArray(R.array.months)));
+
+        return monthOptions;
+
+    }
+
+    private ArrayList<String> getDaySpinnerOptions(){
+
+        // Day spinner options
+        final ArrayList<String> dayOptions = new ArrayList<>();
+
+        // Day placeholder option
+        dayOptions.add("Alle dager");
+
+        for (int d = 1; d < 32; d++) {
+            dayOptions.add(String.valueOf(d));
+        }
+
+        return dayOptions;
+
+    }
+
+
+    /*private static final String SETTINGS_PREFS_NAME = "SettingsPreferences";
+    private static final String FILTER_NOT_LISTENED_TO_KEY = "FILTER_NOT_LISTENED_TO_OPTION";*/
+
+    private void initSwitches() {
+
+        final Switch notListenedToSwitch = view.findViewById(R.id.notListenedToSwitch);
+
+        final ConstraintLayout notListenedToConstraint = view.findViewById(R.id.notListenedToField);
+
+        notListenedToConstraint.setVisibility(View.VISIBLE);
+        notListenedToSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                getSelectedTime(spinnerDay, spinnerMonth, spinnerYear);
+            }
+        });
+
+
+        // TODO: Revise the usefulness of user-controlled switch visibility
+        /*final SharedPreferences settings_prefs = getContext().getSharedPreferences(SETTINGS_PREFS_NAME, 0);
+
+        if (!settings_prefs.getBoolean(FILTER_NOT_LISTENED_TO_KEY, false)) {
             notListenedToConstraint.setVisibility(View.GONE);
-        }else{
+        } else {
             notListenedToConstraint.setVisibility(View.VISIBLE);
             notListenedToSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -155,7 +230,7 @@ public class SearchFragment extends android.support.v4.app.Fragment {
                     getSelectedTime(spinnerDay, spinnerMonth, spinnerYear);
                 }
             });
-        }
+        }*/
     }
 
     void viewResultStats(int validpods) {
@@ -166,11 +241,11 @@ public class SearchFragment extends android.support.v4.app.Fragment {
         this.numOfPods = validpods;
 
         // VIEW NUMBER OF RESULTS
-        TextView resultTextView = (TextView) view.findViewById(R.id.resultText);
-        if(validpods == 0){
+        final TextView resultTextView = view.findViewById(R.id.resultText);
+        if (validpods == 0) {
             resultTextView.setText(getResources().getString(R.string.no_pod));
-        }else{
-            resultTextView.setText(String.valueOf(validpods) + " podkast" + (validpods > 1 ? "er":""));
+        } else {
+            resultTextView.setText(String.valueOf(validpods) + " podkast" + (validpods > 1 ? "er" : ""));
         }
 
         // OUTSIDE FRAGMENT CLICK

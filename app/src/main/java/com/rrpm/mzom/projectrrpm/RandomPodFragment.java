@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 
-// FINDS AND PLAYS A PSEUDORANDOM POD FROM ARRAYLIST OF AVAILABLE PODS
+// FINDS AND PLAYS A PSEUDORANDOM POD FROM ARRAYLIST OF ANY PODS
 
 public class RandomPodFragment extends android.support.v4.app.Fragment {
 

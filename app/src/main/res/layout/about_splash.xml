@@ -22,8 +22,8 @@
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="75dp"
+            android:layout_height="75dp"
             android:contentDescription="@string/about_app"
             android:src="@drawable/splash_nobg"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -77,7 +77,7 @@
             android:text="@string/about_app_version"
             android:textColor="#212121"
             android:textSize="12sp"
-            android:background="@color/app_white"
+            android:background="@drawable/white_rounded"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintHorizontal_bias="0.501"
             app:layout_constraintLeft_toLeftOf="parent"

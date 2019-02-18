@@ -310,6 +310,17 @@ public class PodPlayerFragment extends Fragment implements PodPlayer.PodPlayerLi
 
 
     @Override
+    public void onPodLoaded(@NonNull RRPod pod) {
+
+        if(getContext() == null){
+            return;
+        }
+
+        updatePodPlayer(pod,getContext());
+
+    }
+
+    @Override
     public void onCurrentPositionChanged(int position) {
 
         updatePodPlayerProgress(position);

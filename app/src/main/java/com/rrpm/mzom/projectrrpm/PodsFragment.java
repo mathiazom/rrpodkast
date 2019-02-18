@@ -2,33 +2,41 @@ package com.rrpm.mzom.projectrrpm;
 
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class PodsFragment extends android.support.v4.app.Fragment implements PodPlayer.PodPlayerListener {
+
+
+    private static final String TAG = "RRP-PodsFragment";
 
     private View view;
 
     private ArrayList<RRPod> pods;
 
+    private ArrayList<RRPod> filteredPods;
+
     private PodsRecyclerAdapter podsAdapter;
 
-    private PodsFragmentListener podsFragmentListener;
+    private PodsFragmentListener listener;
 
 
     interface PodsFragmentListener{
 
         void playPod(RRPod pod);
+
+        void loadSearchFragment();
 
     }
 
@@ -38,6 +46,8 @@ public class PodsFragment extends android.support.v4.app.Fragment implements Pod
         final PodsFragment fragment = new PodsFragment();
 
         fragment.pods = pods;
+        fragment.filteredPods = new ArrayList<>();
+        fragment.filteredPods.addAll(pods);
 
         return fragment;
     }
@@ -48,7 +58,7 @@ public class PodsFragment extends android.support.v4.app.Fragment implements Pod
         super.onAttach(context);
 
         try{
-            podsFragmentListener = (PodsFragmentListener) context;
+            listener = (PodsFragmentListener) context;
         }catch (ClassCastException e){
             throw new ClassCastException(context.toString() + " must implement PodsFragmentListener");
         }
@@ -60,9 +70,24 @@ public class PodsFragment extends android.support.v4.app.Fragment implements Pod
 
         view = inflater.inflate(R.layout.fragment_podlist_all,container,false);
 
+        loadToolbarActions();
+
         loadPodsRecycler();
 
         return view;
+    }
+
+    private void loadToolbarActions(){
+
+        final ImageView showFilterAction = view.findViewById(R.id.pod_filter_show);
+        showFilterAction.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                listener.loadSearchFragment();
+            }
+        });
+
+
     }
 
     private void loadPodsRecycler(){
@@ -74,10 +99,10 @@ public class PodsFragment extends android.support.v4.app.Fragment implements Pod
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getContext());
         podsRecycler.setLayoutManager(layoutManager);
 
-        podsAdapter = new PodsRecyclerAdapter(pods, new PodsRecyclerAdapter.PodsRecyclerAdapterListener() {
+        podsAdapter = new PodsRecyclerAdapter(filteredPods, new PodsRecyclerAdapter.PodsRecyclerAdapterListener() {
             @Override
             public void onPodClicked(int position) {
-                podsFragmentListener.playPod(pods.get(position));
+                listener.playPod(filteredPods.get(position));
             }
         });
 
@@ -86,6 +111,20 @@ public class PodsFragment extends android.support.v4.app.Fragment implements Pod
         podsRecycler.startLayoutAnimation();
 
     }
+
+
+    void loadFilteredPods(@NonNull final PodsFilter filter){
+
+        filteredPods.clear();
+
+        filteredPods.addAll(filter.filter(pods));
+
+        podsAdapter.notifyDataSetChanged();
+
+    }
+
+
+
 
     /*public void ConfirmChangePod(final RRPod pod) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -111,6 +150,11 @@ public class PodsFragment extends android.support.v4.app.Fragment implements Pod
         dialog.show();
 
     }*/
+
+    @Override
+    public void onPodLoaded(@NonNull RRPod pod) {
+
+    }
 
     @Override
     public void onCurrentPositionChanged(int position) {

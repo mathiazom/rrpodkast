@@ -1,44 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<android.support.constraint.ConstraintLayout xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_height="wrap_content"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="2dp"
     android:orientation="vertical"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:padding="0dp"
-    android:layout_marginBottom="2dp">
+    android:padding="0dp">
 
-    <LinearLayout
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/month_divider_cont"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="vertical" android:layout_width="match_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#eeeeee"
+        android:orientation="vertical"
         android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:textAlignment="center"
-            android:textColor="#212121"
+            android:id="@+id/month_divider_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/month_divider_text"
-            android:padding="7dp"/>
+            android:padding="7dp"
+            android:textAlignment="center"
+            android:textColor="#212121" />
 
     </LinearLayout>
 
-    <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+    <android.support.constraint.ConstraintLayout
         android:id="@+id/podcastViewContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
-        android:paddingStart="30dp"
-        android:paddingEnd="0dp"
-        android:paddingTop="17dp"
         android:paddingBottom="17dp"
+        android:paddingEnd="0dp"
+        android:paddingStart="30dp"
+        android:paddingTop="17dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/month_divider_cont">
@@ -62,14 +61,14 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:orientation="vertical"
+            android:paddingEnd="28dp"
+            android:paddingStart="0dp"
             android:text="00 min"
             android:textColor="#b7b7b7"
             android:textSize="12sp"
-            android:paddingStart="0dp"
-            android:paddingEnd="28dp"
-            app:layout_constraintTop_toBottomOf="@id/podItemTitle"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/podItemTitle">
 
         </TextView>
 
@@ -85,7 +84,7 @@
             android:paddingEnd="20dp"
             android:paddingStart="10dp"
             android:text="@string/new_pod_mark"
-            android:textColor="@color/app_white"
+            android:textColor="@color/colorWhite"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintRight_toRightOf="parent"

@@ -18,5 +18,5 @@
 
     <color name="dark_blur">#cc000000</color>
 
-    <color name="app_white">#eee</color>
+    <color name="colorWhite">#eee</color>
 </resources>

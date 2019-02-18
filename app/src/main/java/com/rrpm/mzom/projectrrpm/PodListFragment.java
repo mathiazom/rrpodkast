@@ -1,13 +1,10 @@
 package com.rrpm.mzom.projectrrpm;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.constraint.ConstraintLayout;
 import android.view.LayoutInflater;
@@ -199,9 +196,9 @@ public class PodListFragment extends android.support.v4.app.Fragment {
             boolean inRangeMonth = (calendar.get(Calendar.MONTH) + 1) == month;
             boolean inRangeYear = calendar.get(Calendar.YEAR) == year;
 
-            boolean inRange = ((day == 0) || (inRangeDay)) && ((month == 0) || (inRangeMonth)) && ((year == 2011) || (inRangeYear)) && (!(podListMode == OFFLINE_ONLY_PODCASTS) || currPod.getDownloadState());
+            boolean inRange = ((day == 0) || (inRangeDay)) && ((month == 0) || (inRangeMonth)) && ((year == 2011) || (inRangeYear)) && (!(podListMode == OFFLINE_ONLY_PODCASTS) || currPod.isDownloaded());
 
-            boolean validState = !currPod.getListenedToState() || !notListenedTo;
+            boolean validState = !currPod.isListenedTo() || !notListenedTo;
 
             if (inRange && validState) {
                 int this_mo = currPod.getMonth();
@@ -248,21 +245,21 @@ public class PodListFragment extends android.support.v4.app.Fragment {
                     pod.toggleSelectionState();
                     if (pod.getSelectionState()) {
                         selectedPods.add(pod);
-                        if (pod.getDownloadState()) {
+                        if (pod.isDownloaded()) {
                             content.setBackgroundResource(R.drawable.selected_downloaded);
                         } else {
                             content.setBackgroundResource(R.drawable.selected);
                         }
                     } else {
                         selectedPods.remove(pod);
-                        if (pod.getDownloadState()) {
-                            if (pod.getListenedToState()) {
+                        if (pod.isDownloaded()) {
+                            if (pod.isListenedTo()) {
                                 content.setBackgroundResource(R.drawable.downloaded_listened);
                             } else {
                                 content.setBackgroundResource(R.drawable.downloaded_streamable);
                             }
 
-                        } else if (pod.getListenedToState()) {
+                        } else if (pod.isListenedTo()) {
                             content.setBackgroundResource(R.color.listened);
                         } else {
                             content.setBackgroundResource(R.color.streamable);
@@ -293,21 +290,21 @@ public class PodListFragment extends android.support.v4.app.Fragment {
 
                 if (pod.getSelectionState()) {
                     selectedPods.add(pod);
-                    if (pod.getDownloadState()) {
+                    if (pod.isDownloaded()) {
                         content.setBackgroundResource(R.drawable.selected_downloaded);
                     } else {
                         content.setBackgroundResource(R.drawable.selected);
                     }
                 } else {
                     selectedPods.remove(pod);
-                    if (pod.getDownloadState()) {
-                        if (pod.getListenedToState()) {
+                    if (pod.isDownloaded()) {
+                        if (pod.isListenedTo()) {
                             content.setBackgroundResource(R.drawable.downloaded_listened);
                         } else {
                             content.setBackgroundResource(R.drawable.downloaded_streamable);
                         }
 
-                    } else if (pod.getListenedToState()) {
+                    } else if (pod.isListenedTo()) {
                         content.setBackgroundResource(R.color.listened);
                     } else {
                         content.setBackgroundResource(R.color.streamable);

@@ -48,7 +48,7 @@
         android:paddingRight="30dp"
         android:paddingTop="15dp"
         android:text="@string/action_play_random_pod"
-        android:textColor="@color/app_white"
+        android:textColor="@color/colorWhite"
         android:textSize="17sp"
         android:src="@drawable/ic_shuffle"/>
 

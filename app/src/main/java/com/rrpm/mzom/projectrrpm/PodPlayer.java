@@ -2,8 +2,6 @@ package com.rrpm.mzom.projectrrpm;
 
 import android.content.Context;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
-import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -18,7 +16,7 @@ import java.io.IOException;
  *
  */
 
-class PodPlayer {
+class PodPlayer{
 
     private static final String TAG = "RRP-PodPlayer";
 
@@ -34,7 +32,10 @@ class PodPlayer {
 
     @NonNull private PodPlayerListener listener;
 
+
     interface PodPlayerListener{
+
+        void onPodLoaded(@NonNull final RRPod pod);
 
         void onCurrentPositionChanged(int position);
 
@@ -111,6 +112,14 @@ class PodPlayer {
     }
 
 
+    void loadPod(@NonNull final RRPod pod){
+
+        this.pod = pod;
+
+        listener.onPodLoaded(pod);
+
+    }
+
     /**
      * Starts playback of podcast episode
      *
@@ -130,7 +139,7 @@ class PodPlayer {
 
         mp = new MediaPlayerWrapper();
 
-        if(pod.getDownloadState()){
+        if(pod.isDownloaded()){
 
             try{
 
@@ -185,7 +194,7 @@ class PodPlayer {
 
         podPlayerLock.activateWakeLock(mp);
 
-        if(pod.getDownloadState()){
+        if(pod.isDownloaded()){
             podPlayerLock.activateWifiLock();
         }
 
@@ -223,7 +232,7 @@ class PodPlayer {
 
         mp.pause();
 
-        if(!pod.getDownloadState()){
+        if(!pod.isDownloaded()){
             podPlayerLock.disableWifiLock();
         }
 
@@ -260,7 +269,7 @@ class PodPlayer {
 
         podPlayerLock.activateWakeLock(mp);
 
-        if(!pod.getDownloadState()){
+        if(!pod.isDownloaded()){
             podPlayerLock.activateWifiLock();
         }
 
@@ -342,5 +351,6 @@ class PodPlayer {
         listener.onCurrentPositionChanged(timestamp);
 
     }
+
 
 }
