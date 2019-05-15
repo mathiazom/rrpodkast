@@ -2,7 +2,7 @@ package com.rrpm.mzom.projectrrpm;
 
 import android.app.Activity;
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,6 +35,11 @@ class DrawerListAdapter extends ArrayAdapter<String> {
         if (convertView == null) {
 
             final LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
+
+            if(mInflater == null){
+                throw new NullPointerException("Inflater was null");
+            }
+
             convertView = mInflater.inflate(R.layout.navigation_drawer_item, parent, false);
 
         }

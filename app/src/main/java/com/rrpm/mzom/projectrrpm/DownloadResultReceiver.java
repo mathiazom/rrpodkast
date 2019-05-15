@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.ResultReceiver;
 
 class DownloadResultReceiver extends ResultReceiver {
+
     private Receiver mReceiver;
 
     DownloadResultReceiver(Handler handler) {

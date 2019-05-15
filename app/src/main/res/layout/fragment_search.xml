@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/search_fragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#CC212121"
     android:clickable="true"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:focusable="true">
 
-    <android.support.constraint.ConstraintLayout
-        android:id="@+id/searchOptionsField"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/white_bottom_rounded"
-        android:elevation="4dp">
+        android:elevation="4dp"
+        tools:targetApi="lollipop">
 
         <LinearLayout
             android:id="@+id/timeSearchSpinners"
@@ -51,7 +53,7 @@
 
         </LinearLayout>
 
-        <android.support.constraint.ConstraintLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/notListenedToField"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -85,11 +87,11 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-        </android.support.constraint.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <android.support.constraint.ConstraintLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/pod_filter_result_cont"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -107,13 +109,14 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent"
+            android:visibility="gone">
 
             <TextView
                 android:id="@+id/resultText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="690"
+                android:text="@string/template_pod_filter_result_num"
                 android:gravity="center"
                 android:textColor="#454545"
                 android:textStyle="bold"
@@ -128,6 +131,6 @@
                 android:textColor="#454545"
                 android:textSize="15sp" />
         </LinearLayout>
-    </android.support.constraint.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>

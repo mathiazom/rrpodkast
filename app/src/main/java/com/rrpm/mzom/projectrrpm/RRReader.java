@@ -1,19 +1,20 @@
 package com.rrpm.mzom.projectrrpm;
 
-import android.content.Context;
-import android.util.Log;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import java.io.IOException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -21,204 +22,198 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-/**
- * Laget av Mathias Myklebust
- */
-
 class RRReader extends Thread {
 
     private static final String TAG = "RRP-RRReader";
 
-    private Context context;
-
-    private ArrayList<ArrayList<RRPod>> masterlist;
-
-    private final ArrayList<RRPod> allpods = new ArrayList<>();
-    private final ArrayList<RRPod> archivepods = new ArrayList<>();
-
-    RRReader(Context context, ArrayList<ArrayList<RRPod>> masterlist) {
-        this.context = context;
-        this.masterlist = masterlist;
+    enum PodType{
+        MAIN_PODS,
+        ARCHIVE_PODS
     }
 
+    private PodType podType;
+
+    private ArrayList<RRPod> retrievedPods = new ArrayList<>();
+
+
+    void readPodsFeed(final PodType podType){
+
+        this.podType = podType;
+
+        start();
+
+    }
+
+
+    @Override
     public void run() {
-        hovedPodkast();
-        arkivPodkast();
+
+        switch (podType){
+
+            case MAIN_PODS:
+
+                try {
+
+                    retrievedPods = getRetrievedPods(
+
+                            new URL(PodFeedConstants.MAIN_PODS_URL),
+
+                            podType,
+
+                            podBuilder -> {
+                                podBuilder.setTitle(getMainPodTitle(podBuilder.getDate()));
+                                return podBuilder.build();
+                            }
+                    );
+                }
+
+                // TODO: Handle exceptions
+                catch (ParserConfigurationException | SAXException | IOException | ParseException e) {
+                    e.printStackTrace();
+                }
+
+                break;
+
+            case ARCHIVE_PODS:
+
+                try {
+
+                    retrievedPods = getRetrievedPods(
+
+                            new URL(PodFeedConstants.ARCHIVE_PODS_URL),
+
+                            podType,
+
+                            RRPod.Builder::build
+                    );
+                }
+
+                // TODO: Handle exceptions
+                catch (ParserConfigurationException | SAXException | IOException | ParseException e) {
+                    e.printStackTrace();
+                }
+
+                break;
+
+        }
+
     }
 
-    private void hovedPodkast(){
+    private interface PodBuilderCallback {
+        @NonNull RRPod buildPod(@NonNull final RRPod.Builder podBuilder);
+    }
 
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder db = null;
-        try {
-            db = dbf.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        }
+    @NonNull
+    private ArrayList<RRPod> getRetrievedPods(@NonNull final URL rssUrl, @NonNull final PodType podType, @NonNull final PodBuilderCallback podBuilderCallback) throws IOException, SAXException, ParserConfigurationException, ParseException {
 
-        if (db == null) return;
-
-        Document doc = null;
-
-        try {
-            doc = db.parse(new URL("https://podkast.nrk.no/program/radioresepsjonen.rss").openStream());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (doc == null){
-
-            Log.e(TAG,"Pod doc was null");
-            return;
-        }
-
-        doc.getDocumentElement().normalize();
-        NodeList nList = doc.getElementsByTagName("item");
+        final NodeList nList = getNodeListFromRSS(rssUrl);
 
         if (nList == null){
 
-            Log.e(TAG,"Item list was null");
-            return;
+            throw new RRReaderException("Feed list was null");
         }
 
-        if(!(masterlist != null && masterlist.get(0).size() > 0 && nList.getLength() == masterlist.get(0).size())){
-            for (int temp = 0; temp < nList.getLength(); temp++) {
-                Node nNode = null;
-                try {
-                    nNode = nList.item(temp);
-                } catch (NullPointerException e) {
-                    e.printStackTrace();
-                }
+        if (nList.getLength() == 0){
 
-                if (nNode != null && nNode.getNodeType() == Node.ELEMENT_NODE) {
-                    Element eElement = (Element) nNode;
+            throw new RRReaderException("Feed list was empty");
+        }
 
-                    String rawDate = eElement.getElementsByTagName("pubDate").item(0).getTextContent();
-                    String url = eElement.getElementsByTagName("enclosure").item(0).getAttributes().getNamedItem("url").getNodeValue();
+        final ArrayList<RRPod> pods = new ArrayList<>();
 
-                    String duration = eElement.getElementsByTagName("itunes:duration").item(0).getTextContent();
+        for (int i = 0; i < nList.getLength(); i++) {
 
-                    String desc = eElement.getElementsByTagName("description").item(0).getTextContent();
-                    if (desc.length() < 3) {
-                        desc = "";
-                    }
+            final Node nNode = nList.item(i);
 
-                    DateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy", Locale.ENGLISH);
-                    Date dateObj = null;
-                    try {
-                        dateObj = format.parse(rawDate);
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
-
-                    Calendar cal = Calendar.getInstance();
-                    cal.setTime(dateObj);
-
-                    String[] dager = new String[]{
-                            "Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Lørdag", "Søndag"
-                    };
-
-                    String[] måneder = context.getResources().getStringArray(R.array.months);
-
-                    String date = String.valueOf(dager[cal.get(Calendar.DAY_OF_WEEK) - 2]) + " " + String.valueOf(cal.get(Calendar.DATE)) + ". " + String.valueOf(måneder[cal.get(Calendar.MONTH)]) + " " + String.valueOf(cal.get(Calendar.YEAR));
-
-                    if (allpods.size() == 0 || !allpods.get(allpods.size() - 1).getTitle().equals(date)) {
-                        RRPod newpod = new RRPod(date, dateObj, url, desc, duration);
-                        allpods.add(newpod);
-                    }
-                }
-
-
+            if (nNode == null || nNode.getNodeType() != Node.ELEMENT_NODE) {
+                continue;
             }
+
+            final Element eElement = (Element) nNode;
+
+            final String guid = eElement.getElementsByTagName("guid").item(0).getTextContent();
+
+            final String rawDate = eElement.getElementsByTagName("pubDate").item(0).getTextContent();
+            final DateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy", Locale.ENGLISH);
+            final Date date = format.parse(rawDate);
+
+            final String url = eElement.getElementsByTagName("enclosure").item(0).getAttributes().getNamedItem("url").getNodeValue();
+
+            final String durationString = eElement.getElementsByTagName("itunes:duration").item(0).getTextContent();
+            int duration = MillisFormatter.fromFormat(durationString, MillisFormatter.MillisFormat.HH_MM_SS);
+
+            final String title = eElement.getElementsByTagName("title").item(0).getTextContent();
+
+            String description = eElement.getElementsByTagName("description").item(0).getTextContent();
+            if (description.length() < 3) {
+                description = "";
+            }
+            description = description.trim();
+
+
+            final RRPod.Builder podBuilder = new RRPod.Builder()
+                    .setId(new PodId(guid))
+                    .setPodType(podType)
+                    .setDate(date)
+                    .setUrl(url)
+                    .setDuration(duration)
+                    .setTitle(title)
+                    .setDescription(description);
+
+            final RRPod pod = podBuilderCallback.buildPod(podBuilder);
+
+
+            pods.add(pod);
+
         }
+
+        return pods;
+
     }
 
-    private void arkivPodkast() {
 
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder db = null;
-        try {
-            db = dbf.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        }
+    private String getMainPodTitle(@NonNull final Date date) {
 
-        if (db == null) return;
+        final String format = "EEEE d. MMMM yyyy";
 
-        Document doc = null;
+        final Locale locale = new Locale("no","NO");
 
-        try {
-            doc = db.parse(new URL("https://podkast.nrk.no/program/radioresepsjonens_arkivpodkast.rss").openStream());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        final SimpleDateFormat formatter = new SimpleDateFormat(format,locale);
 
-        if (doc == null) return;
+        final String rawDate = formatter.format(date);
+
+        return rawDate.substring(0,1).toUpperCase() + rawDate.substring(1);
+
+    }
+
+    private NodeList getNodeListFromRSS(@NonNull final URL url) throws ParserConfigurationException, IOException, SAXException {
+
+        final DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+
+        final Document doc = db.parse(url.openStream());
 
         doc.getDocumentElement().normalize();
-        NodeList nList = doc.getElementsByTagName("item");
 
-        if (nList == null) return;
+        return doc.getElementsByTagName("item");
 
-        if(!(masterlist != null && masterlist.get(1).size() > 0 && nList.getLength() == masterlist.get(1).size())){
-            for (int temp = 0; temp < nList.getLength(); temp++) {
-                Node nNode = null;
-                try {
-                    nNode = nList.item(temp);
-                } catch (NullPointerException e) {
-                    e.printStackTrace();
-                }
+    }
 
-                if (nNode != null) {
-                    if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+    @Nullable
+    ArrayList<RRPod> getRetrievedPods() {
 
-                        Element eElement = (Element) nNode;
+        return retrievedPods;
 
-                        String rawDate = eElement.getElementsByTagName("pubDate").item(0).getTextContent();
-                        String url = eElement.getElementsByTagName("enclosure").item(0).getAttributes().getNamedItem("url").getNodeValue();
-
-                        String duration = eElement.getElementsByTagName("itunes:duration").item(0).getTextContent();
-
-                        String title = eElement.getElementsByTagName("title").item(0).getTextContent();
-
-                        String desc = eElement.getElementsByTagName("description").item(0).getTextContent();
-                        if (desc.length() < 3) {
-                            desc = "";
-                        }
-
-                        DateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy", Locale.ENGLISH);
-                        Date dateObj = null;
-                        try {
-                            dateObj = format.parse(rawDate);
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-
-                        Calendar cal = Calendar.getInstance();
-                        cal.setTime(dateObj);
-
-                        if (archivepods.size() == 0 || !archivepods.get(archivepods.size() - 1).getTitle().equals(title)) {
-                            RRPod newpod = new RRPod(title, dateObj, url, desc, duration);
-                            archivepods.add(newpod);
-                        }
-
-                    }
-                }
+    }
 
 
-            }
+    class RRReaderException extends RuntimeException{
+
+        RRReaderException(String msg){
+
+            super(msg);
+
         }
-    }
-
-    ArrayList<ArrayList<RRPod>> retrievePods() {
-
-        ArrayList<ArrayList<RRPod>> masterlist = new ArrayList<>();
-
-        masterlist.add(allpods);
-        masterlist.add(archivepods);
-
-        return masterlist;
 
     }
+
 
 }

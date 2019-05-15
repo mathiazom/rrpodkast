@@ -5,8 +5,8 @@ import android.content.res.AssetFileDescriptor;
 import android.media.MediaDataSource;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -24,67 +24,58 @@ import java.util.Map;
 
 public class MediaPlayerWrapper extends MediaPlayer {
 
-    enum MediaPlayerState{
-        Idle,
-        Initialized,
-        Prepared,
-        Preparing,
-        Started,
-        Paused,
-        Stopped,
-        PlaybackCompleted,
-        Error
+    enum State {
+        IDLE,
+        INITIALIZED,
+        PREPARED,
+        PREPARING,
+        STARTED,
+        PAUSED,
+        STOPPED,
+        COMPLETED,
+        ERROR
     }
 
-    private MediaPlayerState state;
+    private State state;
 
 
-    MediaPlayerWrapper(){
+    MediaPlayerWrapper(final OnCompletionListener onCompletionListener){
 
         final MediaPlayerWrapper mediaPlayerWrapper = this;
 
-        setOnErrorListener(new OnErrorListener() {
-            @Override
-            public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+        setOnErrorListener((mediaPlayer, i, i1) -> {
 
-                mediaPlayerWrapper.setState(MediaPlayerState.Error);
+            mediaPlayerWrapper.setState(State.ERROR);
 
-                return false;
-            }
+            return false;
         });
 
 
-        setOnPreparedListener(new OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mediaPlayer) {
+        setOnPreparedListener(mediaPlayer -> mediaPlayerWrapper.setState(State.PREPARED));
 
-                mediaPlayerWrapper.setState(MediaPlayerState.Prepared);
+        setOnCompletionListener(mediaPlayer -> {
 
+            if(mediaPlayerWrapper.isLooping()){
+                return;
             }
+
+            mediaPlayerWrapper.setState(State.COMPLETED);
+
+            if(onCompletionListener != null){
+                onCompletionListener.onCompletion(mediaPlayerWrapper);
+            }
+
         });
 
-        setOnCompletionListener(new OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-
-                if(mediaPlayerWrapper.isLooping()){
-                    return;
-                }
-
-                mediaPlayerWrapper.setState(MediaPlayerState.PlaybackCompleted);
-
-            }
-        });
-
-        setState(MediaPlayerState.Idle);
+        setState(State.IDLE);
 
     }
 
-    private void setState(MediaPlayerState state){
+    private void setState(State state){
         this.state = state;
     }
 
-    MediaPlayerState getState(){
+    State getState(){
         return this.state;
     }
 
@@ -92,97 +83,97 @@ public class MediaPlayerWrapper extends MediaPlayer {
     public void reset() {
         super.reset();
 
-        setState(MediaPlayerState.Idle);
+        setState(State.IDLE);
     }
 
     @Override
     public void setDataSource(String path) throws IOException, IllegalArgumentException, IllegalStateException, SecurityException {
         super.setDataSource(path);
 
-        setState(MediaPlayerState.Initialized);
+        setState(State.INITIALIZED);
     }
 
     @Override
     public void setDataSource(FileDescriptor fd) throws IOException, IllegalArgumentException, IllegalStateException {
         super.setDataSource(fd);
 
-        setState(MediaPlayerState.Initialized);
+        setState(State.INITIALIZED);
     }
 
     @Override
     public void setDataSource(@NonNull AssetFileDescriptor afd) throws IOException, IllegalArgumentException, IllegalStateException {
         super.setDataSource(afd);
 
-        setState(MediaPlayerState.Initialized);
+        setState(State.INITIALIZED);
     }
 
     @Override
     public void setDataSource(@NonNull Context context, @NonNull Uri uri) throws IOException, IllegalArgumentException, IllegalStateException, SecurityException {
         super.setDataSource(context, uri);
 
-        setState(MediaPlayerState.Initialized);
+        setState(State.INITIALIZED);
     }
 
     @Override
     public void setDataSource(MediaDataSource dataSource) throws IllegalArgumentException, IllegalStateException {
         super.setDataSource(dataSource);
 
-        setState(MediaPlayerState.Initialized);
+        setState(State.INITIALIZED);
     }
 
     @Override
     public void setDataSource(@NonNull Context context, @NonNull Uri uri, @Nullable Map<String, String> headers) throws IOException, IllegalArgumentException, IllegalStateException, SecurityException {
         super.setDataSource(context, uri, headers);
 
-        setState(MediaPlayerState.Initialized);
+        setState(State.INITIALIZED);
     }
 
     @Override
     public void setDataSource(FileDescriptor fd, long offset, long length) throws IOException, IllegalArgumentException, IllegalStateException {
         super.setDataSource(fd, offset, length);
 
-        setState(MediaPlayerState.Initialized);
+        setState(State.INITIALIZED);
     }
 
     @Override
     public void setDataSource(@NonNull Context context, @NonNull Uri uri, @Nullable Map<String, String> headers, @Nullable List<HttpCookie> cookies) throws IOException {
         super.setDataSource(context, uri, headers, cookies);
 
-        setState(MediaPlayerState.Initialized);
+        setState(State.INITIALIZED);
     }
 
     @Override
     public void prepareAsync() throws IllegalStateException {
         super.prepareAsync();
 
-        setState(MediaPlayerState.Preparing);
+        setState(State.PREPARING);
     }
 
     @Override
     public void prepare() throws IOException, IllegalStateException {
         super.prepare();
 
-        setState(MediaPlayerState.Prepared);
+        setState(State.PREPARED);
     }
 
     @Override
     public void start() throws IllegalStateException {
         super.start();
 
-        setState(MediaPlayerState.Started);
+        setState(State.STARTED);
     }
 
     @Override
     public void stop() throws IllegalStateException {
         super.stop();
 
-        setState(MediaPlayerState.Stopped);
+        setState(State.STOPPED);
     }
 
     @Override
     public void pause() throws IllegalStateException {
         super.pause();
 
-        setState(MediaPlayerState.Paused);
+        setState(State.PAUSED);
     }
 }

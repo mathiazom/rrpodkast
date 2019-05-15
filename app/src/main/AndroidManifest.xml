@@ -16,22 +16,24 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-
+        <activity android:name=".SettingsActivity"></activity>
         <activity
-            android:name="com.rrpm.mzom.projectrrpm.SplashActivity"
+            android:name=".SplashActivity"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity android:name="com.rrpm.mzom.projectrrpm.MainActivity"/>
+        <activity android:name=".MainActivity"/>
+            <!--android:screenOrientation="portrait"
+            />-->
 
         <service
-            android:name="com.rrpm.mzom.projectrrpm.DownloadService"
+            android:name=".DownloadService"
             android:exported="false" />
-
     </application>
 
 </manifest>

@@ -4,14 +4,13 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:textColorAlertDialogListItem">@color/downloaded</item>
+        <item name="android:textColorAlertDialogListItem">@color/colorAccent</item>
     </style>
 
     <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@drawable/splash</item>
     </style>
 
-    <style name="AppTheme.RedSeekBar" parent="Widget.AppCompat.SeekBar"> <item name="colorAccent">@color/myPodcasts</item> </style>
-    <style name="AppTheme.WhiteMasterLoading" parent="Base.Widget.AppCompat.ProgressBar"><item name="colorAccent">#eee</item></style>
+    <style name="AppTheme.RedSeekBar" parent="Widget.AppCompat.SeekBar"> <item name="colorAccent">@color/colorAccent</item> </style>
 
 </resources>

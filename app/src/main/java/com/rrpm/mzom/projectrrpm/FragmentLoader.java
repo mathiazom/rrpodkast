@@ -1,11 +1,11 @@
 package com.rrpm.mzom.projectrrpm;
 
-import android.support.annotation.IdRes;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
+import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import android.util.Log;
 
 class FragmentLoader {
@@ -13,50 +13,78 @@ class FragmentLoader {
 
     private static final String TAG = "RRP-FragmentLoader";
 
+    private FragmentManager fragmentManager;
 
-    private FragmentActivity activity;
+    FragmentLoader(@NonNull final FragmentManager fragmentManager){
+        this(fragmentManager,null);
+    }
 
+    FragmentLoader(@NonNull final FragmentManager fragmentManager, @Nullable FragmentManager.OnBackStackChangedListener onBackStackChangedListener){
 
-    FragmentLoader(@NonNull FragmentActivity activity){
+        this.fragmentManager = fragmentManager;
 
-        this.activity = activity;
+        if(onBackStackChangedListener != null){
+            fragmentManager.addOnBackStackChangedListener(onBackStackChangedListener);
+        }
 
     }
 
-
-    void loadFragment(@IdRes int frameLayout, @NonNull final Fragment fragment){
-
-        loadFragment(frameLayout,fragment,true);
-
-    }
-
-    private void loadFragment(@IdRes int frameLayout, @NonNull final Fragment fragment, boolean addToBackStack){
+    void loadFragment(@IdRes int frameLayout, @NonNull final Fragment fragment, boolean addToBackStack){
         loadFragment(frameLayout,fragment,0,0,0,0,addToBackStack);
     }
 
-    private void loadFragment(@IdRes int frameLayout, @NonNull final Fragment fragment, int enterAnim, int exitAnim, int popEnterAnim, int popExitAnim, boolean addToBackStack){
+    void loadFragment(@IdRes int frameLayout, @NonNull final Fragment fragment, int enterAnim, int exitAnim, int popEnterAnim, int popExitAnim, boolean addToBackStack){
 
-        Log.i(TAG,"Started loading " + fragment.toString() + " to " + String.valueOf(frameLayout));
-
-        final FragmentManager fragmentManager = activity.getSupportFragmentManager();
+        final String fragmentTag = fragment.getClass().getSimpleName();
 
         final FragmentTransaction transaction =  fragmentManager
                 .beginTransaction()
                 .setCustomAnimations(enterAnim, exitAnim, popEnterAnim, popExitAnim)
-                .replace(frameLayout, fragment);
+                .replace(frameLayout, fragment,fragmentTag);
 
         if (addToBackStack) {
-            transaction.addToBackStack(fragment.getClass().getSimpleName());
+            transaction.addToBackStack(fragmentTag);
         }
 
 
         // TODO: Inspect difference in below commit methods
-
-        //transaction.commit();
-
-        transaction.commitAllowingStateLoss();
+        transaction.commit();
+        //transaction.commitAllowingStateLoss();
 
         Log.i(TAG,"Committed " + fragment.toString() + " to " + String.valueOf(frameLayout));
+
+    }
+
+    void showFragment(@NonNull final Fragment fragment, int enterAnim, int exitAnim, int popEnterAnim, int popExitAnim){
+
+        final FragmentTransaction transaction =  fragmentManager
+                .beginTransaction()
+                .setCustomAnimations(enterAnim, exitAnim, popEnterAnim, popExitAnim)
+                .show(fragment);
+
+        // TODO: Inspect difference in below commit methods
+        transaction.commit();
+        //transaction.commitAllowingStateLoss();
+
+    }
+
+    /*void hideFragment(@NonNull final Fragment fragment){
+
+        hideFragment(fragment,0,0,0,0);
+
+    }*/
+
+    void hideFragment(@NonNull final Fragment fragment, int enterAnim, int exitAnim, int popEnterAnim, int popExitAnim){
+
+        final FragmentTransaction transaction =  fragmentManager
+                .beginTransaction()
+                .setCustomAnimations(enterAnim, exitAnim, popEnterAnim, popExitAnim)
+                .hide(fragment);
+
+        // TODO: Inspect difference in below commit methods
+        transaction.commit();
+        //transaction.commitAllowingStateLoss();
+
 
     }
 

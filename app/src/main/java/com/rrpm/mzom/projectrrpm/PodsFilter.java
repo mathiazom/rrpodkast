@@ -1,8 +1,7 @@
 package com.rrpm.mzom.projectrrpm;
 
 
-import android.support.annotation.NonNull;
-import android.util.Log;
+import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -16,9 +15,7 @@ class PodsFilter {
     private int year = -1;
 
     private FilterTriState listenedToState = FilterTriState.ANY;
-
     private FilterTriState downloadedState = FilterTriState.ANY;
-
 
     enum FilterTriState {
         TRUE,
@@ -39,11 +36,19 @@ class PodsFilter {
         return this;
     }
 
+    int getDay() {
+        return day;
+    }
+
     PodsFilter setMonth(final int month) {
 
         this.month = month;
 
         return this;
+    }
+
+    int getMonth() {
+        return month;
     }
 
     PodsFilter setYear(final int year) {
@@ -53,6 +58,10 @@ class PodsFilter {
         return this;
     }
 
+    int getYear() {
+        return year;
+    }
+
     PodsFilter setListenedToState(@NonNull final FilterTriState listenedToState) {
 
         this.listenedToState = listenedToState;
@@ -60,11 +69,27 @@ class PodsFilter {
         return this;
     }
 
-    PodsFilter setDownloadedState(@NonNull final FilterTriState downloadedState) {
+    FilterTriState getListenedToState() {
+        return listenedToState;
+    }
+
+    private PodsFilter setDownloadedState(@NonNull final FilterTriState downloadedState) {
 
         this.downloadedState = downloadedState;
 
         return this;
+    }
+
+    public FilterTriState getDownloadedState() {
+        return downloadedState;
+    }
+
+    private boolean fitsTriState(boolean state, FilterTriState triState){
+
+        return triState == FilterTriState.ANY ||
+               triState == FilterTriState.TRUE && state ||
+               triState == FilterTriState.FALSE && !state;
+
     }
 
 
@@ -76,31 +101,23 @@ class PodsFilter {
 
         for (RRPod pod : pods){
 
-            calendar.setTime(pod.getDateObj());
+            calendar.setTime(pod.getDate());
 
             boolean inRangeDay = calendar.get(Calendar.DAY_OF_MONTH) == day;
             boolean inRangeMonth = (calendar.get(Calendar.MONTH) + 1) == month;
             boolean inRangeYear = calendar.get(Calendar.YEAR) == year;
 
             boolean inTimeRange =
-                    ((day == -1) || (inRangeDay))
-                    && ((month == -1) || (inRangeMonth))
-                    && ((year == -1) || (inRangeYear));
+                    ((day == -1) || (inRangeDay)) &&
+                    ((month == -1) || (inRangeMonth)) &&
+                    ((year == -1) || (inRangeYear));
 
-            if(!inTimeRange){
+            if (!inTimeRange ||
+                !fitsTriState(pod.isDownloaded(), downloadedState) ||
+                !fitsTriState(pod.isListenedTo(), listenedToState)) {
+
                 continue;
-            }
 
-            boolean correctDownloadedState = downloadedState == FilterTriState.ANY || pod.isDownloaded();
-
-            if(!correctDownloadedState){
-                continue;
-            }
-
-            boolean correctListenedToState = listenedToState == FilterTriState.ANY || pod.isListenedTo();
-
-            if(!correctListenedToState){
-                continue;
             }
 
             filteredPods.add(pod);
@@ -108,6 +125,27 @@ class PodsFilter {
         }
 
         return filteredPods;
+
+    }
+
+    static PodsFilter noFilter(){
+
+        return new PodsFilter()
+                .setDay(-1)
+                .setMonth(-1)
+                .setYear(-1)
+                .setListenedToState(FilterTriState.ANY)
+                .setDownloadedState(FilterTriState.ANY);
+
+    }
+
+
+    String getPrintable(){
+
+        return toString() + " - Params: \n"
+                + "day: " + String.valueOf(day) + "\n"
+                + "month: " + String.valueOf(month) + "\n"
+                + "year: " + String.valueOf(year) + "\n";
 
     }
 

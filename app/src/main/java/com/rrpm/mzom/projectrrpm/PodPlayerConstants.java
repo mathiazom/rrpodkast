@@ -1,16 +1,13 @@
 package com.rrpm.mzom.projectrrpm;
 
-final class PodPlayerConstants {
+class PodPlayerConstants {
 
+    // How many milliseconds to jump forward
     static final int PLAYER_SKIP_MS = 10000;
+
+    // How many milliseconds to jump backwards
     static final int PLAYER_REWIND_MS = 10000;
 
-    // How often the progress display should be refreshed (in milliseconds)
-    static final int PROGRESS_REFRESH_FREQ_MS = 1000;
-
-    // How often the player progress should be saved to Shared Preferences (in milliseconds)
-    static final int SAVE_PROGRESS_FREQ_MS = 5000;
-
-    static final int LISTENED_TO_MARK_PERCENT = 20;
+    static final String SAVED_INSTANCE_STATE_WAS_PLAYING_TAG = "com.rrpm.mzom.projectrrpm.PodPlayerConstants.SAVED_INSTANCE_STATE_WAS_PLAYING_TAG";
 
 }

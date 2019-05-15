@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">RRPodkast</string>
+
     <string-array name="DrawerArray">
 
         <item>Alle podkaster</item>
@@ -19,8 +20,6 @@
     </string>
     <string name="about_app_version">Versjon: 1.4.0</string>
     <string name="action_filter">Filtrer</string>
-    <string name="action_filter_ext">Filtrer podkaster</string>
-    <string name="action_close">Lukk</string>
     <string name="action_play_random_pod">Spill tilfeldig podkast</string>
     <string name="filter_title_all">Alle podkaster</string>
 
@@ -29,17 +28,10 @@
     <string name="result_num_suffix">som passer søket ditt</string>
 
     <string name="no_result_msg">Ingen resultater for søket</string>
-    <string name="no_result_msg_offline">Ingen nedlastede podkaster</string>
 
-    <string name="no_pod">Ingen podkaster</string>
-    <string name="no_pod_selected">Ingen podkast er valgt</string>
-
-    <string name="connect">Koble til</string>
     <string name="downloading">Laster ned …</string>
 
     <string name="new_pod_mark">NY</string>
-
-    <string name="random_select_no_result">Kunne ikke finne tilfeldig podkast som passer, sjekk filter-innstillinger</string>
 
     <string-array name="months">
 
@@ -74,15 +66,35 @@
 
     <string name="filter_pod_section">Filtrer podkaster</string>
     <string name="filter_select_setting_name">"Ikke lyttet til"-filter</string>
-    <string name="filter_select_setting_title">""Ikke lyttet til"-filter</string>
-
-    <string-array name="activated_or_not">
-        <item>Aktivert</item>
-        <item>Deaktivert</item>
-    </string-array>
 
     <string name="space_usage_title">Bruk av plass på enheten:</string>
-    <string name="SPKey_recent_pod_progress">recent_pod_progress</string>
-    <string name="SP_listened_to_marker">(LT)</string>
+
+    <string name="episoder">episoder</string>
+    <string name="pod_description_template">Siste 24 - Hvem er Prof. Tom Reker Telemark? - Kjør debatt - Veien videre - 30 spørsmål.</string>
+    <string name="pod_title_template">Ornsdag 42. september 2020</string>
+    <string name="pod_details_template">Sesong 20 • 69 min</string>
+    <string name="search_spinner_placeholder_year">Alle år</string>
+    <string name="search_spinner_placeholder_month">Alle måneder</string>
+    <string name="search_spinner_placeholder_day">Alle dager</string>
+    <string name="button_mark_as_not_listened_to">MERK SOM IKKE LYTTET TIL</string>
+    <string name="button_mark_as_listened_to">MERK SOM LYTTET TIL</string>
+    <string name="podplayer_main_controller_description">Start eller stopp avspilling</string>
+    <string name="random_pod_background_description">Collage av gutta fra Calcutta</string>
+    <string name="rewind_playback_button_description">Hopp tilbake i avspillingen</string>
+    <string name="skip_playback_button_description">Hopp fremover i avspillingen</string>
+    <string name="random_pod_selection_option_description">Utvalg ved tilfeldig episode</string>
+    <string name="downloaded_pod_marker_description">Nedlastet episode</string>
+    <string name="download_pod_button_description">Last ned episode</string>
+    <string name="play_random_pod_button_description">Spill av tilfeldig episode</string>
+    <string name="pod_summary_header">KORT OPPSUMMERT</string>
+    <string name="template_pod_filter_result_num">690</string>
+    <string name="podplayer_elapsed_template">00:00:00</string>
+    <string name="podplayer_duration_template">01:42:69</string>
+    <string name="list_drawer_item_pod_list">Episoder</string>
+    <string name="list_drawer_item_highlights">Høydepunkter</string>
+    <string name="list_drawer_item_random_pod">Tilfeldig episode</string>
+    <string name="list_drawer_item_facebook">Facebook</string>
+    <string name="list_drawer_item_settings">Innstillinger</string>
+    <string name="list_drawer_item_about">Om appen</string>
 
 </resources>

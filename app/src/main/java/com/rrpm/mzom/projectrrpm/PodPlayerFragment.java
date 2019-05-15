@@ -1,52 +1,48 @@
 package com.rrpm.mzom.projectrrpm;
 
 import android.content.Context;
-import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProviders;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Objects;
 
 
-public class PodPlayerFragment extends Fragment implements PodPlayer.PodPlayerListener{
+public class PodPlayerFragment extends Fragment {
+
 
     private static final String TAG = "RRP-PodPlayerFragment";
 
+
     private View view;
-    private SeekBar podPlayerProgress;
-    private ImageButton mainController;
-    private TextView podPlayerDuration;
-    private TextView podPlayerElapsed;
-    private TextView podNameText;
-
-    private PodPlayer podPlayer;
-
-    private Timer displayProgressTimer;
-    private Timer saveProgressAndListenedToStateTimer;
 
 
-    public static PodPlayerFragment newInstance(@NonNull final PodPlayer podPlayer) {
+    private FragmentLoadingHandler fragmentLoadingHandler;
 
-        PodPlayerFragment fragment = new PodPlayerFragment();
+    private SelectedPodViewModel selectedPodViewModel;
 
-        fragment.podPlayer = podPlayer;
 
-        return fragment;
+    private PodPlayerControls podPlayerControls;
+
+    private RRPod playerPod;
+
+
+    static PodPlayerFragment newInstance() {
+
+        return new PodPlayerFragment();
+
     }
 
 
@@ -54,300 +50,149 @@ public class PodPlayerFragment extends Fragment implements PodPlayer.PodPlayerLi
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        view = inflater.inflate(R.layout.fragment_podplayer,container,false);
+        setRetainInstance(true);
 
-        podNameText = view.findViewById(R.id.podplayer_text);
 
-        podPlayerProgress = view.findViewById(R.id.progressbar);
+        view = inflater.inflate(R.layout.fragment_podplayer, container, false);
 
-        mainController = view.findViewById(R.id.podplayer_maincontrol);
+        initControlListeners();
 
-        podPlayerElapsed = view.findViewById(R.id.podplayer_elapsed);
 
-        podPlayerDuration = view.findViewById(R.id.podplayer_duration);
+        // Keep track of player changes
+        final PlayerPodViewModel playerPodViewModel = ViewModelProviders.of(Objects.requireNonNull(getActivity())).get(PlayerPodViewModel.class);
 
-        initPlayerControls();
+        // Player pod change
+        playerPodViewModel.getPlayerPod().observe(this, playerPod -> {
+
+            this.playerPod = playerPod;
+
+            displayPod(playerPod,playerPodViewModel.isPlaying());
+
+        });
+
+        // Player pod progress
+        playerPodViewModel.getPlayerProgress().observe(this, this::displayPodProgress);
+
+        // Player playing state
+        playerPodViewModel.getIsPlayingData().observe(this, this::displayPlayingState);
+
+
+        selectedPodViewModel = ViewModelProviders.of(Objects.requireNonNull(getActivity())).get(SelectedPodViewModel.class);
+
 
         return view;
 
     }
 
+
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+    public void onAttach(Context context) {
 
-        super.onActivityCreated(savedInstanceState);
+        super.onAttach(context);
 
-        if(getContext() == null){
-            throw new NullPointerException();
+        try {
+
+            podPlayerControls = (PodPlayerControls) context;
+
+        } catch (ClassCastException e) {
+
+            throw new ClassCastException(context.toString() + " must implement PodPlayerControls");
+
         }
 
-        updatePodPlayer(null,getContext());
+        try {
+
+            fragmentLoadingHandler = (FragmentLoadingHandler) context;
+
+        } catch (ClassCastException e) {
+
+            throw new ClassCastException(context.toString() + " must implement FragmentLoadingHandler");
+
+        }
 
     }
 
-    void setPodPlayer(@NonNull final PodPlayer podPlayer){
-        this.podPlayer = podPlayer;
-    }
 
-    private void initPlayerControls(){
+    private void initControlListeners() {
 
-        mainController.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                podPlayer.pauseOrContinuePod();
+        final SeekBar podPlayerProgressBar = view.findViewById(R.id.podPlayerProgressBar);
+
+        SeekBarPainter.paint(podPlayerProgressBar, ContextCompat.getColor(requireContext(), R.color.colorAccent));
+
+        podPlayerProgressBar.setOnSeekBarChangeListener(new PodProgressBarChangedListener() {
+            @Override
+            public void onProgressChanged(int progress, boolean fromUser) {
+                if (fromUser) podPlayerControls.seekTo(progress);
             }
         });
 
-        final ImageButton skipForth = view.findViewById(R.id.podplayer_skipforth);
-        skipForth.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                podPlayer.jump(PodPlayerConstants.PLAYER_SKIP_MS);
-            }
-        });
+        final ImageView playPauseButton = view.findViewById(R.id.podPlayerPlayPause);
+        playPauseButton.setOnClickListener(v -> podPlayerControls.pauseOrContinuePod(requireContext()));
 
-        final ImageButton skipBack = view.findViewById(R.id.podplayer_skipback);
-        skipBack.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                podPlayer.jump(-PodPlayerConstants.PLAYER_REWIND_MS);
+        final ImageButton jumpForthButton = view.findViewById(R.id.podPlayerJumpForth);
+        jumpForthButton.setOnClickListener(v -> podPlayerControls.jump(PodPlayerConstants.PLAYER_SKIP_MS));
+
+        final ImageButton jumpBackButton = view.findViewById(R.id.podPlayerJumpBack);
+        jumpBackButton.setOnClickListener(v -> podPlayerControls.jump(-PodPlayerConstants.PLAYER_REWIND_MS));
+
+        view.setOnClickListener(v -> {
+
+            if (playerPod == null) {
+                Log.e(TAG, "Pod from PodPlayer was null");
+                return;
             }
+
+            selectedPodViewModel.selectPod(playerPod);
+
+            fragmentLoadingHandler.loadPodFragment();
+
         });
 
     }
 
-    private void displayPlayingState(){
-        mainController.setImageResource(podPlayer.isPlaying() ? R.drawable.ic_pause_pod : R.drawable.ic_play_pod);
+
+    private void displayPod(@NonNull final RRPod pod, boolean isPlaying){
+
+        displayPodDetails(pod);
+
+        displayPlayingState(isPlaying);
+
+        displayPodProgress(pod.getProgress());
+
+
     }
 
-    void updatePodPlayer(@Nullable final RRPod pod, @NonNull final Context context) throws NullPointerException {
+    private void displayPodDetails(@NonNull final RRPod pod) {
 
-        final String podName = (pod == null) ? "" : pod.getTitle();
+        final TextView podTitleView = view.findViewById(R.id.podPlayerPodTitle);
+        podTitleView.setText(pod.getTitle());
 
-        final SharedPreferences podStorage = PreferenceManager.getDefaultSharedPreferences(getContext());
-
-        podNameText.setText(podName);
-
-        displayPlayingState();
-
-        int duration = podPlayer.getDuration();
-        final String durationText = duration == -1 ? "" : getCleanTime(duration);
-
-        podPlayerDuration.setText(durationText);
-
+        final SeekBar podPlayerProgress = view.findViewById(R.id.podPlayerProgressBar);
+        int duration = pod.getDuration();
         podPlayerProgress.setMax(duration);
 
-        colorizeSeekBar(podPlayerProgress,ContextCompat.getColor(context, R.color.myPodcasts));
-
-        if(pod != null){
-
-            int progress = podPlayer.getCurrentPosition();
-
-            onCurrentPositionChanged(progress);
-            podStorage.edit().putString("recent_pod_name",podName).apply();
-
-            // Timer keeping track of player progression
-            displayProgressTimer = new Timer();
-            displayProgressTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    if (podPlayer.isPlaying()) {
-                                        podPlayerProgress.post(new Runnable() {
-                                            @Override
-                                            public void run() {
-
-                                                updatePodPlayerProgress(podPlayer.getCurrentPosition());
-
-                                            }
-                                        });
-                                    }
-                                } catch (IllegalStateException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
-                    }
-                }
-            }, 0, PodPlayerConstants.PROGRESS_REFRESH_FREQ_MS);
-
-            // Timer saving progress and checking if pod should be marked as "listened to"
-            saveProgressAndListenedToStateTimer = new Timer();
-            saveProgressAndListenedToStateTimer.scheduleAtFixedRate(new TimerTask() {
-                @Override
-                public void run() {
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-
-                                try {
-                                    if (podPlayer.isPlaying()) {
-                                        podPlayerProgress.post(new Runnable() {
-                                            @Override
-                                            public void run() {
-
-                                                int timeStamp = podPlayer.getCurrentPosition();
-
-                                                storeCurrentPlayerProgress(timeStamp,podStorage);
-
-                                                storeListenedToStateIfChanged(podName,timeStamp,podStorage);
-
-                                            }
-                                        });
-                                    }
-                                } catch (IllegalStateException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        });
-                    }
-                }
-            },0,PodPlayerConstants.SAVE_PROGRESS_FREQ_MS);
-
-            podPlayerProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                @Override
-                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-                    if (fromUser) {
-                        podPlayer.seekTo(progress);
-                    }
-
-                }
-
-                @Override
-                public void onStartTrackingTouch(SeekBar seekBar) {
-
-                    colorizeSeekBar(seekBar,Color.parseColor("#ff3d00")); // Orange
-
-                }
-
-                @Override
-                public void onStopTrackingTouch(SeekBar seekBar) {
-
-                    colorizeSeekBar(seekBar,Color.parseColor("#b71c1c")); // Red
-
-                }
-            });
-
-        }
-
-
-
-        view.setVisibility(View.VISIBLE);
-    }
-
-    private void storeCurrentPlayerProgress(final int timeStamp, @NonNull final SharedPreferences podStorage){
-
-        podStorage.edit().putInt(getString(com.rrpm.mzom.projectrrpm.R.string.SPKey_recent_pod_progress), timeStamp).apply();
+        final String durationText = MillisFormatter.toFormat(duration, MillisFormatter.MillisFormat.HH_MM_SS);
+        final TextView podPlayerDurationText = view.findViewById(R.id.podPlayerDuration);
+        podPlayerDurationText.setText(durationText);
 
     }
 
-    private void storeListenedToStateIfChanged(final String podName, final int timeStamp, @NonNull final SharedPreferences podStorage){
+    private void displayPlayingState(boolean isPlaying){
 
-        boolean overListenedToMark = timeStamp > podPlayer.getDuration()*(PodPlayerConstants.LISTENED_TO_MARK_PERCENT/100.0);
-        boolean storedAsListenedTo = podStorage.getBoolean(podName + getString(com.rrpm.mzom.projectrrpm.R.string.SP_listened_to_marker), false);
-
-        if (overListenedToMark && !storedAsListenedTo) {
-            podStorage.edit().putBoolean(podName + getString(com.rrpm.mzom.projectrrpm.R.string.SP_listened_to_marker), true).apply();
-        }
+        final ImageView mainController = view.findViewById(R.id.podPlayerPlayPause);
+        mainController.setImageResource(isPlaying ? R.drawable.ic_pause_pod : R.drawable.ic_play_pod);
 
     }
 
+    private void displayPodProgress(int progress) {
 
+        final SeekBar podPlayerProgress = view.findViewById(R.id.podPlayerProgressBar);
+        podPlayerProgress.setProgress(progress);
 
-    private void colorizeSeekBar(@NonNull final SeekBar seekBar, final int color){
-
-        // Colorize progress
-        seekBar.getProgressDrawable().setColorFilter(color, PorterDuff.Mode.SRC_IN);
-
-        // Colorize thumb
-        seekBar.getThumb().setColorFilter(color, PorterDuff.Mode.SRC_IN);
-
-    }
-
-    /**
-     *
-     * Convert milliseconds to time with format "HH:MM:SS"
-     *
-     * @param ms: Total number of milliseconds to be represented
-     * @return Converted millisecond as a String
-     *
-     */
-    private String getCleanTime(int ms) {
-
-        final String seconds = addZero(String.valueOf((ms / 1000) % 60));
-        final String minutes = addZero(String.valueOf(((ms / (1000 * 60)) % 60)));
-        final String hours = addZero(String.valueOf(((ms / (1000 * 60 * 60)) % 24)));
-
-        return hours + ":" + minutes + ":" + seconds;
-    }
-
-    private String addZero(String s) {
-        if (s.length() == 1)
-            return "0" + s;
-        else return s;
-    }
-
-
-    private void purgeTimer(@Nullable final Timer timer){
-
-        if(timer == null){
-            return;
-        }
-
-        timer.cancel();
-        timer.purge();
-    }
-
-    private void updatePodPlayerProgress(int position){
-
-        podPlayerElapsed.setText(getCleanTime(position));
-        podPlayerProgress.setProgress(position);
+        final TextView podPlayerProgressText = view.findViewById(R.id.podPlayerProgress);
+        final String progressString = MillisFormatter.toFormat(progress, MillisFormatter.MillisFormat.HH_MM_SS);
+        podPlayerProgressText.setText(progressString);
 
     }
 
-
-    @Override
-    public void onPodLoaded(@NonNull RRPod pod) {
-
-        if(getContext() == null){
-            return;
-        }
-
-        updatePodPlayer(pod,getContext());
-
-    }
-
-    @Override
-    public void onCurrentPositionChanged(int position) {
-
-        updatePodPlayerProgress(position);
-
-    }
-
-    @Override
-    public void onPodStarted(@NonNull RRPod pod, int from) {
-
-        purgeTimer(displayProgressTimer);
-        purgeTimer(saveProgressAndListenedToStateTimer);
-
-        if(getContext() == null){
-            throw new NullPointerException("Context was not available when new pod was started");
-        }
-
-        updatePodPlayer(pod,getContext());
-
-    }
-
-    @Override
-    public void onPlayerPaused() {
-        mainController.setImageResource(podPlayer.isPlaying() ? R.drawable.ic_pause_pod : R.drawable.ic_play_pod);
-    }
-
-    @Override
-    public void onPlayerContinued() {
-        mainController.setImageResource(podPlayer.isPlaying() ? R.drawable.ic_pause_pod : R.drawable.ic_play_pod);
-    }
 }

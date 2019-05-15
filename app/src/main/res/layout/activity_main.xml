@@ -8,163 +8,14 @@
     tools:context="com.rrpm.mzom.projectrrpm.MainActivity">
 
 
-    <android.support.v4.widget.DrawerLayout
+    <com.rrpm.mzom.projectrrpm.NavigationDrawer
         android:id="@+id/navigation_drawer_layout"
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true">
 
-        <!-- The main content view
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <RelativeLayout
-                android:id="@+id/drawer_relative"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <android.support.v7.widget.Toolbar
-                    android:id="@+id/toolbar"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentTop="true"
-                    android:elevation="4dp"
-                    android:background="@color/colorPrimary">
-
-                    <TextView
-                        android:id="@+id/toolbar_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="start"
-                        android:padding="10dp"
-                        android:text="@string/filter_title_all"
-                        android:textColor="#eee"
-                        android:textSize="19sp" />
-
-                    <ImageView
-                        android:id="@+id/selection_actions"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:padding="12dp"
-                        android:src="@drawable/ic_more_actions"
-                        android:visibility="gone"/>
-
-                    <ImageView
-                        android:id="@+id/clear_selected_pods"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:padding="12dp"
-                        android:src="@drawable/ic_exit"
-                        android:visibility="gone"/>
-
-
-
-                    <ImageView
-                        android:id="@+id/pod_filter_show"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:contentDescription="@string/action_filter"
-                        android:padding="12dp"
-                        android:src="@drawable/ic_pod_filter" />
-
-                    <ImageView
-                        android:id="@+id/pod_filter_hide"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:contentDescription="@string/action_close"
-                        android:paddingLeft="10dp"
-                        android:paddingRight="10dp"
-                        android:src="@drawable/ic_exit"
-                        android:visibility="gone" />
-
-                    <LinearLayout
-                        android:id="@+id/selected_title_cont"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="@drawable/circle_background_red"
-                        android:gravity="center"
-                        android:visibility="gone">
-                        <TextView
-                            android:id="@+id/selected_title"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/no_pod_selected"
-                            android:paddingTop="5dp"
-                            android:paddingBottom="5dp"
-                            android:paddingRight="10dp"
-                            android:paddingLeft="10dp"
-                            android:textColor="#eee"
-                            android:textSize="12sp"/>
-                    </LinearLayout>
-
-                </android.support.v7.widget.Toolbar>
-
-                <FrameLayout
-                    android:id="@+id/main_content_frame"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_below="@id/toolbar"
-                    android:visibility="visible">
-
-                </FrameLayout>
-
-                <FrameLayout
-                    android:id="@+id/podplayer_frame"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentBottom="true"
-                    android:clickable="true">
-
-                </FrameLayout>
-
-                <FrameLayout
-                    android:id="@+id/search_frame"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_below="@id/toolbar"
-                    android:visibility="gone">
-                </FrameLayout>
-
-                <FrameLayout
-                    android:id="@+id/about_frame"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_alignParentTop="true"
-                    android:background="#EE000000"
-                    android:clickable="true"
-                    android:visibility="gone">
-                </FrameLayout>
-
-            </RelativeLayout>
-
-            <RelativeLayout
-                android:visibility="gone"
-                android:id="@+id/top_progress"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/dark_blur"
-                android:clickable="true">
-
-                <ProgressBar
-                    style="@style/Base.Widget.AppCompat.ProgressBar"
-                    android:layout_width="match_parent"
-                    android:padding="160dp"
-                    android:layout_height="match_parent"
-                    android:indeterminate="true"/>
-
-            </RelativeLayout>
-
-        </RelativeLayout>
--->
-
-        <android.support.constraint.ConstraintLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="0dp"
             android:layout_height="0dp">
 
@@ -173,8 +24,7 @@
                 android:id="@+id/frame_main"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:background="@color/colorAccent"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/frame_overlay"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toTopOf="@id/frame_podplayer"/>
@@ -192,13 +42,13 @@
             <FrameLayout
                 android:id="@+id/frame_overlay"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
+                android:layout_height="wrap_content"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"/>
+                app:layout_constraintBottom_toTopOf="@id/frame_main"/>
 
-        </android.support.constraint.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
 
         <!-- The navigation drawer -->
@@ -213,26 +63,24 @@
             android:divider="@drawable/offline_msg_background"
             android:dividerHeight="0dp" />
 
-    </android.support.v4.widget.DrawerLayout>
+    </com.rrpm.mzom.projectrrpm.NavigationDrawer>
 
 
     <FrameLayout
-        android:id="@+id/full_screen_loading_frame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentTop="true"
         android:background="#EE000000"
         android:clickable="true"
-        android:visibility="gone">
+        android:visibility="gone"
+        android:focusable="true">
 
-        <android.support.constraint.ConstraintLayout
-            android:id="@+id/full_screen_loading_cont"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/colorPrimary">
 
             <LinearLayout
-                android:id="@+id/full_screen_loading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
@@ -252,7 +100,7 @@
 
             </LinearLayout>
 
-        </android.support.constraint.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </FrameLayout>
 

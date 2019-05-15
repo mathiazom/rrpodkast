@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:paddingStart="20dp"
+    android:layout_height="wrap_content"
     android:paddingEnd="20dp"
-    android:layout_height="wrap_content">
+    android:paddingStart="20dp">
 
     <TextView xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/drawer_item_text"
@@ -17,21 +17,22 @@
         android:padding="17dp"
         android:textColor="#eee"
         android:textSize="15sp"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        app:layout_constraintLeft_toRightOf="@+id/drawer_item_img" />
+        app:layout_constraintLeft_toRightOf="@+id/drawer_item_img"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
 
     <ImageView
-        android:src="@drawable/ic_exit"
         android:id="@+id/drawer_item_img"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:scaleX="0.7"
         android:scaleY="0.7"
-        app:layout_constraintTop_toTopOf="parent"
+        android:src="@drawable/ic_exit"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
 
-</android.support.constraint.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
 
