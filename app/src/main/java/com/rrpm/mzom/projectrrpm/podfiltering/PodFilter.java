@@ -7,7 +7,6 @@ import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 public class PodFilter implements Printable {
 
@@ -15,7 +14,7 @@ public class PodFilter implements Printable {
     private static final String TAG = "RRP-PodFilter";
 
 
-    @Nullable private DateRange dateRange;
+    @NonNull private DateRange dateRange;
 
     @NonNull private FilterTriState completedState = FilterTriState.ANY;
     @NonNull private FilterTriState downloadedState = FilterTriState.ANY;
@@ -23,29 +22,23 @@ public class PodFilter implements Printable {
 
 
 
-    private PodFilter(){
+    public PodFilter(@NonNull DateRange dateRange){
+
+        this.dateRange = dateRange;
 
     }
 
 
-    @Nullable
+    @NonNull
     public DateRange getDateRange() {
         return this.dateRange;
     }
 
-    @NonNull
-    public PodFilter setDateRange(@Nullable DateRange dateRange) {
-        this.dateRange = dateRange;
-        return this;
-    }
 
-
-    @NonNull
-    public PodFilter setCompletedState(@NonNull final FilterTriState completedState) {
+    public void setCompletedState(@NonNull final FilterTriState completedState) {
 
         this.completedState = completedState;
 
-        return this;
     }
 
     @NonNull
@@ -53,12 +46,11 @@ public class PodFilter implements Printable {
         return completedState;
     }
 
-    @NonNull
-    public PodFilter setDownloadedState(@NonNull final FilterTriState downloadedState) {
+
+    public void setDownloadedState(@NonNull final FilterTriState downloadedState) {
 
         this.downloadedState = downloadedState;
 
-        return this;
     }
 
     @NonNull
@@ -67,12 +59,9 @@ public class PodFilter implements Printable {
     }
 
 
-    @NonNull
-    public PodFilter setStartedState(@NonNull final FilterTriState startedState){
+    public void setStartedState(@NonNull final FilterTriState startedState){
 
         this.startedState = startedState;
-
-        return this;
 
     }
 
@@ -91,7 +80,7 @@ public class PodFilter implements Printable {
         for (RRPod pod : allPodsList){
 
             if (
-                    (dateRange == null || dateRange.contains(pod.getDate())) &&
+                    (dateRange.contains(pod.getDate())) &&
                     this.downloadedState.contains(pod.isDownloaded()) &&
                     this.completedState.contains(pod.isCompleted()) &&
                     this.startedState.contains(pod.isStarted())) {
@@ -104,24 +93,13 @@ public class PodFilter implements Printable {
 
     }
 
-    @NonNull
-    public static PodFilter noFilter(){
-
-        return new PodFilter()
-                .setDateRange(null)
-                .setCompletedState(FilterTriState.ANY)
-                .setDownloadedState(FilterTriState.ANY)
-                .setStartedState(FilterTriState.ANY);
-
-    }
-
 
     @NonNull
     @Override
     public String toPrint() {
         return super.toString() +
                 ": {" + "\n" +
-                " DateRange: " + (dateRange == null ? "null" : dateRange.toPrint()) + "\n" +
+                " DateRange: " + dateRange.toPrint() + "\n" +
                 " CompletedState: " + completedState + "\n" +
                 " DownloadedState: " + downloadedState + "\n" +
                 " StartedState: " + startedState + "\n" +

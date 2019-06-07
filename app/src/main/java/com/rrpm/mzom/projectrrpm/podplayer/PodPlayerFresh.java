@@ -2,23 +2,29 @@ package com.rrpm.mzom.projectrrpm.podplayer;
 
 import android.content.Context;
 import android.media.MediaPlayer;
+import android.net.Uri;
+import android.util.Log;
+
+import com.google.android.exoplayer2.ExoPlayer;
+import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
+import com.rrpm.mzom.projectrrpm.pod.RRPod;
+import com.rrpm.mzom.projectrrpm.podstorage.MillisFormatter;
+import com.rrpm.mzom.projectrrpm.podstorage.PodStorageConstants;
+import com.rrpm.mzom.projectrrpm.podstorage.PodStorageHandle;
+import com.rrpm.mzom.projectrrpm.podstorage.PodsViewModel;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.TimerTask;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProviders;
-
-import android.util.Log;
-
-import com.rrpm.mzom.projectrrpm.podstorage.PodStorageConstants;
-import com.rrpm.mzom.projectrrpm.podstorage.MillisFormatter;
-import com.rrpm.mzom.projectrrpm.podstorage.PodStorageHandle;
-import com.rrpm.mzom.projectrrpm.pod.RRPod;
-import com.rrpm.mzom.projectrrpm.podstorage.PodsViewModel;
-
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.TimerTask;
 
 
 /**
@@ -27,17 +33,18 @@ import java.util.TimerTask;
  *
  */
 
-public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionListener, Serializable {
+public class PodPlayerFresh implements PodPlayerControls, MediaPlayer.OnCompletionListener, Serializable {
 
 
     private static final String TAG = "RRP-PodPlayer";
 
 
-    private final Context context;
-
     private RRPod pod;
 
-    private static MediaPlayerWrapper mp;
+    @NonNull
+    private ExoPlayer exoPlayer;
+
+    private ExtractorMediaSource.Factory mediaSourceFactory;
 
 
     private final PodsViewModel podsViewModel;
@@ -50,9 +57,14 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
     private PodPlayerPlaybackRegulator playbackRegulator;
 
 
-    public PodPlayer(@NonNull FragmentActivity activity) {
+    public PodPlayerFresh(@NonNull FragmentActivity activity) {
 
-        this.context = activity;
+        // TODO: Release player when appropriate
+        this.exoPlayer = ExoPlayerFactory.newSimpleInstance(activity);
+
+        final DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(activity, Util.getUserAgent(activity, ((Context) activity).getApplicationInfo().name));
+
+        mediaSourceFactory = new ExtractorMediaSource.Factory(dataSourceFactory);
 
         this.podStorageHandle = new PodStorageHandle(activity);
 
@@ -108,7 +120,7 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
 
     /**
      *
-     * Gets the current {@link PodPlayer#mp} playback position.
+     * Gets the current {@link PodPlayerFresh#exoPlayer} playback position.
      *
      * @return the current progress in milliseconds.
      *
@@ -116,7 +128,7 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
 
     private int getProgress() {
 
-        if (mp == null) {
+        /*if (mp == null) {
             throw new MediaPlayerStateException("Cannot get progress, MediaPlayer was null");
         }
 
@@ -127,30 +139,40 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
                 throw new MediaPlayerStateException("Cannot get progress because of invalid State, was " + mp.getState());
         }
 
-        return mp.getCurrentPosition();
+        return mp.getCurrentPosition();*/
+
+        return (int) exoPlayer.getCurrentPosition();
 
     }
 
 
     /**
      *
-     * @return {@link PodPlayer#mp#isPlaying()},
-     * or {@code false} if {@link PodPlayer#mp} has incorrect state
+     * @return {@link PodPlayerFresh#exoPlayer#isPlaying()},
+     * or {@code false} if {@link PodPlayerFresh#exoPlayer} has incorrect state
      *
      */
 
-    private boolean isPlaying() {
+    /*private boolean isPlaying() {
 
-        return mp != null
+        *//*return mp != null
                 && mp.getState() != MediaPlayerWrapper.State.ERROR
-                && mp.isPlaying();
+                && mp.isPlaying();*//*
 
+        return exoPlayer.getPlaybackState() == Player.STATE_READY && exoPlayer.getPlayWhenReady();
+
+    }*/
+
+    private boolean isPlaying() {
+        return exoPlayer.getPlaybackState() != Player.STATE_ENDED
+                && exoPlayer.getPlaybackState() != Player.STATE_IDLE
+                && exoPlayer.getPlayWhenReady();
     }
 
 
     /**
      *
-     * Prepares {@link PodPlayer#mp} state and data source for playback of a given pod (without starting the playback).
+     * Prepares {@link PodPlayerFresh#exoPlayer} state and data source for playback of a given pod (without starting the playback).
      *
      * @param pod:      the podcast episode to be played
      * @param progress: timestamp of where to start the pod from (in milliseconds)
@@ -177,59 +199,19 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
 
         this.pod = pod;
 
-        if (mp != null) {
+        Uri podUri;
 
-            // Free resources before creating new MediaPlayer
-            mp.release();
-        }
+        if(pod.isDownloaded()){
 
-        mp = new MediaPlayerWrapper(context,this);
+            podUri = podStorageHandle.getPodUri(pod);
 
-        if (pod.isDownloaded()) {
+        }else{
 
-            try {
-
-                Log.i(TAG,"Setting offline URI: " + podStorageHandle.getPodUri(pod));
-
-                // Load pod to MediaPlayer
-                mp.setDataSource(context, podStorageHandle.getPodUri(pod));
-
-            } catch (IOException e) {
-
-                Log.e(TAG, "ERROR setting MediaPlayer data source (downloaded pod): \n" + e.toString());
-                e.printStackTrace();
-                return false;
-
-            }
-
-        } else {
-
-            try {
-
-                // Load pod to MediaPlayer
-                mp.setDataSource(pod.getUrl());
-
-            } catch (IOException e) {
-
-                Log.e(TAG, "ERROR setting MediaPlayer data source, streaming URL was " + pod.getUrl() + "\n" + e.toString());
-                e.printStackTrace();
-                return false;
-
-            }
+            podUri = Uri.parse(pod.getUrl());
 
         }
 
-        try {
-
-            mp.prepare();
-
-        } catch (IOException e) {
-
-            Log.e(TAG, "Error preparing MediaPlayer : \n" + e.toString());
-            e.printStackTrace();
-            return false;
-
-        }
+        exoPlayer.prepare(mediaSourceFactory.createMediaSource(podUri));
 
         playerPodViewModel.setPlayerPod(pod);
 
@@ -263,7 +245,7 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
 
     /**
      *
-     * Starts {@link PodPlayer#mp} playback of given {@link RRPod}
+     * Starts {@link PodPlayerFresh#exoPlayer} playback of given {@link RRPod}
      * Calls {@link #loadPod(RRPod, int)} if pod is not already loaded.
      *
      * @param pod:      the podcast episode to be played
@@ -273,7 +255,7 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
     @Override
     public void playPod(@NonNull final RRPod pod) {
 
-        if (mp != null && this.pod == pod) {
+        if (this.pod == pod) {
             Log.i(TAG,"Pod was the same: " + this.pod + " vs. " + pod);
             //pauseOrContinuePod();
             return;
@@ -292,8 +274,7 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
         }
 
         // Start playback
-        mp.start();
-
+        exoPlayer.setPlayWhenReady(true);
 
         onPlayingStateChanged();
 
@@ -302,8 +283,8 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
 
     /**
      *
-     * Toggles {@link PodPlayer#mp} playback playing state,
-     * i.e. calls {@link #continuePod()} if not playing, or {@link PodPlayer#pausePod()} if playing.
+     * Toggles {@link PodPlayerFresh#exoPlayer} playback playing state,
+     * i.e. calls {@link #continuePod()} if not playing, or {@link PodPlayerFresh#pausePod()} if playing.
      *
      *
      */
@@ -313,21 +294,21 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
 
         Log.i(TAG,"PauseOrContinuePod");
 
-        if (!mp.isPlaying()) {
+        if (isPlaying()) {
 
-            continuePod();
+            pausePod();
 
             return;
         }
 
-        pausePod();
+        continuePod();
 
     }
 
 
     /**
      *
-     * Pauses {@link PodPlayer#mp} playback.
+     * Pauses {@link PodPlayerFresh#exoPlayer} playback.
      *
      */
 
@@ -336,16 +317,12 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
 
         Log.i(TAG,"PausePod");
 
-        if (mp == null) {
-            throw new MediaPlayerStateException("MediaPlayer was null, cannot pause playback");
-        }
-
-        if (!mp.isPlaying()) {
+        if (!isPlaying()) {
             Log.i(TAG, "Not playing, no need to pause playback");
             return;
         }
 
-        mp.pause();
+        exoPlayer.setPlayWhenReady(false);
 
         onPlayingStateChanged();
 
@@ -354,7 +331,7 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
 
     /**
      *
-     * Continues {@link PodPlayer#mp} playback.
+     * Continues {@link PodPlayerFresh#exoPlayer} playback.
      *
      */
 
@@ -367,13 +344,7 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
             throw new NullPointerException("Tried to continue playing when no pod was loaded");
         }
 
-        if (mp == null) {
-            Log.i(TAG, "MediaPlayer was null when continuing pod. Will try to fulfill request by starting playback from scratch");
-            playPod(pod);
-            return;
-        }
-
-        if (mp.isPlaying()) {
+        if (isPlaying()) {
             Log.i(TAG, "Already playing, no need to continue playback");
             return;
         }
@@ -383,7 +354,7 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
             return;
         }
 
-        mp.start();
+        exoPlayer.setPlayWhenReady(true);
 
         onPlayingStateChanged();
 
@@ -392,7 +363,7 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
 
     /**
      *
-     * Skip/rewind {@link PodPlayer#mp} playback position with a given amount of time.
+     * Skip/rewind {@link PodPlayerFresh#exoPlayer} playback position with a given amount of time.
      * <p>
      * A jump will always be constrained, meaning it will never result in a negative playback position
      * or a playback position beyond the duration of the playback source.
@@ -406,20 +377,16 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
     @Override
     public void jump(int jump) {
 
-        if (mp == null) {
-            throw new MediaPlayerStateException("MediaPlayer was null, cannot jump playback");
-        }
-
-        switch (mp.getState()) {
+        /*switch (mp.getState()) {
 
             case IDLE:
             case INITIALIZED:
             case STOPPED:
             case ERROR:
                 throw new MediaPlayerStateException("Cannot jump playback because of invalid State, was " + mp.getState());
-        }
+        }*/
 
-        int duration = mp.getDuration();
+        int duration = (int) exoPlayer.getDuration();
 
         if (duration == -1 && jump > 0) {
 
@@ -429,14 +396,16 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
 
         }
 
-        seekTo(mp.getCurrentPosition() + jump);
+        final int progress = (int) exoPlayer.getCurrentPosition();
+
+        seekTo(progress + jump);
 
     }
 
 
     /**
      *
-     * Set{@link PodPlayer#mp} playback position.
+     * Set{@link PodPlayerFresh#exoPlayer} playback position.
      *
      * @param progress: desired playback position
      *
@@ -445,12 +414,7 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
     @Override
     public void seekTo(int progress) {
 
-        if (mp == null) {
-
-            throw new MediaPlayerStateException("MediaPlayer was null, could not seek to timestamp");
-
-        }
-        switch (mp.getState()) {
+        /*switch (mp.getState()) {
 
             case IDLE:
             case INITIALIZED:
@@ -458,8 +422,8 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
             case ERROR:
                 throw new MediaPlayerStateException("Could not seek to timestamp because of invalid State, was " + mp.getState());
         }
-
-        mp.seekTo(progress);
+*/
+        exoPlayer.seekTo(progress);
 
         Log.i(TAG, "Seeking to " + MillisFormatter.toFormat(progress, MillisFormatter.MillisFormat.HH_MM_SS));
 
@@ -521,15 +485,5 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
         }
 
     }
-
-
-    class MediaPlayerStateException extends RuntimeException {
-
-        MediaPlayerStateException(String msg) {
-            super(msg);
-        }
-
-    }
-
 
 }

@@ -1,12 +1,18 @@
 package com.rrpm.mzom.projectrrpm.podfiltering;
 
-import com.rrpm.mzom.projectrrpm.podfiltering.PodFilter;
+import android.util.Log;
+
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-public class PodListFilterViewModel extends ViewModel {
+public class PodFilterViewModel extends ViewModel {
+
+
+
+    private static final String TAG = "RRP-PodFilterViewModel";
 
 
     @NonNull private final MutableLiveData<PodFilter> observablePodFilter = new MutableLiveData<>();
@@ -17,18 +23,14 @@ public class PodListFilterViewModel extends ViewModel {
         return observablePodFilter;
     }
 
-    @NonNull
+    @Nullable
     public PodFilter getPodFilter(){
-
-        if(observablePodFilter.getValue() == null){
-            return PodFilter.noFilter();
-        }
 
         return observablePodFilter.getValue();
 
     }
 
-    public void setPodFilter(@NonNull final PodFilter podFilter){
+    public void setPodFilter(@Nullable final PodFilter podFilter){
 
         observablePodFilter.setValue(podFilter);
 
@@ -36,7 +38,9 @@ public class PodListFilterViewModel extends ViewModel {
 
     public void resetPodFilter(){
 
-        setPodFilter(PodFilter.noFilter());
+        Log.i(TAG,"Resetting pod filter");
+
+        setPodFilter(null);
 
     }
 }

@@ -20,16 +20,18 @@ import com.rrpm.mzom.projectrrpm.podstorage.DateUtils;
 import com.rrpm.mzom.projectrrpm.podfiltering.FilterTriState;
 import com.rrpm.mzom.projectrrpm.podfiltering.PodFilter;
 import com.rrpm.mzom.projectrrpm.R;
-import com.rrpm.mzom.projectrrpm.podfiltering.PodListFilterViewModel;
+import com.rrpm.mzom.projectrrpm.podfiltering.PodFilterViewModel;
 
 import java.util.Date;
 
-public class FilterFragment extends Fragment {
+public class PodFilterFragment extends Fragment {
 
 
-    //private static final String TAG = "RRP-FilterFragment";
+    //private static final String TAG = "RRP-PodFilterFragment";
 
     private View view;
+
+    private PodFilter podFilter;
 
     private MainFragmentsHandler mainFragmentsHandler;
 
@@ -37,18 +39,15 @@ public class FilterFragment extends Fragment {
     private CheckBox downloadedCheckBox;
     private CheckBox startedCheckBox;
 
-    private PodListFilterViewModel podListFilterViewModel;
-
-    private DateRange widestDateRange;
+    private PodFilterViewModel podListFilterViewModel;
 
 
     @NonNull
-    public static FilterFragment newInstance(@NonNull MainFragmentsHandler mainFragmentsLoader, @NonNull DateRange widestDateRange) {
+    static PodFilterFragment newInstance(@NonNull MainFragmentsHandler mainFragmentsLoader) {
 
-        final FilterFragment fragment = new FilterFragment();
+        final PodFilterFragment fragment = new PodFilterFragment();
 
         fragment.mainFragmentsHandler = mainFragmentsLoader;
-        fragment.widestDateRange = widestDateRange;
 
         return fragment;
     }
@@ -66,25 +65,33 @@ public class FilterFragment extends Fragment {
 
         initFocusLossListener();
 
-        podListFilterViewModel = ViewModelProviders.of(requireActivity()).get(PodListFilterViewModel.class);
+        podListFilterViewModel = ViewModelProviders.of(requireActivity()).get(PodFilterViewModel.class);
         podListFilterViewModel.getObservablePodFilter().observe(this, podFilter -> {
-            initDatePickers();
+
+            if(podFilter == null){
+                return;
+            }
+
+            this.podFilter = podFilter;
+            displayDatePickers();
             displayFilter(podFilter);
         });
 
-        displayFilter(podListFilterViewModel.getPodFilter());
+        //displayFilter(podListFilterViewModel.getPodFilter());
 
         return view;
     }
 
 
-    @Override
+    /*@Override
     public void onResume() {
         super.onResume();
 
         podListFilterViewModel.setPodFilter(podListFilterViewModel.getPodFilter());
 
-    }
+    }*/
+
+
 
     private void initFocusLossListener(){
 
@@ -113,20 +120,13 @@ public class FilterFragment extends Fragment {
 
         final DateRange dateRange = filter.getDateRange();
 
-        if(dateRange != null){
+        final Date fromDate = dateRange.getFromDate();
+        final TextView dateRangeFrom = view.findViewById(R.id.filterDateRangeFromText);
+        dateRangeFrom.setText(DateUtils.getDateAsString(fromDate));
 
-            final Date fromDate = dateRange.getFromDate();
-
-            final TextView dateRangeFrom = view.findViewById(R.id.filterDateRangeFromText);
-            dateRangeFrom.setText(DateUtils.getDateAsString(fromDate));
-
-
-            final Date toDate = dateRange.getToDate();
-
-            final TextView dateRangeTo = view.findViewById(R.id.filterDateRangeToText);
-            dateRangeTo.setText(DateUtils.getDateAsString(toDate));
-
-        }
+        final Date toDate = dateRange.getToDate();
+        final TextView dateRangeTo = view.findViewById(R.id.filterDateRangeToText);
+        dateRangeTo.setText(DateUtils.getDateAsString(toDate));
 
 
         notCompletedCheckBox.setChecked(filter.getCompletedState() == FilterTriState.FALSE);
@@ -138,29 +138,16 @@ public class FilterFragment extends Fragment {
     }
 
 
-    private void initDatePickers(){
-
-        final PodFilter podFilter = podListFilterViewModel.getPodFilter();
-
-        if(podFilter.getDateRange() == null){
-
-            podFilter.setDateRange(widestDateRange);
-
-        }
+    private void displayDatePickers(){
 
         final DateRange dateRange = podFilter.getDateRange();
 
         final LinearLayout dateRangeFromField = view.findViewById(R.id.filterDateRangeFromField);
         dateRangeFromField.setOnClickListener(v -> DatePickerDialogBuilder.build(requireContext(), (datePicker, pickedYear, pickedMonth, pickedDay) -> {
 
-            final PodFilter tempFilter = podListFilterViewModel.getPodFilter();
+            podFilter.getDateRange().setFromDate(DateUtils.getDateFromDatePicker(datePicker,true));
 
-            if(tempFilter.getDateRange() == null){
-                tempFilter.setDateRange(widestDateRange);
-            }
-
-            tempFilter.getDateRange().setFromDate(DateUtils.getDateFromDatePicker(datePicker,true));
-            podListFilterViewModel.setPodFilter(tempFilter);
+            podListFilterViewModel.setPodFilter(podFilter);
 
         }, dateRange.getFromDate()).show());
 
@@ -168,14 +155,9 @@ public class FilterFragment extends Fragment {
         final LinearLayout dateRangeToField = view.findViewById(R.id.filterDateRangeToField);
         dateRangeToField.setOnClickListener(v -> DatePickerDialogBuilder.build(requireContext(), (datePicker, pickedYear, pickedMonth, pickedDay) -> {
 
-            final PodFilter tempFilter = podListFilterViewModel.getPodFilter();
+            podFilter.getDateRange().setToDate(DateUtils.getDateFromDatePicker(datePicker,false));
 
-            if(tempFilter.getDateRange() == null){
-                tempFilter.setDateRange(widestDateRange);
-            }
-
-            tempFilter.getDateRange().setToDate(DateUtils.getDateFromDatePicker(datePicker,false));
-            podListFilterViewModel.setPodFilter(tempFilter);
+            podListFilterViewModel.setPodFilter(podFilter);
 
         }, dateRange.getToDate()).show());
 
@@ -187,27 +169,24 @@ public class FilterFragment extends Fragment {
         notCompletedCheckBox = view.findViewById(R.id.notCompletedCheckBox);
         notCompletedCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
 
-            final PodFilter tempPodFilter = podListFilterViewModel.getPodFilter();
-            tempPodFilter.setCompletedState(notCompletedCheckBox.isChecked() ? FilterTriState.FALSE : FilterTriState.ANY);
-            podListFilterViewModel.setPodFilter(tempPodFilter);
+            podFilter.setCompletedState(notCompletedCheckBox.isChecked() ? FilterTriState.FALSE : FilterTriState.ANY);
+            podListFilterViewModel.setPodFilter(podFilter);
 
         });
 
         downloadedCheckBox = view.findViewById(R.id.downloadedCheckBox);
         downloadedCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
 
-            final PodFilter tempPodFilter = podListFilterViewModel.getPodFilter();
-            tempPodFilter.setDownloadedState(downloadedCheckBox.isChecked() ? FilterTriState.TRUE : FilterTriState.ANY);
-            podListFilterViewModel.setPodFilter(tempPodFilter);
+            podFilter.setDownloadedState(downloadedCheckBox.isChecked() ? FilterTriState.TRUE : FilterTriState.ANY);
+            podListFilterViewModel.setPodFilter(podFilter);
 
         });
 
         startedCheckBox = view.findViewById(R.id.startedCheckBox);
         startedCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
 
-            final PodFilter tempPodFilter = podListFilterViewModel.getPodFilter();
-            tempPodFilter.setStartedState(startedCheckBox.isChecked() ? FilterTriState.TRUE : FilterTriState.ANY);
-            podListFilterViewModel.setPodFilter(tempPodFilter);
+            podFilter.setStartedState(startedCheckBox.isChecked() ? FilterTriState.TRUE : FilterTriState.ANY);
+            podListFilterViewModel.setPodFilter(podFilter);
 
         });
 

@@ -11,6 +11,7 @@ import com.google.gson.reflect.TypeToken;
 import com.rrpm.mzom.projectrrpm.fragments.MainFragmentsHandler;
 import com.rrpm.mzom.projectrrpm.notifications.NotificationUtils;
 import com.rrpm.mzom.projectrrpm.notifications.NotificationConstants;
+import com.rrpm.mzom.projectrrpm.podplayer.PodPlayerFresh;
 import com.rrpm.mzom.projectrrpm.ui.NavigationDrawer;
 import com.rrpm.mzom.projectrrpm.R;
 import com.rrpm.mzom.projectrrpm.podplayer.PodPlayerConstants;
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity
 
     private PodsViewModel podsViewModel;
 
-    private PodPlayer podPlayer;
+    private PodPlayerControls podPlayerControls;
 
     private PodDownloader podDownloader;
 
@@ -77,8 +78,8 @@ public class MainActivity extends AppCompatActivity
 
         this.mainFragmentsHandler = new MainFragmentsHandler(this, podDownloader);
 
-        if(podPlayer == null){
-            podPlayer = new PodPlayer(this);
+        if(podPlayerControls == null){
+            podPlayerControls = new PodPlayerFresh(this);
         }
 
         podDownloader = restorePodDownloader(savedInstanceState);
@@ -282,7 +283,7 @@ public class MainActivity extends AppCompatActivity
 
         mainFragmentsHandler.loadPodPlayerFragment();
 
-        return podPlayer.loadPod(pod);
+        return podPlayerControls.loadPod(pod);
     }
 
     @Override
@@ -290,32 +291,32 @@ public class MainActivity extends AppCompatActivity
 
         mainFragmentsHandler.loadPodPlayerFragment();
 
-        podPlayer.playPod(pod);
+        podPlayerControls.playPod(pod);
     }
 
     @Override
     public void pauseOrContinuePod() {
-        podPlayer.pauseOrContinuePod();
+        podPlayerControls.pauseOrContinuePod();
     }
 
     @Override
     public void pausePod() {
-        podPlayer.pausePod();
+        podPlayerControls.pausePod();
     }
 
     @Override
     public void continuePod() {
-        podPlayer.continuePod();
+        podPlayerControls.continuePod();
     }
 
     @Override
     public void jump(int jump) {
-        podPlayer.jump(jump);
+        podPlayerControls.jump(jump);
     }
 
     @Override
     public void seekTo(int progress) {
-        podPlayer.seekTo(progress);
+        podPlayerControls.seekTo(progress);
     }
 
 }

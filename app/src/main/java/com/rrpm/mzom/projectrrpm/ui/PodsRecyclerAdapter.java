@@ -15,7 +15,6 @@ import android.widget.TextView;
 
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.R;
-import com.rrpm.mzom.projectrrpm.podfiltering.PodListFilterViewModel;
 import com.rrpm.mzom.projectrrpm.podstorage.PodUtils;
 import com.rrpm.mzom.projectrrpm.podplayer.PlayerPodViewModel;
 

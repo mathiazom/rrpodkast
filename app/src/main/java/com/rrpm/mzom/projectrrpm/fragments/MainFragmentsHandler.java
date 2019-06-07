@@ -5,6 +5,8 @@ import android.util.Log;
 import com.rrpm.mzom.projectrrpm.R;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.poddownloading.PodDownloader;
+import com.rrpm.mzom.projectrrpm.podfiltering.PodFilter;
+import com.rrpm.mzom.projectrrpm.podfiltering.PodFilterViewModel;
 import com.rrpm.mzom.projectrrpm.podplayer.PodPlayerFragment;
 import com.rrpm.mzom.projectrrpm.podplayer.PodPlayerFullFragment;
 import com.rrpm.mzom.projectrrpm.podstorage.PodStorageHandle;
@@ -14,9 +16,10 @@ import com.rrpm.mzom.projectrrpm.podstorage.SelectedPodViewModel;
 import com.rrpm.mzom.projectrrpm.rss.RRReader;
 import com.rrpm.mzom.projectrrpm.ui.PodUIConstants;
 
+import java.util.ArrayList;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProviders;
 
 public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
@@ -37,11 +40,12 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
 
     private PodsViewModel podsViewModel;
     private SelectedPodViewModel selectedPodViewModel;
+    private PodFilterViewModel podListFilterViewModel;
 
 
     private PodPlayerFragment podPlayerFragment;
     private PodListFragment podListFragment;
-    private FilterFragment filterFragment;
+    private PodFilterFragment filterFragment;
     private PodFragment podFragment;
     private PodPlayerFullFragment podPlayerFullFragment;
 
@@ -57,6 +61,8 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
         this.podsViewModel = ViewModelProviders.of(fragmentActivity).get(PodsViewModel.class);
 
         this.selectedPodViewModel = ViewModelProviders.of(fragmentActivity).get(SelectedPodViewModel.class);
+
+        this.podListFilterViewModel = ViewModelProviders.of(fragmentActivity).get(PodFilterViewModel.class);
 
     }
 
@@ -192,6 +198,11 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
     @Override
     public void loadFilterFragment() {
 
+        if(!prepareMinimumPodFilter()){
+            Log.e(TAG,"Failed to prepare pod filter, will not load PodFilterFragment");
+            return;
+        }
+
         if(filterFragment != null && filterFragment.isHidden()){
 
             Log.i(TAG,"Showing filterFragment");
@@ -203,25 +214,38 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
 
         }else{
 
-            podsViewModel.getObservablePodList(podListFragment.getPodType()).observe(fragmentActivity, podList -> {
+            filterFragment = PodFilterFragment.newInstance(this);
 
-                if(podList.isEmpty()){
-                    Log.e(TAG,"Pod list was empty, will not load FilterFragment at this moment.");
-                    return;
-                }
-
-                filterFragment = FilterFragment.newInstance(this, PodUtils.getDateRangeFromPodList(podList));
-
-                fragmentLoader.loadFragment(
-                        R.id.frame_overlay,
-                        filterFragment,
-                        FragmentAnimationConstants.FILTER_FRAGMENT_ANIMATIONS,
-                        true
-                );
-
-            });
+            fragmentLoader.loadFragment(
+                    R.id.frame_overlay,
+                    filterFragment,
+                    FragmentAnimationConstants.FILTER_FRAGMENT_ANIMATIONS,
+                    true
+            );
 
         }
+
+    }
+
+    private boolean prepareMinimumPodFilter(){
+
+        final ArrayList<RRPod> podList = podsViewModel.getPodList(podListFragment.getPodType());
+
+        if(podList == null || podList.isEmpty()){
+            return false;
+        }
+
+        if(podListFilterViewModel.getPodFilter() == null){
+
+            Log.i(TAG,"Pod filter was null, create new with widest date range");
+
+            podListFilterViewModel.setPodFilter(
+                    new PodFilter(PodUtils.getDateRangeFromPodList(podList))
+            );
+
+        }
+
+        return true;
 
     }
 

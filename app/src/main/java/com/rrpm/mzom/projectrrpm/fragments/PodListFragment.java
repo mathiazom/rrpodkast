@@ -23,7 +23,7 @@ import com.rrpm.mzom.projectrrpm.R;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.rss.RRReader;
 import com.rrpm.mzom.projectrrpm.podplayer.PlayerPodViewModel;
-import com.rrpm.mzom.projectrrpm.podfiltering.PodListFilterViewModel;
+import com.rrpm.mzom.projectrrpm.podfiltering.PodFilterViewModel;
 import com.rrpm.mzom.projectrrpm.podstorage.PodsViewModel;
 
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ public class PodListFragment extends Fragment {
     @NonNull private ArrayList<RRPod> podList;
     @NonNull private ArrayList<RRPod> filteredPodList;
 
-    private PodFilter podFilter = PodFilter.noFilter();
+    private PodFilter podFilter;
 
 
     private PodsRecyclerAdapter podsAdapter;
@@ -94,7 +94,7 @@ public class PodListFragment extends Fragment {
 
         });
 
-        final PodListFilterViewModel podListFilterViewModel = ViewModelProviders.of(requireActivity()).get(PodListFilterViewModel.class);
+        final PodFilterViewModel podListFilterViewModel = ViewModelProviders.of(requireActivity()).get(PodFilterViewModel.class);
         podListFilterViewModel.resetPodFilter();
         podListFilterViewModel.getObservablePodFilter().observe(this, podFilter -> {
 
@@ -151,8 +151,9 @@ public class PodListFragment extends Fragment {
             return;
         }
 
-        podFilter.filter(podList,filteredPodList);
+        filterPodListIfNeeded(podFilter,podList,filteredPodList);
 
+        // Pods adapter uses the newly updated filteredPodList as data set
         podsAdapter.notifyDataSetChanged();
 
         setFilterActionClickable(true);
@@ -180,7 +181,7 @@ public class PodListFragment extends Fragment {
 
         podsRecycler.setLayoutManager(linearLayoutManager);
 
-        podFilter.filter(podList,filteredPodList);
+        filterPodListIfNeeded(podFilter,podList,filteredPodList);
 
         podsAdapter = new PodsRecyclerAdapter(
                 filteredPodList,
@@ -197,6 +198,20 @@ public class PodListFragment extends Fragment {
 
         setFilterActionClickable(true);
 
+    }
+
+    private void filterPodListIfNeeded(@Nullable final PodFilter podFilter, @NonNull final ArrayList<RRPod> podList, @NonNull final ArrayList<RRPod> filteredPodList){
+
+        if(podFilter == null){
+
+            // No filter, copy original pod list
+            filteredPodList.clear();
+            filteredPodList.addAll(podList);
+
+            return;
+        }
+
+        podFilter.filter(podList,filteredPodList);
     }
 
 
