@@ -11,6 +11,11 @@
         <item name="android:windowBackground">@drawable/splash</item>
     </style>
 
-    <style name="AppTheme.RedSeekBar" parent="Widget.AppCompat.SeekBar"> <item name="colorAccent">@color/colorAccent</item> </style>
+    <style name="AppTheme.AccentSeekBar" parent="Widget.AppCompat.SeekBar"> <item name="colorAccent">@color/colorAccent</item> </style>
+
+    <style name="WhiteCheckBox" parent="Theme.AppCompat.Light">
+        <item name="colorControlNormal">@color/colorWhite</item>
+        <item name="colorControlActivated">@color/colorAccent</item>
+    </style>
 
 </resources>

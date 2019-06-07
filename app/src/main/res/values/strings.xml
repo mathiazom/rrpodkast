@@ -1,54 +1,26 @@
 <resources>
+
+    <!-- About -->
     <string name="app_name">RRPodkast</string>
-
-    <string-array name="DrawerArray">
-
-        <item>Alle podkaster</item>
-        <item>Høydepunkter</item>
-        <item>Nedlastede podkaster</item>
-        <item>Tilfeldig podkast</item>
-        <item>Facebook-side</item>
-        <!-- <item>Live nettspiller</item> -->
-        <item>Innstillinger</item>
-        <item>Om appen</item>
-
-    </string-array>
 
     <string name="about_app">Om appen</string>
     <string name="about_app_disclaimer">
-        Denne appen er ikke laget i sammarbeid med NRK. Appen er basert på NRKs RSS-feed og ment for RR-lyttere på jakt etter gode gamle RR-podkaster.
+        Denne appen er ikke laget i samarbeid med NRK eller Radioresepsjonen. Appen er basert på NRKs RSS-feed og ment for RR-lyttere på jakt etter gode gamle (eller nye) RR-episoder.
     </string>
     <string name="about_app_version">Versjon: 1.4.0</string>
-    <string name="action_filter">Filtrer</string>
-    <string name="action_play_random_pod">Spill tilfeldig podkast</string>
-    <string name="filter_title_all">Alle podkaster</string>
 
-    <string name="filter_not_listened_to">Ikke lyttet til</string>
-
+    <!-- Filtering -->
+    <string name="action_filter">Sorter</string>
+    <string name="action_play_random_pod">Spill tilfeldig episode</string>
+    <string name="filter_title_all">Episoder</string>
+    <string name="filter_not_completed">Kun uhørte</string>
     <string name="result_num_suffix">som passer søket ditt</string>
-
     <string name="no_result_msg">Ingen resultater for søket</string>
+
 
     <string name="downloading">Laster ned …</string>
 
     <string name="new_pod_mark">NY</string>
-
-    <string-array name="months">
-
-        <item>Januar</item>
-        <item>Februar</item>
-        <item>Mars</item>
-        <item>April</item>
-        <item>Mai</item>
-        <item>Juni</item>
-        <item>Juli</item>
-        <item>August</item>
-        <item>September</item>
-        <item>Oktober</item>
-        <item>November</item>
-        <item>Desember</item>
-
-    </string-array>
 
 
     <!-- SETTINGS STRINGS -->
@@ -58,26 +30,26 @@
 
     <string-array name="random_select_from_array">
         <item>Alle</item>
-        <item>Ikke lyttet til</item>
+        <item>Uhørt</item>
         <item>Lyttet til</item>
         <item>Ikke lastet ned</item>
         <item>Lastet ned</item>
     </string-array>
 
-    <string name="filter_pod_section">Filtrer podkaster</string>
-    <string name="filter_select_setting_name">"Ikke lyttet til"-filter</string>
+    <string name="filter_pod_section">Filtrer episoder</string>
+    <string name="filter_select_setting_name">"Uhørt"-filter</string>
 
     <string name="space_usage_title">Bruk av plass på enheten:</string>
 
     <string name="episoder">episoder</string>
-    <string name="pod_description_template">Siste 24 - Hvem er Prof. Tom Reker Telemark? - Kjør debatt - Veien videre - 30 spørsmål.</string>
+    <string name="pod_description_template">Faren til Bjarte er en karakter løst basert på Bjartes far Odd Bjørn Tjøstheim. Han er en pensjonert prest og ringer Bjarte regelmessig fra familiens hjemsted, Randaberg. Han er skeptisk til at Bjarte har flyttet til Oslo, og er bekymret for at sønnen er innblandet i fyll, narko og hor. (Kilde: http://rr.eikern.net/wiki/Faren_til_Bjarte)</string>
     <string name="pod_title_template">Ornsdag 42. september 2020</string>
     <string name="pod_details_template">Sesong 20 • 69 min</string>
     <string name="search_spinner_placeholder_year">Alle år</string>
     <string name="search_spinner_placeholder_month">Alle måneder</string>
     <string name="search_spinner_placeholder_day">Alle dager</string>
-    <string name="button_mark_as_not_listened_to">MERK SOM IKKE LYTTET TIL</string>
-    <string name="button_mark_as_listened_to">MERK SOM LYTTET TIL</string>
+    <string name="button_mark_as_not_completed">MERK SOM UHØRT</string>
+    <string name="button_mark_as_completed">MERK SOM HØRT</string>
     <string name="podplayer_main_controller_description">Start eller stopp avspilling</string>
     <string name="random_pod_background_description">Collage av gutta fra Calcutta</string>
     <string name="rewind_playback_button_description">Hopp tilbake i avspillingen</string>
@@ -90,11 +62,26 @@
     <string name="template_pod_filter_result_num">690</string>
     <string name="podplayer_elapsed_template">00:00:00</string>
     <string name="podplayer_duration_template">01:42:69</string>
+
     <string name="list_drawer_item_pod_list">Episoder</string>
     <string name="list_drawer_item_highlights">Høydepunkter</string>
     <string name="list_drawer_item_random_pod">Tilfeldig episode</string>
     <string name="list_drawer_item_facebook">Facebook</string>
     <string name="list_drawer_item_settings">Innstillinger</string>
     <string name="list_drawer_item_about">Om appen</string>
+    <string name="filter_downloaded">Kun nedlastede</string>
+    <string name="space_usage_settings_header">Bruk av lagringsplass</string>
+
+    <string name="pods_space_usage_text">%1$.2f MB / %2$d episoder</string>
+    <string name="filter_started">Kun påbegynte</string>
+    <string name="filter_date_range_from_header">Fra</string>
+    <string name="filter_date_range_to_header">Til</string>
+
+    <!-- Notifications -->
+    <string name="downloading_notification_channel_name">Nedlastingsvarsel</string>
+    <string name="downloading_notification_channel_description">Varsler pågående nedlastinger</string>
+    <string name="completed_downloads_notification_channel_name">Varsel om fullførte nedlastinger</string>
+    <string name="completed_downloads_notification_channel_description">Gir en oversikt over de seneste fullførte nedlastingene</string>
+    <string name="download_notifications_group_name">Nedlastinger</string>
 
 </resources>

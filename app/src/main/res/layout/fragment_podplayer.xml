@@ -4,12 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:background="@color/podplayer_bg"
+    android:background="@drawable/primary_large_rounded"
     android:orientation="vertical"
     android:paddingBottom="20dp"
     android:paddingLeft="20dp"
     android:paddingRight="20dp"
-    android:paddingTop="10dp">
+    android:paddingTop="15dp"
+    android:elevation="4dp">
 
     <ProgressBar
         android:layout_width="wrap_content"
@@ -28,6 +29,7 @@
             android:layout_height="match_parent"
             android:gravity="center"
             android:textColor="#eee"
+            android:textSize="16sp"
             android:text="@string/pod_title_template"/>
 
     </RelativeLayout>
@@ -58,7 +60,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_margin="2dp"
-                android:theme="@style/AppTheme.RedSeekBar"
+                android:theme="@style/AppTheme.AccentSeekBar"
                 app:layout_constraintStart_toEndOf="@id/podPlayerProgress"
                 app:layout_constraintEnd_toStartOf="@id/podPlayerDuration"
                 app:layout_constraintTop_toTopOf="parent"
@@ -79,29 +81,30 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp">
 
             <ImageButton
                 android:id="@+id/podPlayerJumpBack"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginEnd="10dp"
+                android:layout_marginEnd="18dp"
                 android:background="@android:color/transparent"
-                android:src="@drawable/ic_jump_back"
+                app:srcCompat="@drawable/ic_round_replay_10_24px"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintRight_toLeftOf="@+id/podPlayerPlayPause"
+                app:layout_constraintRight_toLeftOf="@+id/podPlayerPlayPauseContainer"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintVertical_bias="0.0"
                 android:contentDescription="@string/rewind_playback_button_description" />
 
             <ImageButton
-                android:id="@+id/podPlayerPlayPause"
+                android:id="@+id/podPlayerPlayPauseContainer"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:background="@android:color/transparent"
-                android:src="@drawable/ic_pause_pod"
+                app:srcCompat="@drawable/ic_round_pause_24px"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
@@ -113,12 +116,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="18dp"
                 android:background="@android:color/transparent"
-                android:src="@drawable/ic_jump_forth"
+                app:srcCompat="@drawable/ic_round_forward_10_24px"
                 android:contentDescription="@string/skip_playback_button_description"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toRightOf="@+id/podPlayerPlayPause"
+                app:layout_constraintLeft_toRightOf="@+id/podPlayerPlayPauseContainer"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <!--<ProgressBar

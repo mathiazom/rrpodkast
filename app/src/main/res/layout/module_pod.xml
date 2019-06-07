@@ -92,7 +92,7 @@
                     app:layout_constraintEnd_toStartOf="@id/podItemNewMark"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toEndOf="@id/podItemTitle"
-                    app:srcCompat="@drawable/ic_file_download_white_24dp"
+                    app:srcCompat="@drawable/ic_round_get_app_24px"
                     android:contentDescription="@string/downloaded_pod_marker_description" />
 
                 <TextView

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#212121</color>
+    <color name="colorPrimaryLight">#323232</color>
     <color name="colorPrimaryDark">#101010</color>
 
     <!--<color name="colorAccent">#b71c1c</color>
@@ -13,7 +14,7 @@
 
     <color name="podplayer_bg">#212121</color>
 
-    <color name="colorWhite">#eee</color>
+    <color name="colorWhite">#fff</color>
     <color name="colorWhiteDark">#AAAAAA</color>
 
     <color name="colorGrey">#454545</color>

@@ -11,7 +11,7 @@
     android:paddingTop="5dp">
 
     <LinearLayout
-        android:id="@+id/linearLayout3"
+        android:id="@+id/filterSettingsContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
@@ -60,7 +60,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:src="@drawable/ic_pod_filter"
+                app:srcCompat="@drawable/ic_round_filter_list_24px"
                 android:contentDescription="@string/filter_select_setting_name"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -102,7 +102,7 @@
         android:orientation="vertical"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/linearLayout3">
+        app:layout_constraintTop_toBottomOf="@+id/filterSettingsContainer">
 
         <TextView
             android:layout_width="match_parent"
@@ -130,7 +130,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
-                android:src="@drawable/ic_shuffle"
+                app:srcCompat="@drawable/ic_round_shuffle_24px"
                 android:contentDescription="@string/random_pod_selection_option_description"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"

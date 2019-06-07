@@ -5,10 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorPrimary"
-    tools:context="com.rrpm.mzom.projectrrpm.MainActivity">
+    tools:context="com.rrpm.mzom.projectrrpm.activities.MainActivity">
 
 
-    <com.rrpm.mzom.projectrrpm.NavigationDrawer
+    <com.rrpm.mzom.projectrrpm.ui.NavigationDrawer
         android:id="@+id/navigation_drawer_layout"
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -24,7 +24,7 @@
                 android:id="@+id/frame_main"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                app:layout_constraintTop_toBottomOf="@id/frame_overlay"
+                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintBottom_toTopOf="@id/frame_podplayer"/>
@@ -42,11 +42,11 @@
             <FrameLayout
                 android:id="@+id/frame_overlay"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/frame_main"/>
+                app:layout_constraintBottom_toBottomOf="parent"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -63,7 +63,7 @@
             android:divider="@drawable/offline_msg_background"
             android:dividerHeight="0dp" />
 
-    </com.rrpm.mzom.projectrrpm.NavigationDrawer>
+    </com.rrpm.mzom.projectrrpm.ui.NavigationDrawer>
 
 
     <FrameLayout

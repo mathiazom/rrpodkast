@@ -38,19 +38,18 @@
     <ImageView
         android:layout_centerInParent="true"
         android:id="@+id/random_pod_play_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
         android:layout_gravity="center"
         android:background="@drawable/play_random_background"
         android:gravity="center"
         android:paddingBottom="15dp"
-        android:paddingLeft="30dp"
-        android:paddingRight="30dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
         android:paddingTop="15dp"
         android:text="@string/action_play_random_pod"
         android:textColor="@color/colorWhite"
-        android:textSize="17sp"
-        android:src="@drawable/ic_shuffle"
+        app:srcCompat="@drawable/ic_round_shuffle_24px"
         android:contentDescription="@string/play_random_pod_button_description" />
 
     </RelativeLayout>
