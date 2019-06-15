@@ -4,10 +4,11 @@ package com.rrpm.mzom.projectrrpm.podstorage;
 import android.util.Log;
 
 import com.rrpm.mzom.projectrrpm.annotations.NonEmpty;
+import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
 import com.rrpm.mzom.projectrrpm.pod.PodId;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.podfiltering.DateRange;
-import com.rrpm.mzom.projectrrpm.rss.RRReader;
+import com.rrpm.mzom.projectrrpm.pod.PodType;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -37,10 +38,7 @@ public class PodUtils {
 
             if(p.getId().equals(pod.getId())){
 
-                if(p.equals(pod)){
-                    //Log.i(TAG,"Same pod object, no need to use this method");
-                    throw new RuntimeException("Same pod object, no need to use this method");
-                }
+                AssertUtils._assert(!p.equals(pod),"Same pod object, no need to use this method");
 
                 return pods.indexOf(p);
 
@@ -129,7 +127,7 @@ public class PodUtils {
 
         int totalDownloaded = 0;
 
-        for (RRReader.PodType podType : RRReader.PodType.values()){
+        for (PodType podType : PodType.values()){
 
             final ArrayList<RRPod> podList = podsPackage.getPodList(podType);
 
@@ -151,6 +149,8 @@ public class PodUtils {
 
     @NonNull
     public static DateRange getDateRangeFromPodList(@NonNull @NonEmpty final ArrayList<RRPod> podList){
+
+        AssertUtils._assert(!podList.isEmpty(),"List was empty");
 
         return DateUtils.getDateRangeFromList(podList, RRPod::getDate);
 

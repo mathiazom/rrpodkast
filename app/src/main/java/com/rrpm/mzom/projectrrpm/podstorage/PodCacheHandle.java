@@ -9,7 +9,7 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
-import com.rrpm.mzom.projectrrpm.rss.RRReader;
+import com.rrpm.mzom.projectrrpm.pod.PodType;
 
 import java.util.ArrayList;
 
@@ -31,7 +31,7 @@ public class PodCacheHandle {
 
     }
 
-    public void cachePodList(@NonNull final ArrayList<RRPod> podList, final RRReader.PodType podType){
+    public void cachePodList(@NonNull final ArrayList<RRPod> podList, final @NonNull PodType podType){
 
         podCache.edit().putString(getCacheKey(podType), new Gson().toJson(podList)).apply();
 
@@ -39,7 +39,7 @@ public class PodCacheHandle {
 
     }
 
-    public ArrayList<RRPod> retrieveCachedPodList(final RRReader.PodType podType){
+    ArrayList<RRPod> retrieveCachedPodList(final PodType podType){
 
         final String cacheJson = podCache.getString(getCacheKey(podType), null);
 
@@ -61,7 +61,7 @@ public class PodCacheHandle {
 
     }
 
-    private String getCacheKey(final RRReader.PodType podType){
+    private String getCacheKey(final PodType podType){
 
         return PodCacheConstants.CACHE_KEY_PREFIX + podType.name();
 

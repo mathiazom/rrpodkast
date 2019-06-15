@@ -17,11 +17,12 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
 import com.rrpm.mzom.projectrrpm.podfiltering.PodFilter;
 import com.rrpm.mzom.projectrrpm.ui.PodsRecyclerAdapter;
 import com.rrpm.mzom.projectrrpm.R;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
-import com.rrpm.mzom.projectrrpm.rss.RRReader;
+import com.rrpm.mzom.projectrrpm.pod.PodType;
 import com.rrpm.mzom.projectrrpm.podplayer.PlayerPodViewModel;
 import com.rrpm.mzom.projectrrpm.podfiltering.PodFilterViewModel;
 import com.rrpm.mzom.projectrrpm.podstorage.PodsViewModel;
@@ -37,10 +38,10 @@ public class PodListFragment extends Fragment {
     private View view;
 
 
-    private RRReader.PodType podType;
+    private PodType podType;
 
-    @NonNull private ArrayList<RRPod> podList;
-    @NonNull private ArrayList<RRPod> filteredPodList;
+    private ArrayList<RRPod> podList;
+    private ArrayList<RRPod> filteredPodList;
 
     private PodFilter podFilter;
 
@@ -64,7 +65,7 @@ public class PodListFragment extends Fragment {
     }
 
     @NonNull
-    static PodListFragment newInstance(@NonNull MainFragmentsHandler mainFragmentsHandler, @NonNull final RRReader.PodType podType) {
+    static PodListFragment newInstance(@NonNull MainFragmentsHandler mainFragmentsHandler, @NonNull final PodType podType) {
 
         final PodListFragment fragment = new PodListFragment();
 
@@ -88,6 +89,11 @@ public class PodListFragment extends Fragment {
         final PodsViewModel podsViewModel = ViewModelProviders.of(requireActivity()).get(PodsViewModel.class);
         podsViewModel.getObservablePodList(podType).observe(this, podList -> {
 
+            if(podList == null){
+                Log.e(TAG,"Observed pod list was null");
+                return;
+            }
+
             this.podList = podList;
 
             displayPods();
@@ -97,6 +103,11 @@ public class PodListFragment extends Fragment {
         final PodFilterViewModel podListFilterViewModel = ViewModelProviders.of(requireActivity()).get(PodFilterViewModel.class);
         podListFilterViewModel.resetPodFilter();
         podListFilterViewModel.getObservablePodFilter().observe(this, podFilter -> {
+
+            if(podFilter == null){
+                Log.e(TAG,"Observed pod filter was null");
+                return;
+            }
 
             this.podFilter = podFilter;
 
@@ -137,7 +148,7 @@ public class PodListFragment extends Fragment {
 
 
     @NonNull
-    public RRReader.PodType getPodType(){
+    public PodType getPodType(){
 
         return this.podType;
 
@@ -212,6 +223,7 @@ public class PodListFragment extends Fragment {
         }
 
         podFilter.filter(podList,filteredPodList);
+
     }
 
 

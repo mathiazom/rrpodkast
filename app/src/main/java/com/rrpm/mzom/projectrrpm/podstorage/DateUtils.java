@@ -2,6 +2,7 @@ package com.rrpm.mzom.projectrrpm.podstorage;
 
 import android.widget.DatePicker;
 
+import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
 import com.rrpm.mzom.projectrrpm.ui.PodUIConstants;
 import com.rrpm.mzom.projectrrpm.podfiltering.DateRange;
 import com.rrpm.mzom.projectrrpm.annotations.NonEmpty;
@@ -76,7 +77,9 @@ public class DateUtils {
      */
 
     @NonNull
-    public static <E> DateRange getDateRangeFromList(@NonNull @NonEmpty final ArrayList<E> list, @NonNull ItemDateRetriever<E> itemDateRetriever){
+    static <E> DateRange getDateRangeFromList(@NonNull @NonEmpty final ArrayList<E> list, @NonNull ItemDateRetriever<E> itemDateRetriever){
+
+        AssertUtils._assert(!list.isEmpty(),"List was empty");
 
         Date fromDate = itemDateRetriever.getItemDate(list.get(0));
         Date toDate = fromDate;

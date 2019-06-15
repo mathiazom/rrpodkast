@@ -1,6 +1,6 @@
 package com.rrpm.mzom.projectrrpm.ui;
 
-import com.rrpm.mzom.projectrrpm.rss.RRReader;
+import com.rrpm.mzom.projectrrpm.pod.PodType;
 
 public final class PodUIConstants {
 
@@ -9,7 +9,7 @@ public final class PodUIConstants {
 
     static final int SHOW_AS_NEW_LIMIT = 2*24*60*60*1000;
 
-    public static final RRReader.PodType DEFAULT_POD_TYPE = RRReader.PodType.MAIN_PODS;
+    public static final PodType DEFAULT_POD_TYPE = PodType.MAIN_PODS;
 
     public static final int FIRST_PODCAST_YEAR = 2012;
 

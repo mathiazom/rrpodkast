@@ -1,7 +1,6 @@
 package com.rrpm.mzom.projectrrpm.poddownloading;
 
 import android.app.Activity;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.net.wifi.WifiManager;
@@ -9,8 +8,8 @@ import android.os.Handler;
 import android.util.Log;
 
 import com.rrpm.mzom.projectrrpm.R;
-import com.rrpm.mzom.projectrrpm.activities.MainActivity;
 import com.rrpm.mzom.projectrrpm.annotations.NonEmpty;
+import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
 import com.rrpm.mzom.projectrrpm.notifications.NotificationConstants;
 import com.rrpm.mzom.projectrrpm.permissions.PermissionsManager;
 import com.rrpm.mzom.projectrrpm.permissions.PermissionsConstants;
@@ -262,6 +261,8 @@ public class PodDownloader {
     }
 
     private static String getDownloadNotificationContentText(@NonNull @NonEmpty final ArrayList<RRPod> downloadQueue){
+
+        AssertUtils._assert(!downloadQueue.isEmpty(),"List was empty");
 
         if(downloadQueue.isEmpty()){
             throw new RuntimeException("Download queue was empty");

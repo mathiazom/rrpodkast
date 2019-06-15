@@ -4,9 +4,12 @@ import android.app.Application;
 import android.content.Context;
 import android.util.Log;
 
+import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
-import com.rrpm.mzom.projectrrpm.rss.PodsRSSRetriever;
-import com.rrpm.mzom.projectrrpm.rss.RRReader;
+import com.rrpm.mzom.projectrrpm.podfeed.PodRetrievalError;
+import com.rrpm.mzom.projectrrpm.podfeed.PodsRetrievalCallback;
+import com.rrpm.mzom.projectrrpm.podfeed.PodsRetriever;
+import com.rrpm.mzom.projectrrpm.pod.PodType;
 
 import java.util.ArrayList;
 
@@ -36,9 +39,7 @@ public class PodsViewModel extends AndroidViewModel {
     }
 
 
-    public interface RetrievePodsCallback{
-        void onPodsRetrieved(@NonNull final ArrayList<RRPod> retrievedPods);
-    }
+
 
 
     public void storePod(@NonNull final RRPod pod){
@@ -47,7 +48,7 @@ public class PodsViewModel extends AndroidViewModel {
 
     public void storePod(@NonNull final RRPod pod, boolean post){
 
-        final RRReader.PodType podType = pod.getPodType();
+        final PodType podType = pod.getPodType();
 
         final LiveData<ArrayList<RRPod>> livePods = podsPackage.getObservablePodList(podType);
 
@@ -72,41 +73,12 @@ public class PodsViewModel extends AndroidViewModel {
     }
 
 
-    public static class PodsPackageRequest {
 
-        @NonNull private final RRReader.PodType[] podTypes;
-        @NonNull private final PodsPackageRequest.PodsPackageCallback podsPackageCallback;
-
-        public interface PodsPackageCallback{
-            void onPodsPackage(@NonNull PodsPackage podsPackage);
-        }
-
-        public PodsPackageRequest(@NonNull final RRReader.PodType[] podTypes, @NonNull PodsPackageRequest.PodsPackageCallback podsPackageCallback){
-
-            this.podTypes = podTypes;
-            this.podsPackageCallback = podsPackageCallback;
-
-        }
-
-        @NonNull
-        RRReader.PodType[] getPodTypes() {
-            return podTypes;
-        }
-
-        @NonNull
-        PodsPackageRequest.PodsPackageCallback getPodsPackageCallback() {
-            return podsPackageCallback;
-        }
-    }
-
-
-    public void requestPodsPackage(@NonNull final PodsPackageRequest podsPackageRequest){
-
-        final RRReader.PodType[] podTypes = podsPackageRequest.getPodTypes();
+    public void requestPodsPackage(@NonNull final PodType[] podTypes, @NonNull PodsRetrievalCallback.RetrievePodsPackageCallback podsPackageCallback){
 
         boolean alreadyAvailable = true;
 
-        for (RRReader.PodType pT : podTypes){
+        for (PodType pT : podTypes){
             if(!podsPackage.hasPodList(pT)){
                 Log.i(TAG,"Has " + pT.name() + ": " + podsPackage.hasPodList(pT));
                 // Complete pods package not available yet
@@ -115,75 +87,122 @@ public class PodsViewModel extends AndroidViewModel {
         }
 
         if(alreadyAvailable){
-            podsPackageRequest.getPodsPackageCallback().onPodsPackage(podsPackage);
+            podsPackageCallback.onPodsPackageRetrieved(podsPackage);
             return;
         }
 
-        for (RRReader.PodType podType : podTypes){
+        for (PodType podType : podTypes){
 
             if(podsPackage.hasPodList(podType)){
                 return;
             }
 
-            getObservablePodList(podType, retrievedPods -> {
+            requestPodList(podType, new PodsRetrievalCallback.RetrievePodListCallback() {
+                @Override
+                public void onPodListRetrieved(@NonNull ArrayList<RRPod> retrievedPodList) {
 
-                for (RRReader.PodType pT : podTypes){
-                    Log.i(TAG,"Has " + pT.name() + ": " + podsPackage.hasPodList(pT));
-                    if(!podsPackage.hasPodList(pT)){
-                        // Request has not been fulfilled yet
-                        return;
+                    for (PodType pT : podTypes){
+
+                        if(!podsPackage.hasPodList(pT)){
+                            // Request has not been fulfilled yet
+                            return;
+                        }
+
                     }
+
+                    // Request has been fulfilled
+                    podsPackageCallback.onPodsPackageRetrieved(podsPackage);
                 }
 
-                // Request has been fulfilled
-                podsPackageRequest.getPodsPackageCallback().onPodsPackage(podsPackage);
+                @Override
+                public void onFail(@NonNull PodRetrievalError error) {
 
+                    podsPackageCallback.onFail(error);
+
+                }
             });
         }
-
     }
 
 
-    @NonNull
-    public LiveData<ArrayList<RRPod>> getObservablePodList(@NonNull RRReader.PodType podType){
+    private void retrievePodList(@NonNull PodType podType, @NonNull PodsRetrievalCallback.RetrievePodListCallback retrievePodsCallback){
 
-        return getObservablePodList(podType,null);
+        if (podsPackage.hasPodList(podType) || podsPackage.podListIsObservable(podType)) {
 
-    }
+            retrievePodsCallback.onFail(PodRetrievalError.ALREADY_REQUESTED);
 
-    @NonNull
-    private LiveData<ArrayList<RRPod>> getObservablePodList(@NonNull RRReader.PodType podType, @Nullable RetrievePodsCallback retrievePodsCallback){
+            return;
+        }
 
-        final RetrievePodsCallback callback = retrievedPodList -> {
-            podsPackage.setPodList(podType, retrievedPodList);
-            if(retrievePodsCallback != null){
-                retrievePodsCallback.onPodsRetrieved(retrievedPodList);
+        podsPackage.createPodListObservable(podType);
+
+        final PodsRetrievalCallback.RetrievePodListCallback callback = new PodsRetrievalCallback.RetrievePodListCallback() {
+            @Override
+            public void onPodListRetrieved(@NonNull ArrayList<RRPod> retrievedPodList) {
+
+                podsPackage.setPodList(podType, retrievedPodList);
+
+                retrievePodsCallback.onPodListRetrieved(retrievedPodList);
+
+            }
+
+            @Override
+            public void onFail(@NonNull PodRetrievalError error) {
+                retrievePodsCallback.onFail(error);
             }
         };
 
         final Context context = getApplication();
 
-        if(!podsPackage.hasPodList(podType) && !podsPackage.podListPrepared(podType)){
+        if(ConnectionValidator.isConnected(context)){
 
-            podsPackage.prepareInsertion(podType);
+            PodsRetriever.retrieve(context, podType, callback);
 
-            if(ConnectionValidator.isConnected(context)){
+        }else{
 
-                PodsRSSRetriever.retrieve(context, podType, callback);
+            callback.onPodListRetrieved(new PodCacheHandle(context).retrieveCachedPodList(podType));
 
-            }else{
+        }
 
-                callback.onPodsRetrieved(new PodCacheHandle(context).retrieveCachedPodList(podType));
 
-            }
+    }
 
+
+    public void requestPodList(@NonNull PodType podType, @NonNull PodsRetrievalCallback.RetrievePodListCallback retrievePodsCallback){
+
+        // Start retrieval of pod list if not already available
+        if (podsPackage.podListIsObservable(podType)) {
+
+            retrievePodsCallback.onFail(PodRetrievalError.ALREADY_REQUESTED);
+
+            return;
+        }
+
+        retrievePodList(podType,retrievePodsCallback);
+
+    }
+
+
+    /**
+     *
+     * Provides access to the observable pod list of specified pod type.
+     * Does NOT request retrieval of the pod list.
+     *
+     * @param podType: Specifies which pod list to observe
+     * @return Observable pod list
+     *
+     */
+
+    @NonNull
+    public LiveData<ArrayList<RRPod>> getObservablePodList(@NonNull PodType podType){
+
+        if(!podsPackage.podListIsObservable(podType)){
+            podsPackage.createPodListObservable(podType);
         }
 
         final LiveData<ArrayList<RRPod>> observablePodList = podsPackage.getObservablePodList(podType);
 
-        if(observablePodList == null){
-            throw new RuntimeException("Observable pod list was null, event though podsPackage.hasPodList(podType) was true");
-        }
+        AssertUtils._assert(observablePodList != null,"Observable pod list was null, event though podsPackage.hasPodList(podType) was true");
 
         return observablePodList;
 
@@ -191,7 +210,7 @@ public class PodsViewModel extends AndroidViewModel {
 
 
     @Nullable
-    public ArrayList<RRPod> getPodList(@NonNull RRReader.PodType podType){
+    public ArrayList<RRPod> getPodList(@NonNull PodType podType){
 
         return podsPackage.getPodList(podType);
 

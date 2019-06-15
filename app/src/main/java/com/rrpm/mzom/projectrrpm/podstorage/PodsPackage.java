@@ -2,8 +2,9 @@ package com.rrpm.mzom.projectrrpm.podstorage;
 
 import android.util.Log;
 
+import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
-import com.rrpm.mzom.projectrrpm.rss.RRReader;
+import com.rrpm.mzom.projectrrpm.pod.PodType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,7 +20,7 @@ public class PodsPackage {
     private static final String TAG = "RRP-PodsPackage";
 
 
-    @NonNull private final HashMap<RRReader.PodType, MutableLiveData<ArrayList<RRPod>>> podsMap;
+    @NonNull private final HashMap<PodType, MutableLiveData<ArrayList<RRPod>>> podsMap;
 
 
     PodsPackage(){
@@ -28,11 +29,13 @@ public class PodsPackage {
 
     }
 
-    void setPodList(@NonNull final RRReader.PodType podType, @Nullable ArrayList<RRPod> pods){
-        setPodList(podType,pods,false);
+    void setPodList(@NonNull final PodType podType, @Nullable ArrayList<RRPod> pods){
+        setPodList(podType, pods, false);
     }
 
-    void setPodList(@NonNull final RRReader.PodType podType, @Nullable ArrayList<RRPod> pods, final boolean post){
+    void setPodList(@NonNull final PodType podType, @Nullable ArrayList<RRPod> podList, final boolean post){
+
+        AssertUtils._assert(podList != null, "Pod list was null");
 
         final MutableLiveData<ArrayList<RRPod>> mutablePods = podsMap.get(podType);
 
@@ -41,14 +44,14 @@ public class PodsPackage {
         }
 
         if(post){
-            mutablePods.postValue(pods);
+            mutablePods.postValue(podList);
         }else{
-            mutablePods.setValue(pods);
+            mutablePods.setValue(podList);
         }
 
     }
 
-    boolean hasPodList(@NonNull final RRReader.PodType podType){
+    boolean hasPodList(@NonNull final PodType podType){
 
         final MutableLiveData<ArrayList<RRPod>> podList = podsMap.get(podType);
 
@@ -56,13 +59,13 @@ public class PodsPackage {
 
     }
 
-    boolean podListPrepared(@NonNull final RRReader.PodType podType){
+    boolean podListIsObservable(@NonNull final PodType podType){
 
         return podsMap.get(podType) != null;
 
     }
 
-    void prepareInsertion(@NonNull final RRReader.PodType podType){
+    void createPodListObservable(@NonNull final PodType podType){
 
         Log.i(TAG,"Preparing insertion of " + podType);
 
@@ -73,14 +76,14 @@ public class PodsPackage {
     }
 
     @Nullable
-    public LiveData<ArrayList<RRPod>> getObservablePodList(@NonNull final RRReader.PodType podType){
+    public LiveData<ArrayList<RRPod>> getObservablePodList(@NonNull final PodType podType){
 
         return podsMap.get(podType);
 
     }
 
     @Nullable
-    ArrayList<RRPod> getPodList(@NonNull final RRReader.PodType podType){
+    public ArrayList<RRPod> getPodList(@NonNull final PodType podType){
 
         final LiveData<ArrayList<RRPod>> livePodList = getObservablePodList(podType);
 

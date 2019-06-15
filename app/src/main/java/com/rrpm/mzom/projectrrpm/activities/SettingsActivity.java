@@ -1,13 +1,16 @@
 package com.rrpm.mzom.projectrrpm.activities;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.rrpm.mzom.projectrrpm.podfeed.PodRetrievalError;
+import com.rrpm.mzom.projectrrpm.podfeed.PodsRetrievalCallback;
 import com.rrpm.mzom.projectrrpm.podstorage.PodsPackage;
 import com.rrpm.mzom.projectrrpm.R;
 import com.rrpm.mzom.projectrrpm.podstorage.PodStorageHandle;
-import com.rrpm.mzom.projectrrpm.rss.RRReader;
+import com.rrpm.mzom.projectrrpm.pod.PodType;
 import com.rrpm.mzom.projectrrpm.podstorage.PodUtils;
 import com.rrpm.mzom.projectrrpm.podstorage.PodsViewModel;
 
@@ -18,7 +21,7 @@ import androidx.lifecycle.ViewModelProviders;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    //private static final String TAG = "RRP-SettingsActivity";
+    private static final String TAG = "RRP-SettingsActivity";
 
 
     @Override
@@ -26,13 +29,21 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
-        final PodsViewModel.PodsPackageRequest podsPackageRequest = new PodsViewModel.PodsPackageRequest(
-                RRReader.PodType.values(), // Request all pod types
-                this::loadInfo
-        );
-
         final PodsViewModel podsViewModel = ViewModelProviders.of(this).get(PodsViewModel.class);
-        podsViewModel.requestPodsPackage(podsPackageRequest);
+        podsViewModel.requestPodsPackage(
+                PodType.values(), // Request all pod types
+                new PodsRetrievalCallback.RetrievePodsPackageCallback() {
+                    @Override
+                    public void onPodsPackageRetrieved(@NonNull PodsPackage podsPackage) {
+                        loadInfo(podsPackage);
+                    }
+
+                    @Override
+                    public void onFail(@NonNull PodRetrievalError error) {
+                        Log.e(TAG,"Failed retrieval of pods package: " + error.getMessage());
+                    }
+                }
+        );
 
         initToolbar();
 

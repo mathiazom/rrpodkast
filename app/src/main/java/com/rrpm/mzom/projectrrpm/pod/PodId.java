@@ -2,6 +2,9 @@ package com.rrpm.mzom.projectrrpm.pod;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+
+import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -11,12 +14,18 @@ public class PodId implements Parcelable {
     private final String id;
 
 
-    public PodId(@NonNull final String id){
+    public PodId(final @NonNull String id){
+
+        AssertUtils._assert(id != null , "Id string was null");
+
         this.id = id;
     }
 
-    private PodId(Parcel in){
-        this.id = in.readString();
+    private PodId(Parcel source){
+
+        AssertUtils._assert(source != null , "Source parcel was null");
+
+        this.id = source.readString();
     }
 
 
@@ -70,14 +79,20 @@ public class PodId implements Parcelable {
     }
 
     @Override
-    public void writeToParcel(Parcel dest, int flags) {
+    public void writeToParcel(@NonNull Parcel dest, int flags) {
+
+        AssertUtils._assert(dest != null , "Destination parcel was null");
+
         dest.writeString(this.id);
     }
 
     public static final Creator<PodId> CREATOR = new Creator<PodId>() {
         @Override
-        public PodId createFromParcel(Parcel in) {
-            return new PodId(in);
+        public PodId createFromParcel(Parcel source) {
+
+            AssertUtils._assert(source != null , "Source parcel was null");
+
+            return new PodId(source);
         }
 
         @Override

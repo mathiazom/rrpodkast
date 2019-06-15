@@ -13,7 +13,7 @@ import com.rrpm.mzom.projectrrpm.podstorage.PodStorageHandle;
 import com.rrpm.mzom.projectrrpm.podstorage.PodUtils;
 import com.rrpm.mzom.projectrrpm.podstorage.PodsViewModel;
 import com.rrpm.mzom.projectrrpm.podstorage.SelectedPodViewModel;
-import com.rrpm.mzom.projectrrpm.rss.RRReader;
+import com.rrpm.mzom.projectrrpm.pod.PodType;
 import com.rrpm.mzom.projectrrpm.ui.PodUIConstants;
 
 import java.util.ArrayList;
@@ -67,9 +67,16 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
     }
 
 
-    public void loadLastPlayedPodListFragment(){
+    /**
+     *
+     * Attempts to load a pod list fragment correspondeing to the pod type of the last played pod.
+     * If this fails, a pod list with {@link PodUIConstants#DEFAULT_POD_TYPE} will be loaded instead.
+     *
+     */
 
-        final RRReader.PodType lastPlayedPodType = new PodStorageHandle(fragmentActivity).getLastPlayedPodType();
+    public void loadLastPlayedOrDefaultPodListFragment(){
+
+        final PodType lastPlayedPodType = new PodStorageHandle(fragmentActivity).getLastPlayedPodType();
 
         if(podListFragment != null){
 
@@ -87,7 +94,7 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
 
     }
 
-    public void loadPodListFragment(@NonNull RRReader.PodType podType){
+    public void loadPodListFragment(@NonNull PodType podType){
 
         this.podListFragment = PodListFragment.newInstance(this,podType);
 

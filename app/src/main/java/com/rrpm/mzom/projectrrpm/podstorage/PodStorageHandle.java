@@ -12,12 +12,10 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
-import com.rrpm.mzom.projectrrpm.rss.RRReader;
+import com.rrpm.mzom.projectrrpm.pod.PodType;
 
 import java.io.File;
 import java.util.ArrayList;
-
-import javax.validation.constraints.Null;
 
 public class PodStorageHandle {
 
@@ -62,7 +60,7 @@ public class PodStorageHandle {
     }
 
     @Nullable
-    public RRReader.PodType getLastPlayedPodType(){
+    public PodType getLastPlayedPodType(){
 
         if(getLastPlayedPod() == null){
             return null;
@@ -149,7 +147,7 @@ public class PodStorageHandle {
 
         float spaceUsage = 0;
 
-        for (RRReader.PodType podType : RRReader.PodType.values()){
+        for (PodType podType : PodType.values()){
 
             final ArrayList<RRPod> podList = podsPackage.getPodList(podType);
 

@@ -1,7 +1,5 @@
 package com.rrpm.mzom.projectrrpm.podplayer;
 
-import android.util.Log;
-
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 
 import androidx.annotation.NonNull;
