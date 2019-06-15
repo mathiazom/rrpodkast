@@ -67,33 +67,6 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
     }
 
 
-    /**
-     *
-     * Attempts to load a pod list fragment correspondeing to the pod type of the last played pod.
-     * If this fails, a pod list with {@link PodUIConstants#DEFAULT_POD_TYPE} will be loaded instead.
-     *
-     */
-
-    public void loadLastPlayedOrDefaultPodListFragment(){
-
-        final PodType lastPlayedPodType = new PodStorageHandle(fragmentActivity).getLastPlayedPodType();
-
-        if(podListFragment != null){
-
-            loadPodListFragment(podListFragment);
-
-        }else if(lastPlayedPodType != null){
-
-            loadPodListFragment(lastPlayedPodType);
-
-        }else{
-
-            loadPodListFragment(PodUIConstants.DEFAULT_POD_TYPE);
-
-        }
-
-    }
-
     public void loadPodListFragment(@NonNull PodType podType){
 
         this.podListFragment = PodListFragment.newInstance(this,podType);

@@ -25,9 +25,11 @@ public final class PodStorageConstants {
 
     static final String LAST_PLAYED_POD_STORAGE = "last_played_pod_storage";
 
-    public static final String LAST_PLAYED_POD_ID = "last_played_pod_id";
-
     static final String LAST_PLAYED_POD = "last_played_pod";
+
+    static final String LAST_PLAYED_POD_TYPE = "last_played_pod_type";
+
+    static final String LAST_PLAYED_POD_ID = "last_played_pod_id";
 
 
 }

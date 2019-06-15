@@ -83,6 +83,22 @@ public class PodUtils {
     }
 
 
+    @Nullable
+    public static RRPod getPodFromId(@NonNull final PodId podId, @NonNull final ArrayList<RRPod> podList){
+
+        for(RRPod pod : podList){
+
+            if(pod.getId().equals(podId)){
+                return pod;
+            }
+
+        }
+
+        return null;
+
+    }
+
+
     static void updatePodInList(@NonNull final RRPod pod, @NonNull final ArrayList<RRPod> pods){
 
         int index = pods.indexOf(pod);

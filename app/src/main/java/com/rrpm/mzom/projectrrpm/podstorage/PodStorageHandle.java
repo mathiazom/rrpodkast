@@ -11,6 +11,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.rrpm.mzom.projectrrpm.pod.PodId;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.pod.PodType;
 
@@ -43,36 +44,69 @@ public class PodStorageHandle {
 
     }
 
-    @Nullable
-    public RRPod getLastPlayedPod(){
+    // Check if last played pod info is available
+    public boolean lastPlayedPodIsAvailable() {
 
+        // Get SharedPreferences storage related to last played pod
         final SharedPreferences lastPlayedPodStorage = context.getSharedPreferences(PodStorageConstants.LAST_PLAYED_POD_STORAGE,0);
 
-        final String lastPlayedJson = lastPlayedPodStorage.getString(PodStorageConstants.LAST_PLAYED_POD, null);
-
-        if(lastPlayedJson == null){
-            Log.e(TAG,"No last played pod found");
-            return null;
-        }
-
-        return new Gson().fromJson(lastPlayedJson, new TypeToken<RRPod>() {}.getType());
+        // Return whether or not last played pod type and id is set
+        return lastPlayedPodStorage.getString(PodStorageConstants.LAST_PLAYED_POD_TYPE, null) != null &&
+               lastPlayedPodStorage.getString(PodStorageConstants.LAST_PLAYED_POD_ID, null) != null;
 
     }
 
+
+    // Retrieve last played pod type from device storage
     @Nullable
-    public PodType getLastPlayedPodType(){
+    public PodType getLastPlayedPodType() {
 
-        if(getLastPlayedPod() == null){
+        // Get SharedPreferences storage related to last played pod
+        final SharedPreferences lastPlayedPodStorage = context.getSharedPreferences(PodStorageConstants.LAST_PLAYED_POD_STORAGE,0);
+
+        // Retrieve json string for last played pod type
+        final String typeJson = lastPlayedPodStorage.getString(PodStorageConstants.LAST_PLAYED_POD_TYPE, null);
+
+        // If json is null, return null
+        if(typeJson == null){
             return null;
         }
 
-        return getLastPlayedPod().getPodType();
+        // Return last played pod type
+        return new Gson().fromJson(typeJson, new TypeToken<PodType>() {}.getType());
 
     }
+
+
+
+    // Retrieve last played pod id from device storage
+    @Nullable
+    public PodId getLastPlayedPodId() {
+
+        // Get SharedPreferences storage related to last played pod
+        final SharedPreferences lastPlayedPodStorage = context.getSharedPreferences(PodStorageConstants.LAST_PLAYED_POD_STORAGE,0);
+
+        // Retrieve json string for last played pod id
+        final String idJson = lastPlayedPodStorage.getString(PodStorageConstants.LAST_PLAYED_POD_ID, null);
+
+        // If json is null, return null
+        if(idJson == null){
+            return null;
+        }
+
+        // Return last played pod id
+        return new Gson().fromJson(idJson, new TypeToken<PodId>() {}.getType());
+
+    }
+
 
     public void storePodAsLastPlayed(@NonNull final RRPod pod){
 
-        lastPlayedPodStorage.edit().putString(PodStorageConstants.LAST_PLAYED_POD,new Gson().toJson(pod)).apply();
+        //lastPlayedPodStorage.edit().putString(PodStorageConstants.LAST_PLAYED_POD,new Gson().toJson(pod)).apply();
+
+        lastPlayedPodStorage.edit().putString(PodStorageConstants.LAST_PLAYED_POD_TYPE,new Gson().toJson(pod.getPodType())).apply();
+
+        lastPlayedPodStorage.edit().putString(PodStorageConstants.LAST_PLAYED_POD_ID,new Gson().toJson(pod.getId())).apply();
 
     }
 
