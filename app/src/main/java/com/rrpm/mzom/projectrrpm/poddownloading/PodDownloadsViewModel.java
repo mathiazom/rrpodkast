@@ -1,64 +1,165 @@
 package com.rrpm.mzom.projectrrpm.poddownloading;
 
 
+import android.app.Application;
+import android.util.Log;
+
+import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
+import com.rrpm.mzom.projectrrpm.podstorage.PodStorageHandle;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.validation.constraints.Null;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
-public class PodDownloadsViewModel extends ViewModel {
+public class PodDownloadsViewModel extends AndroidViewModel {
 
 
     private static final String TAG = "RRP-DownloadsViewModel";
 
-    @NonNull private final MutableLiveData<ArrayList<RRPod>> observableDownloadingPods = new MutableLiveData<>();
+    @NonNull private final MutableLiveData<ArrayList<RRPod>> observableDownloadQueue = new MutableLiveData<>();
 
     @NonNull
-    private final HashMap<RRPod,MutableLiveData<Float>> progression = new HashMap<>();
+    private final HashMap<RRPod,MutableLiveData<Float>> downloadProgresses = new HashMap<>();
+
+    public PodDownloadsViewModel(@NonNull Application application) {
+
+        super(application);
+
+        // Retrieve download queue from device storage
+        this.observableDownloadQueue.setValue(new PodStorageHandle(application).getStoredPodDownloadQueue());
+
+    }
 
 
     @NonNull
-    public LiveData<ArrayList<RRPod>> getDownloadingPodsObservable(){
+    public LiveData<ArrayList<RRPod>> getObservableDownloadQueue(){
 
-        return this.observableDownloadingPods;
+        return this.observableDownloadQueue;
 
     }
 
 
     @Nullable
-    public LiveData<Float> getObservablePodProgress(@NonNull final RRPod pod){
+    ArrayList<RRPod> getDownloadQueue(){
 
-        return progression.get(pod);
+        return observableDownloadQueue.getValue();
+
+    }
+
+    private boolean downloadQueueIsEmpty(){
+
+        return this.observableDownloadQueue.getValue() == null ||
+               this.observableDownloadQueue.getValue().isEmpty();
 
     }
 
 
-    public void postDownloadProgress(@NonNull final RRPod pod, float downloadProgress){
+    void addPodToDownloadQueue(@NonNull final RRPod pod){
 
-        if(observableDownloadingPods.getValue() == null){
-            observableDownloadingPods.setValue(new ArrayList<>());
+        final ArrayList<RRPod> downloadQueue = observableDownloadQueue.getValue();
+
+        if(downloadQueue == null){
+
+            observableDownloadQueue.setValue(new ArrayList<>());
+
+            // Retry adding to download queue
+            addPodToDownloadQueue(pod);
+
+            return;
+
         }
 
-        MutableLiveData<Float> observableProgress = progression.get(pod);
+        downloadQueue.add(pod);
 
-        if(!observableDownloadingPods.getValue().contains(pod) || observableProgress == null){
+        // Prepare download progress observation
+        createObservableDownloadProgress(pod);
 
-            observableProgress = new MutableLiveData<>();
-            observableProgress.setValue(downloadProgress);
+        // Alert observers that download queue has changed
+        observableDownloadQueue.setValue(downloadQueue);
 
-            progression.put(pod,observableProgress);
+        updateDownloadQueueInStorage(downloadQueue);
 
-            final ArrayList<RRPod> downloadingPods = observableDownloadingPods.getValue();
+    }
 
-            downloadingPods.add(pod);
+    void removePodFromDownloadQueue(@NonNull final RRPod pod){
 
-            observableDownloadingPods.setValue(downloadingPods);
+        downloadProgresses.remove(pod);
+
+        final ArrayList<RRPod> downloadQueue = observableDownloadQueue.getValue();
+
+        if(downloadQueue == null){
+
+            return;
+
+        }
+
+        final boolean removed = downloadQueue.remove(pod);
+
+        Log.i(TAG,pod + " removed successfully: " + removed);
+
+        observableDownloadQueue.setValue(downloadQueue);
+
+        updateDownloadQueueInStorage(downloadQueue);
+
+    }
+
+    boolean hasPodInQueue(@NonNull RRPod pod){
+
+        return this.observableDownloadQueue.getValue() != null &&
+               this.observableDownloadQueue.getValue().contains(pod);
+
+    }
+
+    @Nullable
+    RRPod getNextPodInQueue(){
+
+        if(downloadQueueIsEmpty()){
+
+            return null;
+
+        }
+
+        Assertions._assert(this.observableDownloadQueue.getValue() != null, "Download queue was null despite downloadQueueIsEmpty() returning false.");
+
+        return this.observableDownloadQueue.getValue().get(0);
+
+    }
+
+
+    private void updateDownloadQueueInStorage(@Nullable ArrayList<RRPod> downloadQueue){
+
+        new PodStorageHandle(getApplication()).storePodDownloadQueue(downloadQueue);
+
+    }
+
+
+    void postDownloadProgress(@NonNull final RRPod pod, float downloadProgress){
+
+        if(observableDownloadQueue.getValue() == null){
+
+            observableDownloadQueue.setValue(new ArrayList<>());
+
+            updateDownloadQueueInStorage(observableDownloadQueue.getValue());
+
+        }
+
+        final MutableLiveData<Float> observableProgress = downloadProgresses.get(pod);
+
+        // Check if downloaded pod is a new addition to the queue
+        if(observableProgress == null){
+
+            createObservableDownloadProgress(pod);
+
+            // Retry setting download progress
+            postDownloadProgress(pod,downloadProgress);
 
             return;
 
@@ -68,21 +169,24 @@ public class PodDownloadsViewModel extends ViewModel {
 
     }
 
-    public void removePod(@NonNull final RRPod pod){
+    private void createObservableDownloadProgress(@NonNull final RRPod pod){
 
-        progression.remove(pod);
+        final MutableLiveData<Float> observableProgress = new MutableLiveData<>();
+        observableProgress.setValue(0f);
 
-        final ArrayList<RRPod> downloadingPods = observableDownloadingPods.getValue();
-
-        if(downloadingPods == null){
-            return;
-        }
-
-        downloadingPods.remove(pod);
-
-        observableDownloadingPods.setValue(downloadingPods);
+        downloadProgresses.put(pod,observableProgress);
 
     }
+
+    @Nullable
+    public LiveData<Float> getObservableDownloadProgress(@NonNull final RRPod pod){
+
+        return downloadProgresses.get(pod);
+
+    }
+
+
+
 
 
 

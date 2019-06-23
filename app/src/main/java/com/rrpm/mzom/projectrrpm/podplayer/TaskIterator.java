@@ -1,6 +1,7 @@
 package com.rrpm.mzom.projectrrpm.podplayer;
 
 
+import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 import com.rrpm.mzom.projectrrpm.podstorage.PodStorageConstants;
 
 import androidx.annotation.NonNull;
@@ -17,8 +18,6 @@ class TaskIterator {
     private static final String TAG = "RRP-TaskIterator";
 
 
-    //private Timer timer;
-
     private final TimerTask timerTask;
 
     private final long period;
@@ -26,6 +25,8 @@ class TaskIterator {
     private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
 
     private ScheduledFuture<?> iteration;
+
+    private boolean isStarted;
 
 
     TaskIterator(@NonNull TimerTask timerTask, long period){
@@ -45,14 +46,7 @@ class TaskIterator {
 
     void start(){
 
-        /*timer = new Timer();
-
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                timerTask.run();
-            }
-        },0,period);*/
+        Assertions._assert(!isStarted, "Iterator has already been started");
 
         iteration = executorService.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -60,6 +54,14 @@ class TaskIterator {
                 timerTask.run();
             }
         },0,period, TimeUnit.MILLISECONDS);
+
+        isStarted = true;
+
+    }
+
+    boolean isStarted(){
+
+        return isStarted;
 
     }
 
@@ -72,18 +74,19 @@ class TaskIterator {
 
     void stop(){
 
-        /*timer.cancel();
-        timer.purge();
-
-        timer = null;*/
+        Assertions._assert(isStarted, "Iterator has already been stopped");
 
         if(iteration == null || iteration.isCancelled()){
+
             // Iteration already terminated
             return;
+
         }
 
         iteration.cancel(false);
         iteration = null;
+
+        isStarted = false;
 
     }
 

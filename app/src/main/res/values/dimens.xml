@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+    <!-- Main navigation drawer -->
+
+    <dimen name="mainNavigationDrawerWidth">250dp</dimen>
+
+    <dimen name="mainNavigationDrawerPaddingTop">10dp</dimen>
+
+
+    <!-- Top toolbar -->
+
+    <dimen name="topToolbarHeight">56dp</dimen>
+
+    <dimen name="topToolbarElevation">4dp</dimen>
+
+    <dimen name="topToolbarActionHeightAndWidth">28dp</dimen>
+
+    <dimen name="topToolbarTitlePadding">10dp</dimen>
+
+    <dimen name="topToolbarTitleMarginStart">10dp</dimen>
+
+    <dimen name="topToolbarPaddingHorizontal">20dp</dimen>
+
+
+    <!-- Filter fragment -->
+
+    <dimen name="filterDialogPaddingVertical">20dp</dimen>
+
+    <dimen name="filterDialogOptionTitleSize">18sp</dimen>
+
+    <dimen name="filterDialogDateFieldTitleMarginStart">4dp</dimen>
+
+    <dimen name="filterDialogDateFieldTitleSize">16sp</dimen>
+
+    <dimen name="filterDialogDateFieldPaddingVertical">18dp</dimen>
+
+    <dimen name="filterDialogDateFieldPaddingHorizontal">12dp</dimen>
+
+    <dimen name="filterDialogDateFieldMarginTop">8dp</dimen>
+
+    <dimen name="filterDialogOptionMarginTop">30dp</dimen>
+
+    <dimen name="filterDialogMargins">20dp</dimen>
+
+
+    <!-- Pod player fragment -->
+
+    <dimen name="podPlayerPodTitleSize">24sp</dimen>
+
+
+    <!-- Small pod player fragment -->
+
+    <dimen name="podPlayerSmallTitleSize">16sp</dimen>
+
+
+    <!-- Pod list fragment -->
+
+    <dimen name="podListPodTitleSize">16sp</dimen>
+
+
+    <!-- Thicker pod player seek bar -->
+
+    <dimen name="thickerSeekBarThickness">6dp</dimen>
+
+    <dimen name="thickerSeekBarCornerRadius">5dp</dimen>
+
+    <dimen name="thickerSeekBarThumbSize">16dp</dimen>
+
+    <dimen name="thickerSeekBarPaddingHorizontal">8dp</dimen>
+
+
+
+</resources>

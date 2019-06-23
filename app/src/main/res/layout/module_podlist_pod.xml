@@ -13,7 +13,7 @@
         android:id="@+id/month_divider_cont"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#eeeeee"
+        android:background="@color/colorWhite"
         android:orientation="vertical"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
@@ -45,7 +45,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingBottom="17dp"
-        android:paddingEnd="30dp"
+        android:paddingEnd="17dp"
         android:paddingStart="30dp"
         android:paddingTop="17dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -53,12 +53,14 @@
         app:layout_constraintTop_toBottomOf="@id/month_divider_cont">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/podViewContentMain"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toStartOf="@id/podViewContentMarkers">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/podViewTopRow"
@@ -73,8 +75,8 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:text="@string/pod_title_template"
-                    android:textColor="#eee"
-                    android:textSize="17sp"
+                    android:textColor="@color/colorWhite"
+                    android:textSize="@dimen/podListPodTitleSize"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent">
@@ -88,6 +90,7 @@
                     android:layout_marginStart="5dp"
                     android:scaleX="0.7"
                     android:scaleY="0.7"
+                    android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/podItemNewMark"
                     app:layout_constraintTop_toTopOf="parent"
@@ -171,6 +174,40 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/podViewContentMarkers"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/podViewContentMain"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:padding="5dp">
+
+            <ImageView
+                android:id="@+id/podViewNewMarker"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="5dp"
+                android:tint="@color/colorWhiteDark"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:srcCompat="@drawable/ic_round_new_releases_24px"/>
+
+            <ImageView
+                android:id="@+id/podViewDownloadedMarker"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="5dp"
+                android:tint="@color/colorWhiteDark"
+                app:layout_constraintTop_toBottomOf="@id/podViewNewMarker"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:srcCompat="@drawable/ic_round_get_app_24px"/>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -8,10 +8,6 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
         android:gravity="center"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -21,8 +17,8 @@
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
             android:contentDescription="@string/about_app"
             android:src="@drawable/splash_nobg"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -30,34 +26,16 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:gravity="center"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
-            android:text="Laget av Mathias M."
-            android:textColor="#212121"
-            android:textSize="12sp"
-            android:background="@color/app_white"/> -->
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
-            android:layout_marginTop="8dp"
             android:gravity="center"
-            android:padding="40dp"
+            android:layout_marginTop="40dp"
+            android:paddingStart="40dp"
+            android:paddingEnd="40dp"
             android:text="@string/about_app_disclaimer"
-            android:textColor="#eee"
-            android:textSize="12sp"
+            android:textColor="@color/colorWhite"
+            android:textSize="14sp"
             app:layout_constraintBottom_toTopOf="@+id/textView"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -65,20 +43,29 @@
             app:layout_constraintVertical_bias="0.504" />
 
         <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="50dp"
+            android:gravity="center"
+            android:text="@string/about_app_byline"
+            android:textColor="@color/colorWhiteDark"
+            android:textSize="12sp"/>
+
+        <TextView
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
+            android:layout_marginTop="20dp"
             android:paddingTop="5dp"
             android:paddingBottom="5dp"
             android:paddingLeft="10dp"
             android:paddingRight="10dp"
             android:text="@string/about_app_version"
-            android:textColor="#212121"
+            android:textColor="@color/colorPrimary"
             android:textSize="12sp"
             android:background="@drawable/white_rounded"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintHorizontal_bias="0.501"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent" />
 

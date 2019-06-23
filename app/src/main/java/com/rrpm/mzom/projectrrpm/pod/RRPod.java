@@ -2,8 +2,9 @@ package com.rrpm.mzom.projectrrpm.pod;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 
-import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
+import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 import com.rrpm.mzom.projectrrpm.podstorage.PodStorageConstants;
 import com.rrpm.mzom.projectrrpm.ui.PodUIConstants;
 
@@ -21,6 +22,9 @@ import androidx.annotation.NonNull;
 public class RRPod implements Parcelable {
 
 
+    private static final String TAG = "RRP-RRPod";
+
+
     @NonNull private final PodId id;
 
     @NonNull private final PodType podType;
@@ -33,7 +37,7 @@ public class RRPod implements Parcelable {
 
     @NonNull private final String url;
 
-    private final int duration;
+    private int duration;
 
     private int progress;
 
@@ -105,6 +109,12 @@ public class RRPod implements Parcelable {
         return this.duration;
     }
 
+    public void setDuration(int duration){
+
+        this.duration = duration;
+
+    }
+
     public int getProgress(){
         return this.progress;
     }
@@ -145,7 +155,7 @@ public class RRPod implements Parcelable {
     @Override
     public void writeToParcel(@NonNull Parcel parcel, int flags) {
 
-        AssertUtils._assert(parcel != null , "Destination parcel was null");
+        Assertions._assert(parcel != null , "Destination parcel was null");
 
         parcel.writeParcelable(this.id,flags);
 
@@ -171,7 +181,7 @@ public class RRPod implements Parcelable {
 
         public RRPod createFromParcel(Parcel source) {
 
-            AssertUtils._assert(source != null , "Source parcel was null");
+            Assertions._assert(source != null , "Source parcel was null");
 
             final RRPodBuilder builder = RRPodBuilder.fromParcel(source);
 
@@ -184,5 +194,6 @@ public class RRPod implements Parcelable {
         }
 
     };
+
 
 }

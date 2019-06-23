@@ -8,13 +8,13 @@ public interface MainFragmentsLoaderInterface {
 
     void loadPodFragment(@NonNull final RRPod pod);
 
-    void loadPodPlayerFullFragment();
-
-    void hidePodPlayerFullFragment();
-
     void loadPodPlayerFragment();
 
     void hidePodPlayerFragment();
+
+    void loadSmallPodPlayerFragment();
+
+    void hideSmallPodPlayerFragment();
 
     void loadFilterFragment();
 

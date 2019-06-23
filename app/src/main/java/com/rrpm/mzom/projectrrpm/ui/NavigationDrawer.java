@@ -39,7 +39,9 @@ public class NavigationDrawer extends DrawerLayout {
     public NavigationDrawer addItem(@NonNull NavigationDrawerItem item){
 
         if(drawerItems == null){
+
             drawerItems = new ArrayList<>();
+
         }
 
         drawerItems.add(item);
@@ -104,8 +106,11 @@ public class NavigationDrawer extends DrawerLayout {
     public boolean close(){
 
         if(isOpen){
+
             closeDrawers();
+
             return true;
+
         }
 
         return false;

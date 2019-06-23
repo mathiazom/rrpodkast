@@ -2,7 +2,7 @@ package com.rrpm.mzom.projectrrpm.pod;
 
 import android.os.Parcel;
 
-import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
+import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 
 import java.util.Date;
 
@@ -35,22 +35,19 @@ public class RRPodBuilder {
     @NonNull
     public RRPod build(){
 
+        Assertions._assert(id != null,"Pod id was null");
 
-        // TODO: Use alternate to assertions
+        Assertions._assert(podType != null , "Pod type was null");
 
-        AssertUtils._assert(id != null,"Pod id was null");
+        Assertions._assert(title != null , "Pod title was null");
 
-        AssertUtils._assert(podType != null , "Pod type was null");
+        Assertions._assert(date != null , "Pod date was null");
 
-        AssertUtils._assert(title != null , "Pod title was null");
+        Assertions._assert(url != null , "Pod url was null");
 
-        AssertUtils._assert(date != null , "Pod date was null");
+        Assertions._assert(description != null , "Pod description was null");
 
-        AssertUtils._assert(url != null , "Pod url was null");
-
-        AssertUtils._assert(description != null , "Pod description was null");
-
-        AssertUtils._assert(duration >= 0 , "Pod duration was negative");
+        Assertions._assert(duration >= 0 , "Pod duration was negative");
 
 
         return new RRPod(
@@ -108,7 +105,7 @@ public class RRPodBuilder {
 
     public void setId(@NonNull PodId id) {
 
-        AssertUtils._assert(id != null , "Pod id was null");
+        Assertions._assert(id != null , "Pod id was null");
 
         this.id = id;
 
@@ -116,7 +113,7 @@ public class RRPodBuilder {
 
     public void setPodType(@NonNull PodType podType) {
 
-        AssertUtils._assert(podType != null , "Pod type was null");
+        Assertions._assert(podType != null , "Pod type was null");
 
         this.podType = podType;
 
@@ -124,7 +121,7 @@ public class RRPodBuilder {
 
     public void setTitle(@NonNull String title) {
 
-        AssertUtils._assert(title != null , "Pod title was null");
+        Assertions._assert(title != null , "Pod title was null");
 
         this.title = title;
 
@@ -132,7 +129,7 @@ public class RRPodBuilder {
 
     public void setDescription(@NonNull String description) {
 
-        AssertUtils._assert(description != null , "Pod description was null");
+        Assertions._assert(description != null , "Pod description was null");
 
         this.description = description;
 
@@ -140,7 +137,7 @@ public class RRPodBuilder {
 
     public void setDate(@NonNull Date date) {
 
-        AssertUtils._assert(date != null , "Pod date was null");
+        Assertions._assert(date != null , "Pod date was null");
 
         this.date = date;
 
@@ -148,7 +145,7 @@ public class RRPodBuilder {
 
     public void setUrl(@NonNull String url) {
 
-        AssertUtils._assert(url != null , "Pod url was null");
+        Assertions._assert(url != null , "Pod url was null");
 
         this.url = url;
 
@@ -156,7 +153,7 @@ public class RRPodBuilder {
 
     public void setDuration(int duration) {
 
-        AssertUtils._assert(duration >= 0 , "Pod duration was negative");
+        Assertions._assert(duration >= 0 , "Pod duration was negative");
 
         this.duration = duration;
 
@@ -170,7 +167,7 @@ public class RRPodBuilder {
 
     public void setProgress(int progress) {
 
-        AssertUtils._assert(duration >= 0 , "Pod progress was negative");
+        Assertions._assert(duration >= 0 , "Pod progress was negative");
 
         this.progress = progress;
 

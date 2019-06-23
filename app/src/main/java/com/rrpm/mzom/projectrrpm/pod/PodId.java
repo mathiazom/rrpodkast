@@ -3,7 +3,9 @@ package com.rrpm.mzom.projectrrpm.pod;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
+import com.rrpm.mzom.projectrrpm.debugging.Assertions;
+
+import java.util.Objects;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,26 +18,43 @@ public class PodId implements Parcelable {
 
     public PodId(final @NonNull String id){
 
-        AssertUtils._assert(id != null , "Id string was null");
+        Assertions._assert(id != null , "Id string was null");
 
         this.id = id;
     }
 
     private PodId(Parcel source){
 
-        AssertUtils._assert(source != null , "Source parcel was null");
+        Assertions._assert(source != null , "Source parcel was null");
 
         this.id = source.readString();
     }
 
+    @Override
+    public boolean equals(Object o) {
 
-    public boolean equals(@Nullable PodId podId) {
+        if (this == o){
 
-        if(podId == null){
-            return false;
+            return true;
+
         }
 
-        return this.id.equals(podId.id);
+        if (o == null || getClass() != o.getClass()){
+
+            return false;
+
+        }
+
+        final PodId podId = (PodId) o;
+
+        return Objects.equals(id, podId.id);
+
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(id);
 
     }
 
@@ -51,7 +70,9 @@ public class PodId implements Parcelable {
             char c = subStringSequence.charAt(i);
 
             if(Character.isDigit(c)){
+
                 longStringBuilder.append(c);
+
             }
 
         }
@@ -59,7 +80,9 @@ public class PodId implements Parcelable {
         String longString = longStringBuilder.toString();
 
         if(longString.length() > String.valueOf(Long.MAX_VALUE).length()){
+
             longString = longString.substring(0,String.valueOf(Long.MAX_VALUE).length()-1);
+
         }
 
         return Long.parseLong(longString);
@@ -81,7 +104,7 @@ public class PodId implements Parcelable {
     @Override
     public void writeToParcel(@NonNull Parcel dest, int flags) {
 
-        AssertUtils._assert(dest != null , "Destination parcel was null");
+        Assertions._assert(dest != null , "Destination parcel was null");
 
         dest.writeString(this.id);
     }
@@ -90,7 +113,7 @@ public class PodId implements Parcelable {
         @Override
         public PodId createFromParcel(Parcel source) {
 
-            AssertUtils._assert(source != null , "Source parcel was null");
+            Assertions._assert(source != null , "Source parcel was null");
 
             return new PodId(source);
         }

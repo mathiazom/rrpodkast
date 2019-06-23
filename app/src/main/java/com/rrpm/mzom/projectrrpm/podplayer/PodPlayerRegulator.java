@@ -13,7 +13,7 @@ import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-class PodPlayerPlaybackRegulator implements AudioManager.OnAudioFocusChangeListener {
+class PodPlayerRegulator implements AudioManager.OnAudioFocusChangeListener {
 
 
     private static final String TAG = "RRP-PlaybackRegulator";
@@ -32,7 +32,7 @@ class PodPlayerPlaybackRegulator implements AudioManager.OnAudioFocusChangeListe
     private boolean isPlaying;
 
 
-    PodPlayerPlaybackRegulator(@NonNull final Context context, @NonNull final PodPlayerControls podPlayerControls, @Nullable final TaskIterator[] playbackIterators) {
+    PodPlayerRegulator(@NonNull final Context context, @NonNull final PodPlayerControls podPlayerControls, @Nullable final TaskIterator[] playbackIterators) {
 
         this.context = context;
 
@@ -50,6 +50,13 @@ class PodPlayerPlaybackRegulator implements AudioManager.OnAudioFocusChangeListe
 
     void regulate(final boolean isPlaying) {
 
+        if(this.isPlaying == isPlaying){
+
+            // No change in playing state
+            return;
+
+        }
+
         this.isPlaying = isPlaying;
 
         if (isPlaying) {
@@ -58,21 +65,24 @@ class PodPlayerPlaybackRegulator implements AudioManager.OnAudioFocusChangeListe
             registerBecomingNoisyReceiver();
 
             if (playbackIterators != null) {
+
                 for (TaskIterator iterator : playbackIterators){
                     Log.i(TAG,"Starting playback iterators");
-                    iterator.start();
+                    if(!iterator.isStarted()){
+
+                        iterator.start();
+
+                    }
                 }
+
             }
 
             // Prevent system from killing the WiFi connection if streaming
             if (!playerPod.isDownloaded()) {
-                activateWifiLock();
-            }
 
-            /*// Nothing more to play, so pause playback
-            if (playerPod.getProgress() == playerPod.getDuration()) {
-                podPlayerControls.pausePod();
-            }*/
+                activateWifiLock();
+
+            }
 
         } else {
 
@@ -80,9 +90,16 @@ class PodPlayerPlaybackRegulator implements AudioManager.OnAudioFocusChangeListe
             unregisterBecomingNoisyReceiver();
 
             if (playbackIterators != null) {
+
                 for (TaskIterator iterator : playbackIterators){
-                    iterator.stop();
+                    Log.i(TAG,"Stopping playback iterators");
+                    if(iterator.isStarted()){
+
+                        iterator.stop();
+
+                    }
                 }
+
             }
 
             // Playback is not streaming, so system is free to kill the WiFi connection
@@ -94,14 +111,16 @@ class PodPlayerPlaybackRegulator implements AudioManager.OnAudioFocusChangeListe
     }
 
 
-    public boolean requestAudioFocus() {
+    boolean requestAudioFocus() {
 
         if (audioManager == null) {
 
             audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
             if (audioManager == null) {
+
                 throw new RuntimeException("AudioManager was null");
+
             }
 
         }
@@ -126,7 +145,9 @@ class PodPlayerPlaybackRegulator implements AudioManager.OnAudioFocusChangeListe
             case AudioManager.AUDIOFOCUS_GAIN:
 
                 if (transientAudioFocusLoss && !isPlaying) {
+
                     podPlayerControls.continuePod();
+
                 }
 
                 break;
@@ -159,11 +180,15 @@ class PodPlayerPlaybackRegulator implements AudioManager.OnAudioFocusChangeListe
             final String action = intent.getAction();
 
             if (action == null) {
+
                 return;
+
             }
 
             if (action.equals(AudioManager.ACTION_AUDIO_BECOMING_NOISY)) {
+
                 podPlayerControls.pausePod();
+
             }
         }
     };
@@ -174,26 +199,30 @@ class PodPlayerPlaybackRegulator implements AudioManager.OnAudioFocusChangeListe
     /**
      * Registers a {@link BroadcastReceiver} to catch any {@link AudioManager#ACTION_AUDIO_BECOMING_NOISY} broadcasts.
      *
-     * @see PodPlayerPlaybackRegulator#becomingNoisyReceiver
+     * @see PodPlayerRegulator#becomingNoisyReceiver
      */
 
     private void registerBecomingNoisyReceiver() {
 
         if (!registeredBecomingNoisyReceiver) {
+
             context.registerReceiver(
                     becomingNoisyReceiver,
                     new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
             );
             registeredBecomingNoisyReceiver = true;
+
         }
 
     }
 
     private void unregisterBecomingNoisyReceiver() {
 
-        if (!registeredBecomingNoisyReceiver) {
+        if (registeredBecomingNoisyReceiver) {
+
             context.unregisterReceiver(becomingNoisyReceiver);
             registeredBecomingNoisyReceiver = false;
+
         }
 
     }
@@ -210,7 +239,9 @@ class PodPlayerPlaybackRegulator implements AudioManager.OnAudioFocusChangeListe
             final WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
             if (wifiManager == null) {
+
                 throw new NullPointerException("WifiManager was null");
+
             }
 
             // Prevent system from disabling wifi when device is idle
@@ -225,7 +256,9 @@ class PodPlayerPlaybackRegulator implements AudioManager.OnAudioFocusChangeListe
     private void disableWifiLock() {
 
         if (wifiLock == null || !wifiLock.isHeld()) {
+
             return;
+
         }
 
         wifiLock.release();

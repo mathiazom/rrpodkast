@@ -8,40 +8,28 @@
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="@dimen/topToolbarHeight"
         android:layout_alignParentTop="true"
         android:background="@color/colorPrimary"
+        android:paddingStart="@dimen/topToolbarPaddingHorizontal"
+        android:paddingEnd="@dimen/topToolbarPaddingHorizontal"
+        app:contentInsetStart="0dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp">
+            android:layout_height="match_parent">
 
             <ImageView
                 android:id="@+id/toolbarBackAction"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="@dimen/topToolbarActionHeightAndWidth"
+                android:layout_height="@dimen/topToolbarActionHeightAndWidth"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@drawable/ic_round_arrow_back_24px" />
-
-            <!--<TextView
-                android:id="@+id/toolbar_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:padding="10dp"
-                android:text="@string/list_drawer_item_settings"
-                android:textColor="#eee"
-                android:textSize="19sp"
-                android:layout_marginStart="10dp"
-                app:layout_constraintStart_toEndOf="@id/toolbarBackButton"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"/>-->
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

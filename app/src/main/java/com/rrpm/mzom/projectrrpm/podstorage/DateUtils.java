@@ -2,7 +2,7 @@ package com.rrpm.mzom.projectrrpm.podstorage;
 
 import android.widget.DatePicker;
 
-import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
+import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 import com.rrpm.mzom.projectrrpm.ui.PodUIConstants;
 import com.rrpm.mzom.projectrrpm.podfiltering.DateRange;
 import com.rrpm.mzom.projectrrpm.annotations.NonEmpty;
@@ -30,9 +30,13 @@ public class DateUtils {
         final Calendar calendar = Calendar.getInstance();
 
         if (startOfDay){
+
             calendar.set(pickedYear,pickedMonth,pickedDay,calendar.getMinimum(Calendar.HOUR_OF_DAY),calendar.getMinimum(Calendar.MINUTE));
+
         }else{
+
             calendar.set(pickedYear,pickedMonth,pickedDay,calendar.getMaximum(Calendar.HOUR_OF_DAY),calendar.getMaximum(Calendar.MINUTE));
+
         }
 
         return calendar.getTime();
@@ -79,7 +83,7 @@ public class DateUtils {
     @NonNull
     static <E> DateRange getDateRangeFromList(@NonNull @NonEmpty final ArrayList<E> list, @NonNull ItemDateRetriever<E> itemDateRetriever){
 
-        AssertUtils._assert(!list.isEmpty(),"List was empty");
+        Assertions._assert(!list.isEmpty(),"List was empty");
 
         Date fromDate = itemDateRetriever.getItemDate(list.get(0));
         Date toDate = fromDate;
@@ -89,11 +93,15 @@ public class DateUtils {
             final Date itemDate = itemDateRetriever.getItemDate(item);
 
             if(fromDate == null || itemDate.getTime() < fromDate.getTime()){
+
                 fromDate = itemDate;
+
             }
 
             if(toDate == null || itemDate.getTime() > toDate.getTime()){
+
                 toDate = itemDate;
+
             }
 
         }

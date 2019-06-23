@@ -7,6 +7,7 @@
     <string name="about_app_disclaimer">
         Denne appen er ikke laget i samarbeid med NRK eller Radioresepsjonen. Appen er basert på NRKs RSS-feed og ment for RR-lyttere på jakt etter gode gamle (eller nye) RR-episoder.
     </string>
+    <string name="about_app_byline">Laget av Mathiazom</string>
     <string name="about_app_version">Versjon: 1.4.0</string>
 
     <!-- Filtering -->
@@ -27,6 +28,8 @@
     <string name="random_pod_section">Tilfeldige podkaster</string>
     <string name="random_select_setting_name">Velg fra</string>
     <string name="random_select_setting_title">Velg filter for tilfeldige podkaster</string>
+
+    <string name="space_usage_template">- MB / - nedlastinger</string>
 
     <string-array name="random_select_from_array">
         <item>Alle</item>
@@ -72,16 +75,21 @@
     <string name="filter_downloaded">Kun nedlastede</string>
     <string name="space_usage_settings_header">Bruk av lagringsplass</string>
 
-    <string name="pods_space_usage_text">%1$.2f MB / %2$d episoder</string>
+    <string name="pods_space_usage_text">%1$.2f MB / %2$d nedlastinger</string>
     <string name="filter_started">Kun påbegynte</string>
     <string name="filter_date_range_from_header">Fra</string>
     <string name="filter_date_range_to_header">Til</string>
 
     <!-- Notifications -->
+    <string name="download_notifications_group_name">Nedlastinger</string>
     <string name="downloading_notification_channel_name">Nedlastingsvarsel</string>
     <string name="downloading_notification_channel_description">Varsler pågående nedlastinger</string>
     <string name="completed_downloads_notification_channel_name">Varsel om fullførte nedlastinger</string>
     <string name="completed_downloads_notification_channel_description">Gir en oversikt over de seneste fullførte nedlastingene</string>
-    <string name="download_notifications_group_name">Nedlastinger</string>
+
+    <string name="playback_notifications_group_name">Avspillinger</string>
+    <string name="player_notification_channel_name">Gjeldende avspilling</string>
+    <string name="player_notification_channel_description">Gir kontroll over det som spilles for øyeblikket</string>
+
 
 </resources>

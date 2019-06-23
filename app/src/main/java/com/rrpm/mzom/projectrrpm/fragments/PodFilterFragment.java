@@ -69,7 +69,9 @@ public class PodFilterFragment extends Fragment {
         podListFilterViewModel.getObservablePodFilter().observe(this, podFilter -> {
 
             if(podFilter == null){
+
                 return;
+
             }
 
             this.podFilter = podFilter;
@@ -99,7 +101,9 @@ public class PodFilterFragment extends Fragment {
 
         filterContainer.setOnFocusChangeListener((v, hasFocus) -> {
             if(!hasFocus){
+
                 mainFragmentsHandler.hideFilterFragment();
+
             }
         });
 
@@ -107,7 +111,9 @@ public class PodFilterFragment extends Fragment {
 
         filterBaseContainer.setOnFocusChangeListener((v, hasFocus) -> {
             if(hasFocus){
+
                 mainFragmentsHandler.hideFilterFragment();
+
             }
         });
 

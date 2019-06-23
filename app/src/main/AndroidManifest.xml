@@ -32,7 +32,7 @@
             />-->
 
         <service
-            android:name=".poddownloading.DownloadService"
+            android:name=".poddownloading.PodDownloadService"
             android:exported="false" />
     </application>
 

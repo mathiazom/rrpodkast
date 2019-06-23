@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 import static com.rrpm.mzom.projectrrpm.ui.PodUIConstants.SHOW_PROGRESS_LIMIT;
 
-public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapter.PodViewHolder>{
+public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapter.PodViewHolder> {
 
     private static final String TAG = "RRP-PodsRecyclerAdapter";
 
@@ -34,19 +34,18 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
     @NonNull
     private final PodsRecyclerAdapterListener podsRecyclerAdapterListener;
 
-    public interface PodsRecyclerAdapterListener{
+    public interface PodsRecyclerAdapterListener {
 
         void onPodClicked(@NonNull final RRPod pod);
 
     }
 
 
-
     public PodsRecyclerAdapter(
             @NonNull final ArrayList<RRPod> pods,
             @NonNull PlayerPodViewModel playerPodViewModel,
             @NonNull final PodsRecyclerAdapterListener listener
-    ){
+    ) {
 
         this.pods = pods;
         this.playerPodViewModel = playerPodViewModel;
@@ -58,7 +57,7 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
     @Override
     public PodViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
 
-        return PodViewHolder.newInstance(parent,podsRecyclerAdapterListener);
+        return PodViewHolder.newInstance(parent, podsRecyclerAdapterListener);
 
     }
 
@@ -68,7 +67,7 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
         final RRPod pod = pods.get(position);
         final boolean isPlaying = playerPodViewModel.isPlaying() && playerPodViewModel.getPlayerPodObservable().getValue() == pod;
 
-        holder.setPod(pod,isPlaying);
+        holder.setPod(pod, isPlaying);
 
     }
 
@@ -82,12 +81,12 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
         return pods.get(position).getId().uniqueLong();
     }
 
-    static class PodViewHolder extends RecyclerView.ViewHolder{
+    static class PodViewHolder extends RecyclerView.ViewHolder {
 
         final TextView title;
         final TextView description;
         final ImageView downloadedMark;
-        final TextView newMark;
+        final ImageView newMarker;
         final ConstraintLayout progressContainer;
         final LinearLayout progressBar;
         final Guideline progressGuideline;
@@ -98,13 +97,13 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
         @NonNull
         static PodViewHolder newInstance(@NonNull final ViewGroup parent, @NonNull final PodsRecyclerAdapterListener listener) {
 
-            final ConstraintLayout podLayout = (ConstraintLayout) LayoutInflater.from(parent.getContext()).inflate(R.layout.module_pod,parent,false);
+            final ConstraintLayout podLayout = (ConstraintLayout) LayoutInflater.from(parent.getContext()).inflate(R.layout.module_podlist_pod, parent, false);
 
             return new PodViewHolder(podLayout, listener);
         }
 
 
-        private PodViewHolder(ConstraintLayout layout, PodsRecyclerAdapterListener listener){
+        private PodViewHolder(ConstraintLayout layout, PodsRecyclerAdapterListener listener) {
 
             super(layout);
 
@@ -112,8 +111,8 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
 
             this.title = layout.findViewById(R.id.podItemTitle);
             this.description = layout.findViewById(R.id.podItemDescription);
-            this.downloadedMark = layout.findViewById(R.id.podItemDownloadedMark);
-            this.newMark = layout.findViewById(R.id.podItemNewMark);
+            this.downloadedMark = layout.findViewById(R.id.podViewDownloadedMarker);
+            this.newMarker = layout.findViewById(R.id.podViewNewMarker);
             this.progressContainer = layout.findViewById(R.id.podItemProgressContainer);
             this.progressBar = layout.findViewById(R.id.podItemProgress);
             this.progressGuideline = layout.findViewById(R.id.podItemProgressGuideline);
@@ -121,7 +120,7 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
 
         }
 
-        private void setPod(@NonNull final RRPod pod, boolean isPlaying){
+        private void setPod(@NonNull final RRPod pod, boolean isPlaying) {
 
             itemView.setOnClickListener(v -> listener.onPodClicked(pod));
 
@@ -132,7 +131,7 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
 
             downloadedMark.setVisibility(pod.isDownloaded() ? View.VISIBLE : View.GONE);
 
-            newMark.setVisibility(PodUtils.getPodRecency(pod) < PodUIConstants.SHOW_AS_NEW_LIMIT ? View.VISIBLE : View.GONE);
+            displayNewMark(pod);
 
             playingMarker.setVisibility(isPlaying ? View.VISIBLE : View.GONE);
 
@@ -140,7 +139,7 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
             progressContainer.setVisibility(progress < SHOW_PROGRESS_LIMIT ? View.GONE : View.VISIBLE);
 
             final ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) progressGuideline.getLayoutParams();
-            params.guidePercent = ((float) progress)/pod.getDuration();
+            params.guidePercent = ((float) progress) / pod.getDuration();
             progressGuideline.setLayoutParams(params);
             progressBar.getBackground().setColorFilter(itemView.getContext().getResources().getColor(
                     pod.isCompleted() ? R.color.colorGrey : R.color.colorAccent
@@ -148,6 +147,13 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
 
         }
 
+        private void displayNewMark(@NonNull RRPod pod){
+
+            final boolean isRecent = PodUtils.getPodRecency(pod) < PodUIConstants.SHOW_AS_NEW_LIMIT;
+
+            newMarker.setVisibility(isRecent ? View.VISIBLE : View.GONE);
+
+        }
 
 
     }

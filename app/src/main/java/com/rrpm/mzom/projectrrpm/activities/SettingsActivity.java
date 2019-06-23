@@ -5,7 +5,7 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.rrpm.mzom.projectrrpm.podfeed.PodRetrievalError;
+import com.rrpm.mzom.projectrrpm.podfeed.PodsRetrievalError;
 import com.rrpm.mzom.projectrrpm.podfeed.PodsRetrievalCallback;
 import com.rrpm.mzom.projectrrpm.podstorage.PodsPackage;
 import com.rrpm.mzom.projectrrpm.R;
@@ -32,15 +32,17 @@ public class SettingsActivity extends AppCompatActivity {
         final PodsViewModel podsViewModel = ViewModelProviders.of(this).get(PodsViewModel.class);
         podsViewModel.requestPodsPackage(
                 PodType.values(), // Request all pod types
-                new PodsRetrievalCallback.RetrievePodsPackageCallback() {
+                new PodsRetrievalCallback.PodsPackageRetrievalCallback() {
                     @Override
                     public void onPodsPackageRetrieved(@NonNull PodsPackage podsPackage) {
                         loadInfo(podsPackage);
                     }
 
                     @Override
-                    public void onFail(@NonNull PodRetrievalError error) {
+                    public void onFail(@NonNull PodsRetrievalError error) {
+
                         Log.e(TAG,"Failed retrieval of pods package: " + error.getMessage());
+
                     }
                 }
         );
@@ -52,7 +54,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void loadInfo(@NonNull final PodsPackage podsPackage) {
 
-        float spaceUsage = new PodStorageHandle(this).calculateSpaceUsage(podsPackage);
+        float spaceUsage = new PodStorageHandle(this).calculateStorageSpaceUsage(podsPackage);
         int totalDownloaded = PodUtils.totalDownloadedPods(podsPackage);
 
         final String spaceUsageText = getResources().getString(R.string.pods_space_usage_text,spaceUsage,totalDownloaded);

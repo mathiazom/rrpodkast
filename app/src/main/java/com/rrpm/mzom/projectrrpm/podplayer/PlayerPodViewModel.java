@@ -1,5 +1,7 @@
 package com.rrpm.mzom.projectrrpm.podplayer;
 
+import android.util.Log;
+
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 
 import androidx.annotation.NonNull;
@@ -10,6 +12,9 @@ import androidx.lifecycle.ViewModel;
 public class PlayerPodViewModel extends ViewModel {
 
 
+    private static final String TAG = "RRP-PlayerPodViewModel";
+
+
     @NonNull
     private final MutableLiveData<RRPod> playerPod = new MutableLiveData<>();
 
@@ -17,10 +22,13 @@ public class PlayerPodViewModel extends ViewModel {
     private final MutableLiveData<Integer> playerProgress = new MutableLiveData<>();
 
     @NonNull
+    private final MutableLiveData<Integer> playerDuration = new MutableLiveData<>();
+
+    @NonNull
     private final MutableLiveData<Boolean> isPlaying = new MutableLiveData<>();
 
 
-    void setPlayerPod(@NonNull RRPod pod) {
+    public void setPlayerPod(@NonNull RRPod pod) {
         this.playerPod.setValue(pod);
     }
 
@@ -33,6 +41,17 @@ public class PlayerPodViewModel extends ViewModel {
     void postPlayerProgress(int progress) {
 
         this.playerProgress.postValue(progress);
+
+    }
+
+    @NonNull
+    public LiveData<Integer> getPlayerDurationObservable() {
+        return this.playerDuration;
+    }
+
+    void setPlayerDuration(int duration) {
+
+        this.playerDuration.setValue(duration);
 
     }
 

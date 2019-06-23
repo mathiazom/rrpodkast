@@ -5,14 +5,13 @@ import java.net.URL;
 
 import androidx.annotation.Nullable;
 
-public final class PodFeedConstants {
+public final class PodsFeedConstants {
 
 
     private static final String MAIN_PODS_FEED_URL_STRING = "https://podkast.nrk.no/program/radioresepsjonen.rss";
 
     @Nullable
     public static URL MAIN_PODS_FEED_URL = null;
-
     static {
         try {
             MAIN_PODS_FEED_URL = new URL(MAIN_PODS_FEED_URL_STRING);
@@ -25,7 +24,6 @@ public final class PodFeedConstants {
 
     @Nullable
     public static URL ARCHIVE_PODS_FEED_URL = null;
-
     static {
         try {
             ARCHIVE_PODS_FEED_URL = new URL(ARCHIVE_PODS_FEED_URL_STRING);
@@ -34,6 +32,8 @@ public final class PodFeedConstants {
         }
     }
 
+
+    static final String NODE_TAG_NAME = "item";
 
     static final String ELEMENT_ID_TAG_NAME = "guid";
 

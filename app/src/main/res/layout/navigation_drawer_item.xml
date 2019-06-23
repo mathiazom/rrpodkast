@@ -17,7 +17,7 @@
         android:fontFamily="sans-serif"
         android:orientation="vertical"
         android:padding="17dp"
-        android:textColor="#eee"
+        android:textColor="@color/colorWhite"
         android:textSize="15sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toRightOf="@+id/drawer_item_img"

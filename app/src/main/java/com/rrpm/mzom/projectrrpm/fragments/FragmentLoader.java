@@ -25,7 +25,9 @@ class FragmentLoader {
         this.fragmentManager = fragmentManager;
 
         if(onBackStackChangedListener != null){
+
             fragmentManager.addOnBackStackChangedListener(onBackStackChangedListener);
+
         }
 
     }
@@ -49,6 +51,7 @@ class FragmentLoader {
                     addToBackStack);
 
             return;
+
         }
 
         loadFragment(
@@ -73,7 +76,9 @@ class FragmentLoader {
                 .replace(frameLayout, fragment,fragmentTag);
 
         if (addToBackStack) {
+
             transaction.addToBackStack(fragmentTag);
+
         }
 
 
@@ -81,7 +86,7 @@ class FragmentLoader {
         transaction.commit();
         //transaction.commitAllowingStateLoss();
 
-        Log.i(TAG,"Committed " + fragment.toString() + " to " + String.valueOf(frameLayout));
+        //Log.i(TAG,"Committed " + fragment.toString() + " to " + String.valueOf(frameLayout));
 
     }
 

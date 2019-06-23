@@ -1,10 +1,10 @@
 package com.rrpm.mzom.projectrrpm.podplayer;
 
 import android.content.Context;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.util.Log;
 
+import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
@@ -13,11 +13,11 @@ import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
-import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
+import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
-import com.rrpm.mzom.projectrrpm.podstorage.MillisFormatter;
 import com.rrpm.mzom.projectrrpm.podstorage.PodStorageConstants;
 import com.rrpm.mzom.projectrrpm.podstorage.PodStorageHandle;
+import com.rrpm.mzom.projectrrpm.podstorage.PodUtils;
 import com.rrpm.mzom.projectrrpm.podstorage.PodsViewModel;
 import com.rrpm.mzom.projectrrpm.utils.MathUtils;
 
@@ -36,7 +36,7 @@ import androidx.lifecycle.ViewModelProviders;
  *
  */
 
-public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionListener, Serializable {
+public class PodPlayer implements PodPlayerControls, Serializable {
 
 
     private static final String TAG = "RRP-PodPlayer";
@@ -57,13 +57,48 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
     private final PodStorageHandle podStorageHandle;
 
 
-    private PodPlayerPlaybackRegulator playbackRegulator;
+    private PodPlayerRegulator playbackRegulator;
 
 
     public PodPlayer(@NonNull FragmentActivity activity) {
 
         // TODO: Release player when appropriate
         this.exoPlayer = ExoPlayerFactory.newSimpleInstance(activity);
+
+        exoPlayer.addListener(new Player.EventListener() {
+            @Override
+            public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+
+                onPlayingStateChanged();
+
+                switch (playbackState){
+
+                    case Player.STATE_READY:
+
+                        if(playerPodViewModel.getPlayerDurationObservable().getValue() == null){
+
+                            playerPodViewModel.setPlayerDuration(getDuration());
+
+                        }
+
+                        break;
+
+                    case Player.STATE_BUFFERING:
+
+                        // TODO: Display buffering in UI
+
+                        break;
+
+                    case Player.STATE_ENDED:
+
+                        onCompletion();
+
+                        break;
+
+                }
+
+            }
+        });
 
         final DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(activity, Util.getUserAgent(activity, ((Context) activity).getApplicationInfo().name));
 
@@ -86,10 +121,15 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
                 new TimerTask() {
                     @Override
                     public void run() {
+
                         if (pod != null) {
+
                             pod.setProgress(getProgress());
-                            podsViewModel.storePod(pod,true);
+
+                            podsViewModel.updatePodInStorage(pod,true);
+
                         }
+
                     }
                 },
                 PodStorageConstants.SAVE_PROGRESS_FREQ_MS
@@ -99,17 +139,23 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
                 new TimerTask() {
                     @Override
                     public void run() {
+
                         if (pod != null) {
+
                             int progress = getProgress();
+
                             pod.setProgress(progress);
+
                             playerPodViewModel.postPlayerProgress(progress);
+
                         }
+
                     }
                 },
                 PodStorageConstants.PROGRESS_REFRESH_FREQ_MS
         );
 
-        this.playbackRegulator = new PodPlayerPlaybackRegulator(
+        this.playbackRegulator = new PodPlayerRegulator(
                 context,
                 this,
                 new TaskIterator[]{
@@ -132,6 +178,28 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
     private int getProgress() {
 
         return (int) exoPlayer.getCurrentPosition();
+
+    }
+
+
+    /**
+     *
+     * Gets the {@link PodPlayer#exoPlayer} total duration.
+     *
+     * @return the duration in milliseconds.
+     *
+     */
+
+    private int getDuration(){
+
+        if(exoPlayer.getDuration() == C.TIME_UNSET){
+
+            // Duration is unknown, fall back to less precise pod duration
+            return pod.getDuration();
+
+        }
+
+        return (int) exoPlayer.getDuration();
 
     }
 
@@ -161,11 +229,12 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
 
     private boolean loadPod(@NonNull final RRPod pod, int progress) {
 
-        Log.i(TAG,"LoadPod");
+        //Log.i(TAG,"LoadPod");
 
         if (this.pod == pod) {
 
             Log.i(TAG, "Pod already loaded");
+
             return true;
 
         }
@@ -173,6 +242,7 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
         if (this.pod != null && isPlaying()) {
 
             Log.i(TAG, "New pod requested for playback, stopping current pod playback");
+
             pausePod();
 
         }
@@ -194,6 +264,9 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
         final MediaSource podSource = mediaSourceFactory.createMediaSource(podUri);
 
         exoPlayer.prepare(podSource);
+
+        // Extract a more precise pod duration
+        pod.setDuration(getDuration());
 
         playerPodViewModel.setPlayerPod(pod);
 
@@ -238,27 +311,33 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
     public void playPod(@NonNull final RRPod pod) {
 
         if (this.pod == pod) {
+
             Log.i(TAG,"Pod was the same: " + this.pod + " vs. " + pod);
-            //pauseOrContinuePod();
+
             return;
+
         }
 
-        Log.i(TAG,"PlayPod");
+        //Log.i(TAG,"PlayPod");
 
         if (!loadPod(pod, pod.getProgress())) {
+
             Log.e(TAG, "Pod loading failed, could not start playback");
+
             return;
+
         }
 
         if (!playbackRegulator.requestAudioFocus()) {
+
             Log.e(TAG, "AudioFocus not granted, playback request can therefore not be fulfilled");
+
             return;
+
         }
 
         // Start playback
         exoPlayer.setPlayWhenReady(true);
-
-        onPlayingStateChanged();
 
     }
 
@@ -274,7 +353,7 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
     @Override
     public void pauseOrContinuePod() {
 
-        Log.i(TAG,"PauseOrContinuePod");
+        //Log.i(TAG,"PauseOrContinuePod");
 
         if (isPlaying()) {
 
@@ -297,16 +376,17 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
     @Override
     public void pausePod() {
 
-        Log.i(TAG,"PausePod");
+        //Log.i(TAG,"PausePod");
 
         if (!isPlaying()) {
+
             Log.i(TAG, "Not playing, no need to pause playback");
+
             return;
+
         }
 
         exoPlayer.setPlayWhenReady(false);
-
-        onPlayingStateChanged();
 
     }
 
@@ -320,25 +400,31 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
     @Override
     public void continuePod() {
 
-        Log.i(TAG,"ContinuePod");
+        //Log.i(TAG,"ContinuePod");
 
         if (pod == null) {
+
             throw new NullPointerException("Tried to continue playing when no pod was loaded");
+
         }
 
         if (isPlaying()) {
+
             Log.i(TAG, "Already playing, no need to continue playback");
+
             return;
+
         }
 
         if (!playbackRegulator.requestAudioFocus()) {
+
             Log.e(TAG, "AudioFocus not granted, playback request can therefore not be fulfilled");
+
             return;
+
         }
 
         exoPlayer.setPlayWhenReady(true);
-
-        onPlayingStateChanged();
 
     }
 
@@ -359,18 +445,12 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
     @Override
     public void jump(int jump) {
 
-        int duration = (int) exoPlayer.getDuration();
-
-        if (duration == -1 && jump > 0) {
-
-            throw new RuntimeException("Cannot skip playback forward because duration was not available");
-
-        }
+        Assertions._assert(getDuration() >= 0, "Invalid playback duration");
 
         final int progress = (int) exoPlayer.getCurrentPosition();
 
         // Constrain the jump to the pod time frame
-        final int jumpedProgress = MathUtils.constrain(progress + jump, 0, duration);
+        final int jumpedProgress = MathUtils.constrainPositive(progress + jump, getDuration());
 
         seekTo(jumpedProgress);
 
@@ -381,33 +461,28 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
 
     /**
      *
-     * Set{@link PodPlayer#exoPlayer} playback position.
+     * Set {@link PodPlayer#exoPlayer} playback position.
      *
-     * @param progress: desired playback position
+     * @param progress: desired playback position, will be constrained according to the playback duration
      *
      */
 
     @Override
     public void seekTo(int progress) {
 
-        int duration = (int) exoPlayer.getDuration();
+        Assertions._assert(getDuration() >= 0, "Invalid playback duration");
 
-        if (duration == -1) {
-            throw new RuntimeException("Cannot skip playback forward because duration was not available");
-        }
+        final int constrainedProgress = MathUtils.constrainPositive(progress,getDuration());
 
-        AssertUtils._assert(MathUtils.isConstrained(progress,0,duration),"Seeking target was not constrained to the pod time frame");
+        exoPlayer.seekTo(constrainedProgress);
 
+        //Log.i(TAG, "Seeking to " + MillisFormatter.toFormat(constrainedProgress, MillisFormatter.MillisFormat.HH_MM_SS));
 
-        exoPlayer.seekTo(progress);
+        playerPodViewModel.postPlayerProgress(constrainedProgress);
 
-        Log.i(TAG, "Seeking to " + MillisFormatter.toFormat(progress, MillisFormatter.MillisFormat.HH_MM_SS));
+        pod.setProgress(constrainedProgress);
 
-        playerPodViewModel.postPlayerProgress(progress);
-
-        pod.setProgress(progress);
-
-        podsViewModel.storePod(pod);
+        podsViewModel.updatePodInStorage(pod);
 
     }
 
@@ -421,44 +496,29 @@ public class PodPlayer implements PodPlayerControls, MediaPlayer.OnCompletionLis
     }
 
 
-
-    @Override
-    public void onCompletion(@NonNull MediaPlayer mp) {
+    private void onCompletion() {
 
         Log.i(TAG, "PodPlayer completed");
 
-        playerPodViewModel.setIsPlaying(false);
-
         final ArrayList<RRPod> podList = podsViewModel.getPodList(pod.getPodType());
 
-        Log.i(TAG,"Player completion listener");
-
-        if(podList == null){
-            throw new RuntimeException("Pod list associated with completed pod was null");
-        }
+        Assertions._assert(podList != null, "Pod list associated with completed pod was null");
 
         final int completedIndex = podList.indexOf(pod);
 
-        switch (completedIndex){
+        Assertions._assert(completedIndex != -1, "Completed pod index was not found");
 
-            case -1:
+        if(completedIndex == 0){
 
-                throw new RuntimeException("Completed pod index was not found");
+            Log.i(TAG,"No pod found after completed pod, no further playback");
 
-            case 0:
+            pausePod();
 
-                Log.i(TAG,"No pod found after completed pod, no further playback");
+            return;
 
-                pausePod();
-
-                break;
-
-            default:
-
-                playPod(podList.get(completedIndex - 1));
-
-                break;
         }
+
+        playPod(podList.get(completedIndex - 1));
 
     }
 

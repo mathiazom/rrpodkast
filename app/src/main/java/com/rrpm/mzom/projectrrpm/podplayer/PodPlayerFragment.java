@@ -2,23 +2,27 @@ package com.rrpm.mzom.projectrrpm.podplayer;
 
 import android.content.Context;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.Guideline;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProviders;
-
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.rrpm.mzom.projectrrpm.fragments.MainFragmentsHandler;
 import com.rrpm.mzom.projectrrpm.R;
+import com.rrpm.mzom.projectrrpm.fragments.MainFragmentsHandler;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
+import com.rrpm.mzom.projectrrpm.podstorage.ConnectionValidator;
+import com.rrpm.mzom.projectrrpm.podstorage.MillisFormatter;
+import com.rrpm.mzom.projectrrpm.ui.SimpleSeekBarChangeListener;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProviders;
 
 public class PodPlayerFragment extends Fragment {
 
@@ -30,11 +34,11 @@ public class PodPlayerFragment extends Fragment {
 
     private MainFragmentsHandler mainFragmentsHandler;
 
-    private PodPlayerControls podPlayerControls;
+    private PlayerPodViewModel playerPodViewModel;
 
     private RRPod playerPod;
 
-    private PlayerPodViewModel playerPodViewModel;
+    private PodPlayerControls podPlayerControls;
 
 
     @NonNull
@@ -45,7 +49,6 @@ public class PodPlayerFragment extends Fragment {
         fragment.mainFragmentsHandler = mainFragmentsHandler;
 
         return fragment;
-
     }
 
 
@@ -53,12 +56,8 @@ public class PodPlayerFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        setRetainInstance(true);
 
-
-        view = inflater.inflate(R.layout.fragment_podplayer_fresh, container, false);
-
-        initControlListeners();
+        this.view = inflater.inflate(R.layout.fragment_podplayer,container,false);
 
 
         // Keep track of player changes
@@ -74,13 +73,34 @@ public class PodPlayerFragment extends Fragment {
         });
 
         // Player pod progress
-        playerPodViewModel.getPlayerProgressObservable().observe(this, this::displayPodProgress);
+        playerPodViewModel.getPlayerProgressObservable().observe(this, progress -> {
+
+            playerPod.setProgress(progress);
+
+            displayPodProgress();
+
+        });
 
         // Player playing state
-        playerPodViewModel.getIsPlayingObservable().observe(this, this::displayPlayingState);
+        playerPodViewModel.getIsPlayingObservable().observe(this, isPlaying ->
+                displayPlayingState()
+        );
 
 
-        return view;
+        initListeners();
+
+        ConnectionValidator.attemptToRegisterConnectionListener(requireContext(), isConnected -> {
+
+            if(getActivity() == null){
+                return;
+            }
+
+            getActivity().runOnUiThread(this::displayPlayability);
+
+        });
+
+
+        return this.view;
 
     }
 
@@ -103,68 +123,151 @@ public class PodPlayerFragment extends Fragment {
     }
 
 
-    private void initControlListeners() {
+    private void initListeners(){
 
-        final ImageView playPauseAction = view.findViewById(R.id.podPlayerSmallPlayPause);
-        playPauseAction.setOnClickListener(v -> podPlayerControls.pauseOrContinuePod());
+        final SeekBar progressBar = view.findViewById(R.id.podPlayerProgressBar);
+        progressBar.setOnSeekBarChangeListener(new SimpleSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(int progress, boolean fromUser) {
+                if (fromUser){
 
-        view.setOnClickListener(v -> {
+                    podPlayerControls.seekTo(progress);
 
-            if (playerPod == null) {
-                Log.e(TAG, "Pod from PodPlayer was null");
-                return;
+                }
             }
+        });
 
-            mainFragmentsHandler.loadPodPlayerFullFragment();
+        final ImageView jumpForthButton = view.findViewById(R.id.podPlayerJumpForth);
+        jumpForthButton.setOnClickListener(v -> podPlayerControls.jump(PodPlayerConstants.PLAYER_SKIP_MS));
+
+        final ImageView jumpBackButton = view.findViewById(R.id.podPlayerJumpBack);
+        jumpBackButton.setOnClickListener(v -> podPlayerControls.jump(-PodPlayerConstants.PLAYER_REWIND_MS));
+
+        final LinearLayout playerPauseContainer = view.findViewById(R.id.podPlayerPlayPauseContainer);
+        playerPauseContainer.setOnClickListener(v -> podPlayerControls.pauseOrContinuePod());
+
+        final ImageView launchPodFragmentAction = view.findViewById(R.id.launchPodFragmentAction);
+        launchPodFragmentAction.setOnClickListener(v -> {
+
+            mainFragmentsHandler.loadPodFragment(playerPod);
+
+            mainFragmentsHandler.hidePodPlayerFragment();
 
         });
+
+        final ImageView toolbarBackAction = view.findViewById(R.id.toolbarBackAction);
+        toolbarBackAction.setOnClickListener(v -> requireActivity().onBackPressed());
 
     }
 
 
     private void displayPod(){
 
-        displayPodDetails();
+        displayPodInfo();
 
-        displayPlayingState();
+        displayPodDuration();
 
         displayPodProgress();
 
+        displayPlayingState();
+
+        displayPlayability();
+
+    }
+
+    private void displayPlayability(){
+
+        final boolean isPlayable = playerPod.isDownloaded() || ConnectionValidator.isConnected(requireContext());
+
+        final ConstraintLayout playerContainer = view.findViewById(R.id.podPlayerContainer);
+        playerContainer.setAlpha(isPlayable ? 1.0f : 0.3f);
+        setDeepEnabled(playerContainer,isPlayable);
+
     }
 
 
-    private void displayPodDetails() {
+    /**
+     *
+     * An extension of the {@link View#setEnabled(boolean)} where a {@link ViewGroup} can be passed to call
+     * {@link View#setEnabled(boolean)} with the same value on all of its children.
+     * Passing a {@link View} that is not a {@link ViewGroup} will be identical to calling {@link View#setEnabled(boolean)}
+     *
+     * @param view: A {@link View}, and any children, to be enabled/disabled.
+     * @param enabled: True if views should be enabled, false otherwise.
+     *
+     */
 
-        final TextView podTitleView = view.findViewById(R.id.podPlayerSmallTitle);
+    private void setDeepEnabled(View view, boolean enabled) {
+
+        view.setEnabled(enabled);
+
+        if ( view instanceof ViewGroup ) {
+
+            ViewGroup group = (ViewGroup)view;
+
+            for ( int idx = 0 ; idx < group.getChildCount() ; idx++ ) {
+                setDeepEnabled(group.getChildAt(idx), enabled);
+            }
+
+        }
+
+    }
+
+
+    private void displayPodInfo(){
+
+        final TextView podTitleView = view.findViewById(R.id.podTitle);
         podTitleView.setText(playerPod.getTitle());
 
+        final TextView podDescriptionView = view.findViewById(R.id.podDescription);
+        podDescriptionView.setText(playerPod.getDescription());
+
+        final TextView podPlayerDuration = view.findViewById(R.id.podPlayerDuration);
+        podPlayerDuration.setText(MillisFormatter.toFormat(playerPod.getDuration(), MillisFormatter.MillisFormat.HH_MM_SS));
+
     }
 
-    private void displayPlayingState(){
+    private void displayPodDuration(){
 
-        displayPlayingState(playerPodViewModel.isPlaying());
-
-    }
-
-    private void displayPlayingState(final boolean isPlaying){
-
-        final ImageView playPauseAction = view.findViewById(R.id.podPlayerSmallPlayPause);
-        playPauseAction.setImageResource(isPlaying ? R.drawable.ic_round_pause_24px : R.drawable.ic_round_play_arrow_24px);
+        final SeekBar progressBar = view.findViewById(R.id.podPlayerProgressBar);
+        progressBar.setMax(playerPod.getDuration());
 
     }
 
 
     private void displayPodProgress(){
 
-        displayPodProgress(playerPod.getProgress());
+        final int progress = playerPod.getProgress();
+
+        final SeekBar progressBar = view.findViewById(R.id.podPlayerProgressBar);
+        progressBar.setProgress(progress);
+
+        final TextView podPlayerProgress = view.findViewById(R.id.podPlayerProgress);
+        podPlayerProgress.setText(MillisFormatter.toFormat(progress, MillisFormatter.MillisFormat.HH_MM_SS));
 
     }
 
-    private void displayPodProgress(final int progress) {
+    private void displayPlayingState(){
 
-        final Guideline podProgressGuide = view.findViewById(R.id.podPlayerSmallProgressGuide);
-        podProgressGuide.setGuidelinePercent(((float) progress) / playerPod.getDuration());
+        final boolean isPlaying = playerPodViewModel.isPlaying();
+
+        final ImageView podPlayerPlayPauseIcon = view.findViewById(R.id.podPlayerPlayPauseIcon);
+
+        if (isPlaying){
+
+            podPlayerPlayPauseIcon.setImageResource(R.drawable.ic_round_pause_24px);
+
+        }else{
+
+            podPlayerPlayPauseIcon.setImageResource(R.drawable.ic_round_play_arrow_24px);
+
+        }
 
     }
+
+
+
+
+
 
 }

@@ -4,7 +4,7 @@ import com.rrpm.mzom.projectrrpm.BuildConfig;
 
 import androidx.annotation.NonNull;
 
-public class AssertUtils {
+public class Assertions {
 
 
     public static void _assert(boolean condition, @NonNull String message) {
@@ -15,7 +15,9 @@ public class AssertUtils {
         }
 
         if (!condition) {
+
             throw new FalseAssertionException(message);
+
         }
 
     }

@@ -3,20 +3,28 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="80dp"
-    android:background="@drawable/primary_dark_rounded">
+    android:layout_height="wrap_content"
+    android:background="@drawable/primary_rounded">
 
     <TextView
         android:id="@+id/podPlayerSmallTitle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/pod_title_template"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:textSize="18sp"
+        android:layout_marginEnd="28dp"
         android:layout_marginStart="28dp"
-        android:textColor="@color/colorWhite"/>
+        android:paddingTop="28dp"
+        android:paddingBottom="28dp"
+        android:ellipsize="none"
+        android:fadingEdgeLength="40dp"
+        android:requiresFadingEdge="horizontal"
+        android:singleLine="true"
+        android:text="@string/pod_title_template"
+        android:textColor="@color/colorWhite"
+        android:textSize="@dimen/podPlayerSmallTitleSize"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/podPlayerSmallPlayPause"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/podPlayerSmallPlayPause"

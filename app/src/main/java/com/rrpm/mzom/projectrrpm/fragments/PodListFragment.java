@@ -17,7 +17,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
 import com.rrpm.mzom.projectrrpm.podfiltering.PodFilter;
 import com.rrpm.mzom.projectrrpm.ui.PodsRecyclerAdapter;
 import com.rrpm.mzom.projectrrpm.R;
@@ -87,11 +86,14 @@ public class PodListFragment extends Fragment {
         initToolbar();
 
         final PodsViewModel podsViewModel = ViewModelProviders.of(requireActivity()).get(PodsViewModel.class);
-        podsViewModel.getObservablePodList(podType).observe(this, podList -> {
+        podsViewModel.assureObservablePodList(podType).observe(this, podList -> {
 
             if(podList == null){
+
                 Log.e(TAG,"Observed pod list was null");
+
                 return;
+
             }
 
             this.podList = podList;
@@ -105,8 +107,9 @@ public class PodListFragment extends Fragment {
         podListFilterViewModel.getObservablePodFilter().observe(this, podFilter -> {
 
             if(podFilter == null){
-                Log.e(TAG,"Observed pod filter was null");
+
                 return;
+
             }
 
             this.podFilter = podFilter;
@@ -125,8 +128,6 @@ public class PodListFragment extends Fragment {
 
         super.onResume();
 
-        Log.i(TAG,"OnResume");
-
         initPodsRecycler();
 
     }
@@ -141,7 +142,9 @@ public class PodListFragment extends Fragment {
         final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) podsRecycler.getLayoutManager();
 
         if(linearLayoutManager != null){
+
             savedLinearLayoutManagerState = linearLayoutManager.onSaveInstanceState();
+
         }
 
     }
@@ -157,9 +160,12 @@ public class PodListFragment extends Fragment {
     private void displayPods(){
 
         if(podsAdapter == null){
-            Log.i(TAG,"Pods adapter not initialized, initializing recycler");
+
+            // Pods adapter not initialized, recycler needs to be initialized first
             initPodsRecycler();
+
             return;
+
         }
 
         filterPodListIfNeeded(podFilter,podList,filteredPodList);
@@ -175,9 +181,13 @@ public class PodListFragment extends Fragment {
     private void initPodsRecycler() {
 
         if(podList.isEmpty()){
-            Log.e(TAG,"Pod list was empty, will not load recycler");
+
+            Log.i(TAG,"Pod list was empty, will not load recycler");
+
             setFilterActionClickable(false);
+
             return;
+
         }
 
         final RecyclerView podsRecycler = view.findViewById(R.id.podsRecycler);
@@ -186,8 +196,10 @@ public class PodListFragment extends Fragment {
         final LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
 
         if(savedLinearLayoutManagerState != null){
+
             // Restore scrolling state
             linearLayoutManager.onRestoreInstanceState(savedLinearLayoutManagerState);
+
         }
 
         podsRecycler.setLayoutManager(linearLayoutManager);
@@ -210,6 +222,22 @@ public class PodListFragment extends Fragment {
         setFilterActionClickable(true);
 
     }
+
+
+    /**
+     *
+     * Filters a given {@param podList} according to a given {@param podFilter}.
+     * The result is stored in a given {@param filteredPodList}.
+     *
+     * @param podFilter: A {@link PodFilter} handling the filtering process.
+     *                 If {@param podFilter} is null, no filtering will be performed, and the {@param filteredPodList} will
+     *                 practically become a copy of {@param podList}.
+     *
+     * @param podList: An {@link ArrayList<RRPod>} holding the pods that will go through the filtering process
+     *
+     * @param filteredPodList: An {@link ArrayList<RRPod>} to hold the filtered pods
+     *
+     */
 
     private void filterPodListIfNeeded(@Nullable final PodFilter podFilter, @NonNull final ArrayList<RRPod> podList, @NonNull final ArrayList<RRPod> filteredPodList){
 

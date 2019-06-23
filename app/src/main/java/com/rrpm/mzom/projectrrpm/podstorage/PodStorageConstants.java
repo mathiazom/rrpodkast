@@ -7,7 +7,7 @@ public final class PodStorageConstants {
     public static final int COMPLETED_LIMIT = 10000;
 
     // Determines how close the stored and actual pod duration must be to be considered equal
-    static final int STORED_DURATION_OFFSET_LIMIT = 1000;
+    public static final int STORED_DURATION_OFFSET_LIMIT = 2000;
 
     // How often the progressBar display should be refreshed (in milliseconds)
     public static final int PROGRESS_REFRESH_FREQ_MS = 500;
@@ -30,6 +30,11 @@ public final class PodStorageConstants {
     static final String LAST_PLAYED_POD_TYPE = "last_played_pod_type";
 
     static final String LAST_PLAYED_POD_ID = "last_played_pod_id";
+
+
+    static final String POD_DOWNLOAD_QUEUE_STORAGE = "pod_download_queue_storage";
+
+    static final String POD_DOWNLOAD_QUEUE_STORAGE_KEY = "pod_download_queue_storage_key";
 
 
 }

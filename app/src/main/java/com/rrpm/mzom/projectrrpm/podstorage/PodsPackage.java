@@ -1,8 +1,7 @@
 package com.rrpm.mzom.projectrrpm.podstorage;
 
-import android.util.Log;
 
-import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
+import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.pod.PodType;
 
@@ -29,69 +28,121 @@ public class PodsPackage {
 
     }
 
-    void setPodList(@NonNull final PodType podType, @Nullable ArrayList<RRPod> pods){
+
+    void setPodList(@NonNull final PodType podType, @NonNull ArrayList<RRPod> pods){
+
         setPodList(podType, pods, false);
+
     }
 
-    void setPodList(@NonNull final PodType podType, @Nullable ArrayList<RRPod> podList, final boolean post){
 
-        AssertUtils._assert(podList != null, "Pod list was null");
+    /**
+     *
+     * Updates observable data, and therefore alerts all observers of the change.
+     *
+     * @param podType: Pod type of the pod list to be updated
+     * @param podList: The updated version of the pod list
+     * @param post: True if method is called from a background thread,
+     *              false if called from the main thread.
+     */
 
-        final MutableLiveData<ArrayList<RRPod>> mutablePods = podsMap.get(podType);
+    void setPodList(@NonNull final PodType podType, @NonNull ArrayList<RRPod> podList, final boolean post){
 
-        if(mutablePods == null){
-            throw new RuntimeException("Pods insertion has not been prepared");
-        }
+        final MutableLiveData<ArrayList<RRPod>> mutablePods = assureMutablePodList(podType);
 
+        // Check if method is called from main or background thread
         if(post){
+
+            // Called from background thread
             mutablePods.postValue(podList);
+
         }else{
+
+            // Called from main thread
             mutablePods.setValue(podList);
+
         }
 
     }
 
-    boolean hasPodList(@NonNull final PodType podType){
+    boolean podListIsRetrieved(@NonNull final PodType podType){
 
-        final MutableLiveData<ArrayList<RRPod>> podList = podsMap.get(podType);
-
-        return podList != null && podList.getValue() != null;
+        return podListIsObservable(podType) && getPodList(podType) != null;
 
     }
 
     boolean podListIsObservable(@NonNull final PodType podType){
 
-        return podsMap.get(podType) != null;
+        return getObservablePodList(podType) != null;
 
     }
 
-    void createPodListObservable(@NonNull final PodType podType){
-
-        Log.i(TAG,"Preparing insertion of " + podType);
+    @NonNull
+    private MutableLiveData<ArrayList<RRPod>> createObservablePodList(@NonNull final PodType podType){
 
         final MutableLiveData<ArrayList<RRPod>> mutableLiveData = new MutableLiveData<>();
 
         podsMap.put(podType,mutableLiveData);
 
+        Assertions._assert(podListIsObservable(podType), "Pod list not observable after podsMap.put().");
+
+        return mutableLiveData;
+
+    }
+
+    // Mutable observable for private use, will create new mutable if one does not exist for the given pod type
+    @NonNull
+    private MutableLiveData<ArrayList<RRPod>> assureMutablePodList(@NonNull final PodType podType){
+
+        MutableLiveData<ArrayList<RRPod>> mutablePods = getMutablePodList(podType);
+
+        if(!podListIsObservable(podType)){
+
+            mutablePods = createObservablePodList(podType);
+
+        }
+
+        Assertions._assert(mutablePods != null, "Pod list observable was null despite use of createObservablePodList(podType).");
+
+        return mutablePods;
+
     }
 
     @Nullable
-    public LiveData<ArrayList<RRPod>> getObservablePodList(@NonNull final PodType podType){
+    private MutableLiveData<ArrayList<RRPod>> getMutablePodList(@NonNull final PodType podType){
 
         return podsMap.get(podType);
 
     }
 
+
+    // Casting to non-mutable observable for public use
+    @NonNull
+    LiveData<ArrayList<RRPod>> assureObservablePodList(@NonNull final PodType podType){
+
+        return assureMutablePodList(podType);
+
+    }
+
     @Nullable
-    public ArrayList<RRPod> getPodList(@NonNull final PodType podType){
+    private LiveData<ArrayList<RRPod>> getObservablePodList(@NonNull final PodType podType){
 
-        final LiveData<ArrayList<RRPod>> livePodList = getObservablePodList(podType);
+        return getMutablePodList(podType);
 
-        if(livePodList == null){
+    }
+
+    @Nullable
+    ArrayList<RRPod> getPodList(@NonNull final PodType podType){
+
+        final LiveData<ArrayList<RRPod>> observablePodList = getObservablePodList(podType);
+
+        if(observablePodList == null){
+
             return null;
+
         }
 
-        return livePodList.getValue();
+        return observablePodList.getValue();
 
     }
 

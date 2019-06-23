@@ -1,14 +1,17 @@
 package com.rrpm.mzom.projectrrpm.podfeed;
 
+import android.media.MediaMetadataRetriever;
 import android.util.Log;
 
-import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
+import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 import com.rrpm.mzom.projectrrpm.pod.PodId;
 import com.rrpm.mzom.projectrrpm.pod.PodType;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.pod.RRPodBuilder;
 import com.rrpm.mzom.projectrrpm.podstorage.DateUtils;
 import com.rrpm.mzom.projectrrpm.podstorage.MillisFormatter;
+import com.rrpm.mzom.projectrrpm.podstorage.PodStorageHandle;
+import com.rrpm.mzom.projectrrpm.podstorage.PodUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,26 +30,26 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-class PodsFeedReader extends Thread {
+public class PodsFeedReader extends Thread {
 
     private static final String TAG = "RRP-PodsFeedReader";
 
 
-    ArrayList<RRPod> readPodsFeed(@NonNull PodType podType) throws InvalidFeedException {
+    @NonNull
+    public ArrayList<RRPod> readPodsFeed(@NonNull PodType podType) throws InvalidFeedException {
 
         final URL feedUrl = podType.getFeedUrl();
 
         if(feedUrl == null){
 
-            Log.e(TAG,"Pod feed URL not available");
-
-            return null;
+            throw new InvalidFeedException(PodsFeedError.INVALID_FEED_URL);
 
         }
 
@@ -56,7 +59,7 @@ class PodsFeedReader extends Thread {
 
                 return retrievePods(feedUrl, podType, podBuilder -> {
 
-                            AssertUtils._assert(podBuilder.getDate() != null, "Pod builder date was null");
+                            Assertions._assert(podBuilder.getDate() != null, "Pod builder date was null");
 
                             podBuilder.setTitle(DateUtils.getDateAsString(podBuilder.getDate()));
 
@@ -67,9 +70,13 @@ class PodsFeedReader extends Thread {
 
                 return retrievePods(feedUrl, podType);
 
+            default:
+
+                Assertions._assert(false, "Invalid pod type");
+
         }
 
-        return null;
+        throw new InvalidFeedException(PodsFeedError.INVALID_FEED_TYPE);
 
     }
 
@@ -126,11 +133,15 @@ class PodsFeedReader extends Thread {
     private RRPod buildPodFromFeedNode(@Nullable Node node, @NonNull PodType podType, @Nullable final PodBuilderCallback podBuilderCallback) throws InvalidFeedDataException {
 
         if (node == null) {
+
             throw new InvalidFeedDataException("Node was null");
+
         }
 
         if (node.getNodeType() != Node.ELEMENT_NODE) {
+
             throw new InvalidFeedDataException("Node was not a valid element");
+
         }
 
         final Element element = (Element) node;
@@ -139,17 +150,12 @@ class PodsFeedReader extends Thread {
 
         builder.setPodType(podType);
 
-        /*// TESTING CASE
-        final String guid = null;
-        validateFeedData(guid != null, PodFeedConstants.ELEMENT_ID_TAG_NAME);
-        builder.setId(new PodId(guid));*/
-
-        final String guid = element.getElementsByTagName(PodFeedConstants.ELEMENT_ID_TAG_NAME).item(0).getTextContent();
-        validateFeedData(guid != null, PodFeedConstants.ELEMENT_ID_TAG_NAME);
+        final String guid = element.getElementsByTagName(PodsFeedConstants.ELEMENT_ID_TAG_NAME).item(0).getTextContent();
+        validateFeedData(guid != null, PodsFeedConstants.ELEMENT_ID_TAG_NAME);
         builder.setId(new PodId(guid));
 
-        final String rawDate = element.getElementsByTagName(PodFeedConstants.RAW_DATE_TAG_NAME).item(0).getTextContent();
-        validateFeedData(rawDate != null, PodFeedConstants.RAW_DATE_TAG_NAME);
+        final String rawDate = element.getElementsByTagName(PodsFeedConstants.RAW_DATE_TAG_NAME).item(0).getTextContent();
+        validateFeedData(rawDate != null, PodsFeedConstants.RAW_DATE_TAG_NAME);
         final DateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy", Locale.ENGLISH);
         final Date date;
         try {
@@ -159,32 +165,35 @@ class PodsFeedReader extends Thread {
         }
         builder.setDate(date);
 
-        final String url = element.getElementsByTagName("enclosure").item(0).getAttributes().getNamedItem(PodFeedConstants.URL_ITEM_NAME).getNodeValue();
-        validateFeedData(url != null, PodFeedConstants.URL_ITEM_NAME);
+        final String url = element.getElementsByTagName("enclosure").item(0).getAttributes().getNamedItem(PodsFeedConstants.URL_ITEM_NAME).getNodeValue();
+        validateFeedData(url != null, PodsFeedConstants.URL_ITEM_NAME);
         builder.setUrl(url);
 
-        final String durationString = element.getElementsByTagName(PodFeedConstants.DURATION_TAG_NAME).item(0).getTextContent();
-        validateFeedData(durationString != null, PodFeedConstants.DURATION_TAG_NAME);
+        final String durationString = element.getElementsByTagName(PodsFeedConstants.DURATION_TAG_NAME).item(0).getTextContent();
+        validateFeedData(durationString != null, PodsFeedConstants.DURATION_TAG_NAME);
         int duration = MillisFormatter.fromFormat(durationString, MillisFormatter.MillisFormat.HH_MM_SS);
         builder.setDuration(duration);
 
-        final String title = element.getElementsByTagName(PodFeedConstants.TITLE_TAG_NAME).item(0).getTextContent();
-        validateFeedData(title != null, PodFeedConstants.TITLE_TAG_NAME);
+        final String title = element.getElementsByTagName(PodsFeedConstants.TITLE_TAG_NAME).item(0).getTextContent();
+        validateFeedData(title != null, PodsFeedConstants.TITLE_TAG_NAME);
         builder.setTitle(title);
 
-        String description = element.getElementsByTagName(PodFeedConstants.DESCRIPTION_TAG_NAME).item(0).getTextContent();
-        validateFeedData(description != null, PodFeedConstants.DESCRIPTION_TAG_NAME);
+        String description = element.getElementsByTagName(PodsFeedConstants.DESCRIPTION_TAG_NAME).item(0).getTextContent();
+        validateFeedData(description != null, PodsFeedConstants.DESCRIPTION_TAG_NAME);
         description = description.trim();
         builder.setDescription(description);
 
         if (podBuilderCallback != null) {
+
             podBuilderCallback.preBuild(builder);
+
         }
 
         return builder.build();
 
 
     }
+
 
     @NonNull
     private NodeList retrieveFeedNodeList(@NonNull final URL url) throws InvalidFeedException {
@@ -196,7 +205,7 @@ class PodsFeedReader extends Thread {
 
         } catch (ParserConfigurationException e) {
 
-            throw new InvalidFeedException("Failed to build document");
+            throw new InvalidFeedException(PodsFeedError.FAILED_DOCUMENT_BUILD);
 
         }
 
@@ -207,7 +216,7 @@ class PodsFeedReader extends Thread {
 
         } catch (IOException e) {
 
-            throw new InvalidFeedException("Invalid feed URL");
+            throw new InvalidFeedException(PodsFeedError.INVALID_FEED_URL);
 
         }
 
@@ -218,21 +227,21 @@ class PodsFeedReader extends Thread {
 
         } catch (IOException | SAXException e) {
 
-            throw new InvalidFeedException("Pods feed could not be parsed");
+            throw new InvalidFeedException(PodsFeedError.FAILED_FEED_PARSE);
 
         }
 
         doc.getDocumentElement().normalize();
 
-        final NodeList nodeList = doc.getElementsByTagName("item");
+        final NodeList nodeList = doc.getElementsByTagName(PodsFeedConstants.NODE_TAG_NAME);
 
         if(nodeList == null){
 
-            throw new InvalidFeedException("Node list was null");
+            throw new InvalidFeedException(PodsFeedError.NULL_FEED_LIST);
 
         }else if(nodeList.getLength() <= 0){
 
-            throw new InvalidFeedException("Node list was empty");
+            throw new InvalidFeedException(PodsFeedError.EMPTY_FEED_LIST);
 
         }
 
@@ -243,12 +252,14 @@ class PodsFeedReader extends Thread {
     private void validateFeedData(boolean valid, String tagName) throws InvalidFeedDataException {
 
         if (!valid) {
+
             throw new InvalidFeedDataException(tagName + "value was not valid");
+
         }
 
     }
 
-    class InvalidFeedDataException extends Exception {
+    public class InvalidFeedDataException extends Exception {
 
         InvalidFeedDataException(String msg) {
 
@@ -258,19 +269,28 @@ class PodsFeedReader extends Thread {
 
     }
 
-    class InvalidFeedException extends Exception {
+    public class InvalidFeedException extends Exception {
 
-        InvalidFeedException(String msg) {
+        @NonNull final PodsFeedError error;
 
-            super(msg);
+        InvalidFeedException(@NonNull PodsFeedError error) {
 
+            super(error.getMessage());
+
+            this.error = error;
+
+        }
+
+        @NonNull
+        public PodsFeedError getError() {
+            return error;
         }
 
     }
 
     // TODO: Better exception handling
 
-    class RRReaderException extends RuntimeException {
+    public class RRReaderException extends RuntimeException {
 
         RRReaderException(String msg) {
 

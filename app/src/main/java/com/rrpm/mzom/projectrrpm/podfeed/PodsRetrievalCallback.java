@@ -10,16 +10,16 @@ import androidx.annotation.NonNull;
 public interface PodsRetrievalCallback {
 
 
-    void onFail(@NonNull PodRetrievalError error);
+    void onFail(@NonNull PodsRetrievalError error);
 
 
-    interface RetrievePodListCallback extends PodsRetrievalCallback{
+    interface PodListRetrievalCallback extends PodsRetrievalCallback {
 
         void onPodListRetrieved(@NonNull final ArrayList<RRPod> retrievedPodList);
 
     }
 
-    interface RetrievePodsPackageCallback extends PodsRetrievalCallback {
+    interface PodsPackageRetrievalCallback extends PodsRetrievalCallback {
 
         void onPodsPackageRetrieved(@NonNull final PodsPackage podsPackage);
 

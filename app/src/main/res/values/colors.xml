@@ -4,9 +4,6 @@
     <color name="colorPrimaryLight">#323232</color>
     <color name="colorPrimaryDark">#101010</color>
 
-    <!--<color name="colorAccent">#b71c1c</color>
-    <color name="colorAccentDark">#530D0D</color>-->
-
     <color name="colorAccent">#009688</color>
     <color name="colorAccentDark">#00524A</color>
 
@@ -14,10 +11,15 @@
 
     <color name="podplayer_bg">#212121</color>
 
-    <color name="colorWhite">#fff</color>
+    <color name="colorBlack">#000000</color>
+
+    <color name="colorWhite">#FFFFFF</color>
     <color name="colorWhiteDark">#AAAAAA</color>
 
     <color name="colorGrey">#454545</color>
     <color name="colorGreyDark">#333333</color>
+
+
+    <color name="colorPrimaryFaded">#DD212121</color>
 
 </resources>

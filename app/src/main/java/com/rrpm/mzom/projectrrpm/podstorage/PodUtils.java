@@ -4,7 +4,7 @@ package com.rrpm.mzom.projectrrpm.podstorage;
 import android.util.Log;
 
 import com.rrpm.mzom.projectrrpm.annotations.NonEmpty;
-import com.rrpm.mzom.projectrrpm.debugging.AssertUtils;
+import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 import com.rrpm.mzom.projectrrpm.pod.PodId;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.podfiltering.DateRange;
@@ -12,6 +12,8 @@ import com.rrpm.mzom.projectrrpm.pod.PodType;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+
+import javax.validation.constraints.Null;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -38,7 +40,7 @@ public class PodUtils {
 
             if(p.getId().equals(pod.getId())){
 
-                AssertUtils._assert(!p.equals(pod),"Same pod object, no need to use this method");
+                Assertions._assert(!p.equals(pod),"Same pod object, no need to use this method");
 
                 return pods.indexOf(p);
 
@@ -67,7 +69,9 @@ public class PodUtils {
     public static RRPod getEqualPod(@NonNull final RRPod pod, @Nullable final ArrayList<RRPod> pods){
 
         if(pods == null){
+
             return null;
+
         }
 
         int index = getEqualPodIndex(pod,pods);
@@ -89,7 +93,9 @@ public class PodUtils {
         for(RRPod pod : podList){
 
             if(pod.getId().equals(podId)){
+
                 return pod;
+
             }
 
         }
@@ -99,17 +105,22 @@ public class PodUtils {
     }
 
 
-    static void updatePodInList(@NonNull final RRPod pod, @NonNull final ArrayList<RRPod> pods){
+    static void updatePodInList(@NonNull final RRPod pod, @NonNull final ArrayList<RRPod> podList){
 
-        int index = pods.indexOf(pod);
+        int index = podList.indexOf(pod);
 
-        if(index == -1){
+        if (index < 0) {
 
-            final int equalIndex = PodUtils.getEqualPodIndex(pod,pods);
+            final int equalIndex = PodUtils.getEqualPodIndex(pod, podList);
+
+            Assertions._assert(equalIndex != -1, "Pod was not found inside the given pod list");
 
             if(equalIndex == -1){
+
                 Log.e(TAG,"Could not find index for pod to be updated");
+
                 return;
+
             }
 
             index = equalIndex;
@@ -117,7 +128,7 @@ public class PodUtils {
         }
 
         // Update pod in data
-        pods.set(index,pod);
+        podList.set(index,pod);
 
     }
 
@@ -148,11 +159,19 @@ public class PodUtils {
             final ArrayList<RRPod> podList = podsPackage.getPodList(podType);
 
             if(podList == null){
+
                 continue;
+
             }
 
             for (RRPod pod : podList){
-                if (pod.isDownloaded()) totalDownloaded++;
+
+                if (pod.isDownloaded()){
+
+                    totalDownloaded++;
+
+                }
+
             }
 
         }
@@ -166,12 +185,75 @@ public class PodUtils {
     @NonNull
     public static DateRange getDateRangeFromPodList(@NonNull @NonEmpty final ArrayList<RRPod> podList){
 
-        AssertUtils._assert(!podList.isEmpty(),"List was empty");
+        Assertions._assert(!podList.isEmpty(),"List was empty");
 
         return DateUtils.getDateRangeFromList(podList, RRPod::getDate);
 
     }
 
+
+    /**
+     *
+     * Checks if all pods in a given {@param feedPodList} are represented in a given {@param cachedPodList}.
+     *
+     * @param cachedPodList: Pod list to be tested for "outdatedness"
+     * @param feedPodList: The most up to date pod list
+     *
+     * @return True if cachedPodList up to date, false otherwise (including if cached pod list is null).
+     */
+
+    static boolean cachedPodListIsUpToDate(@Nullable ArrayList<RRPod> cachedPodList, @NonNull ArrayList<RRPod> feedPodList){
+
+        if(cachedPodList == null){
+
+            return false;
+
+        }
+
+        boolean isUpToDate = true;
+
+        // Extract all pod ids from the cached pod list
+        final ArrayList<PodId> cachedPodListIds = getPodIdsFromPodList(cachedPodList);
+
+        // Check if the cached pod list contains all pod ids from the feed pod list
+        for(RRPod feedPod : feedPodList){
+
+            // Determine if the given pod is represented in the cached pod list
+            final boolean idIsCached = cachedPodListIds.contains(feedPod.getId());
+
+            if(!idIsCached){
+
+                Log.e(TAG,"Following pod was not cached: " + feedPod.getTitle());
+
+                // Cached pod list failed the test, and is therefore not fully synced
+                isUpToDate = false;
+
+            }
+
+        }
+
+        // Cached pod list has passed all tests, and is therefore fully synced
+        return isUpToDate;
+
+
+    }
+
+    @NonNull
+    private static ArrayList<PodId> getPodIdsFromPodList(@NonNull ArrayList<RRPod> podList){
+
+        final ArrayList<PodId> podIdList = new ArrayList<>();
+
+        for(RRPod pod : podList){
+
+            Assertions._assert(!podIdList.contains(pod.getId()),"Duplicate pod id in pod list");
+
+            podIdList.add(pod.getId());
+
+        }
+
+        return podIdList;
+
+    }
 
 
 

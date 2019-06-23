@@ -38,8 +38,6 @@ public class PodFilterViewModel extends ViewModel {
 
     public void resetPodFilter(){
 
-        Log.i(TAG,"Resetting pod filter");
-
         setPodFilter(null);
 
     }

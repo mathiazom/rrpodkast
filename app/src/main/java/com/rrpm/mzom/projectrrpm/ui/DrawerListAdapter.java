@@ -39,7 +39,9 @@ class DrawerListAdapter extends ArrayAdapter<String> {
             final LayoutInflater mInflater = (LayoutInflater) context.getSystemService(Activity.LAYOUT_INFLATER_SERVICE);
 
             if(mInflater == null){
+
                 throw new NullPointerException("Inflater was null");
+
             }
 
             convertView = mInflater.inflate(R.layout.navigation_drawer_item, parent, false);
