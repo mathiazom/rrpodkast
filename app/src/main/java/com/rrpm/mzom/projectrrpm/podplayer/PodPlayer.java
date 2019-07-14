@@ -10,24 +10,17 @@ import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
-import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
 import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
-import com.rrpm.mzom.projectrrpm.podstorage.PodStorageConstants;
 import com.rrpm.mzom.projectrrpm.podstorage.PodStorageHandle;
-import com.rrpm.mzom.projectrrpm.podstorage.PodUtils;
-import com.rrpm.mzom.projectrrpm.podstorage.PodsViewModel;
 import com.rrpm.mzom.projectrrpm.utils.MathUtils;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.TimerTask;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.FragmentActivity;
-import androidx.lifecycle.ViewModelProviders;
 
 
 /**
@@ -47,39 +40,44 @@ public class PodPlayer implements PodPlayerControls, Serializable {
     @NonNull
     private ExoPlayer exoPlayer;
 
-    private ExtractorMediaSource.Factory mediaSourceFactory;
+    @NonNull private ExtractorMediaSource.Factory mediaSourceFactory;
+
+    @NonNull private PodStorageHandle podStorageHandle;
 
 
-    private final PodsViewModel podsViewModel;
-
-    private final PlayerPodViewModel playerPodViewModel;
-
-    private final PodStorageHandle podStorageHandle;
+    @NonNull private PodPlayerRegulator playbackRegulator;
 
 
-    private PodPlayerRegulator playbackRegulator;
+    private OnCompletionListener onCompletionListener;
+
+    interface OnCompletionListener{
+
+        void onCompletion();
+
+    }
 
 
-    public PodPlayer(@NonNull FragmentActivity activity) {
+    PodPlayer(@NonNull final Context context) {
+
 
         // TODO: Release player when appropriate
-        this.exoPlayer = ExoPlayerFactory.newSimpleInstance(activity);
+        this.exoPlayer = ExoPlayerFactory.newSimpleInstance(context);
 
-        exoPlayer.addListener(new Player.EventListener() {
+        this.exoPlayer.addListener(new Player.EventListener() {
             @Override
             public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
 
-                onPlayingStateChanged();
+                onPlayingStateChanged(isPlaying());
 
                 switch (playbackState){
 
                     case Player.STATE_READY:
 
-                        if(playerPodViewModel.getPlayerDurationObservable().getValue() == null){
+                        /*if(playerPodViewModel.getPlayerDurationObservable().getValue() == null){
 
                             playerPodViewModel.setPlayerDuration(getDuration());
 
-                        }
+                        }*/
 
                         break;
 
@@ -87,11 +85,19 @@ public class PodPlayer implements PodPlayerControls, Serializable {
 
                         // TODO: Display buffering in UI
 
+                        Log.i(TAG,"Buffering");
+
                         break;
 
                     case Player.STATE_ENDED:
 
-                        onCompletion();
+                        //onCompletion();
+
+                        if(onCompletionListener != null){
+
+                            onCompletionListener.onCompletion();
+
+                        }
 
                         break;
 
@@ -100,69 +106,43 @@ public class PodPlayer implements PodPlayerControls, Serializable {
             }
         });
 
-        final DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(activity, Util.getUserAgent(activity, ((Context) activity).getApplicationInfo().name));
+        this.mediaSourceFactory = new ExtractorMediaSource.Factory(
 
-        mediaSourceFactory = new ExtractorMediaSource.Factory(dataSourceFactory);
+                new DefaultDataSourceFactory(
+                        context,
+                        Util.getUserAgent(
+                                context,
+                                (context).getApplicationInfo().name
+                        )
+                )
 
-        this.podStorageHandle = new PodStorageHandle(activity);
+        );
 
-        this.playerPodViewModel = ViewModelProviders.of(activity).get(PlayerPodViewModel.class);
 
-        this.podsViewModel = ViewModelProviders.of(activity).get(PodsViewModel.class);
+        this.podStorageHandle = new PodStorageHandle(context);
 
-        initPlaybackRegulator(activity);
+        this.playbackRegulator = new PodPlayerRegulator(context, this);
 
     }
 
 
-    private void initPlaybackRegulator(@NonNull Context context){
+    public void addPlayerEventListener(@NonNull final Player.EventListener eventListener){
 
-        final TaskIterator progressStoringIterator = new TaskIterator(
-                new TimerTask() {
-                    @Override
-                    public void run() {
+        this.exoPlayer.addListener(eventListener);
 
-                        if (pod != null) {
 
-                            pod.setProgress(getProgress());
+    }
 
-                            podsViewModel.updatePodInStorage(pod,true);
+    public void addPlaybackIterator(@NonNull final TaskIterator playbackIterator){
 
-                        }
+        playbackRegulator.addPlaybackIterator(playbackIterator);
 
-                    }
-                },
-                PodStorageConstants.SAVE_PROGRESS_FREQ_MS
-        );
+    }
 
-        final TaskIterator viewModelProgressIterator = new TaskIterator(
-                new TimerTask() {
-                    @Override
-                    public void run() {
 
-                        if (pod != null) {
+    public RRPod getPod(){
 
-                            int progress = getProgress();
-
-                            pod.setProgress(progress);
-
-                            playerPodViewModel.postPlayerProgress(progress);
-
-                        }
-
-                    }
-                },
-                PodStorageConstants.PROGRESS_REFRESH_FREQ_MS
-        );
-
-        this.playbackRegulator = new PodPlayerRegulator(
-                context,
-                this,
-                new TaskIterator[]{
-                        progressStoringIterator,
-                        viewModelProgressIterator
-                }
-        );
+        return this.pod;
 
     }
 
@@ -175,7 +155,7 @@ public class PodPlayer implements PodPlayerControls, Serializable {
      *
      */
 
-    private int getProgress() {
+    int getProgress() {
 
         return (int) exoPlayer.getCurrentPosition();
 
@@ -190,7 +170,7 @@ public class PodPlayer implements PodPlayerControls, Serializable {
      *
      */
 
-    private int getDuration(){
+    int getDuration(){
 
         if(exoPlayer.getDuration() == C.TIME_UNSET){
 
@@ -211,10 +191,17 @@ public class PodPlayer implements PodPlayerControls, Serializable {
      *
      */
 
-    private boolean isPlaying() {
+    boolean isPlaying() {
         return exoPlayer.getPlaybackState() != Player.STATE_ENDED
                 && exoPlayer.getPlaybackState() != Player.STATE_IDLE
                 && exoPlayer.getPlayWhenReady();
+    }
+
+
+    boolean isLoaded(){
+
+        return pod != null;
+
     }
 
 
@@ -227,22 +214,20 @@ public class PodPlayer implements PodPlayerControls, Serializable {
      *
      */
 
-    private boolean loadPod(@NonNull final RRPod pod, int progress) {
+    private void loadPod(@NonNull final RRPod pod, int progress) {
 
         //Log.i(TAG,"LoadPod");
 
         if (this.pod == pod) {
 
-            Log.i(TAG, "Pod already loaded");
-
-            return true;
+            // Pod already loaded, no further actions required
+            return;
 
         }
 
-        if (this.pod != null && isPlaying()) {
+        if (isLoaded() && isPlaying()) {
 
-            Log.i(TAG, "New pod requested for playback, stopping current pod playback");
-
+            // New pod requested for playback, stopping current pod playback
             pausePod();
 
         }
@@ -268,16 +253,12 @@ public class PodPlayer implements PodPlayerControls, Serializable {
         // Extract a more precise pod duration
         pod.setDuration(getDuration());
 
-        playerPodViewModel.setPlayerPod(pod);
-
         playbackRegulator.setPlayerPod(pod);
 
         seekTo(progress);
 
         // Store now playing pod as last played
         podStorageHandle.storePodAsLastPlayed(pod);
-
-        return true;
 
     }
 
@@ -291,9 +272,9 @@ public class PodPlayer implements PodPlayerControls, Serializable {
      */
 
     @Override
-    public boolean loadPod(@NonNull final RRPod pod) {
+    public void loadPod(@NonNull final RRPod pod) {
 
-        return loadPod(pod, pod.getProgress());
+        loadPod(pod, pod.getProgress());
 
     }
 
@@ -310,23 +291,16 @@ public class PodPlayer implements PodPlayerControls, Serializable {
     @Override
     public void playPod(@NonNull final RRPod pod) {
 
-        if (this.pod == pod) {
-
-            Log.i(TAG,"Pod was the same: " + this.pod + " vs. " + pod);
-
-            return;
-
-        }
-
         //Log.i(TAG,"PlayPod");
 
-        if (!loadPod(pod, pod.getProgress())) {
+        if (this.pod == pod) {
 
-            Log.e(TAG, "Pod loading failed, could not start playback");
-
+            // Pod is the same, no further actions required.
             return;
 
         }
+
+        loadPod(pod, pod.getProgress());
 
         if (!playbackRegulator.requestAudioFocus()) {
 
@@ -337,7 +311,7 @@ public class PodPlayer implements PodPlayerControls, Serializable {
         }
 
         // Start playback
-        exoPlayer.setPlayWhenReady(true);
+        continuePod();
 
     }
 
@@ -354,6 +328,12 @@ public class PodPlayer implements PodPlayerControls, Serializable {
     public void pauseOrContinuePod() {
 
         //Log.i(TAG,"PauseOrContinuePod");
+
+        if(!isLoaded()){
+
+            return;
+
+        }
 
         if (isPlaying()) {
 
@@ -378,9 +358,11 @@ public class PodPlayer implements PodPlayerControls, Serializable {
 
         //Log.i(TAG,"PausePod");
 
+        Assertions._assert(isLoaded(),"Tried to pause playing when no pod was loaded");
+
         if (!isPlaying()) {
 
-            Log.i(TAG, "Not playing, no need to pause playback");
+            Log.e(TAG, "Not playing, no need to pause playback");
 
             return;
 
@@ -402,15 +384,11 @@ public class PodPlayer implements PodPlayerControls, Serializable {
 
         //Log.i(TAG,"ContinuePod");
 
-        if (pod == null) {
-
-            throw new NullPointerException("Tried to continue playing when no pod was loaded");
-
-        }
+        Assertions._assert(isLoaded(),"Tried to continue playing when no pod was loaded");
 
         if (isPlaying()) {
 
-            Log.i(TAG, "Already playing, no need to continue playback");
+            Log.e(TAG, "Already playing, no need to continue playback");
 
             return;
 
@@ -418,7 +396,7 @@ public class PodPlayer implements PodPlayerControls, Serializable {
 
         if (!playbackRegulator.requestAudioFocus()) {
 
-            Log.e(TAG, "AudioFocus not granted, playback request can therefore not be fulfilled");
+            Log.e(TAG, "AudioFocus not granted, playback could therefore not be continued");
 
             return;
 
@@ -478,27 +456,42 @@ public class PodPlayer implements PodPlayerControls, Serializable {
 
         //Log.i(TAG, "Seeking to " + MillisFormatter.toFormat(constrainedProgress, MillisFormatter.MillisFormat.HH_MM_SS));
 
-        playerPodViewModel.postPlayerProgress(constrainedProgress);
+        //playerPodViewModel.postPlayerProgress(constrainedProgress);
 
         pod.setProgress(constrainedProgress);
 
-        podsViewModel.updatePodInStorage(pod);
+        //podsViewModel.updatePodInStorage(pod);
 
     }
 
 
-    private void onPlayingStateChanged() {
+    private void onPlayingStateChanged(final boolean isPlaying) {
 
-        playerPodViewModel.setIsPlaying(isPlaying());
+        //playerPodViewModel.setIsPlaying(isPlaying);
+
+        playbackRegulator.regulate(isPlaying);
+
+    }
+
+
+    void regulate(){
 
         playbackRegulator.regulate(isPlaying());
 
     }
 
 
+    public void setOnCompletionListener(@NonNull OnCompletionListener onCompletionListener){
+
+        this.onCompletionListener = onCompletionListener;
+
+    }
+
     private void onCompletion() {
 
-        Log.i(TAG, "PodPlayer completed");
+        // TODO: Let caller handle playback of next pod after completion
+
+        /*Log.i(TAG, "PodPlayer playback completed");
 
         final ArrayList<RRPod> podList = podsViewModel.getPodList(pod.getPodType());
 
@@ -510,7 +503,7 @@ public class PodPlayer implements PodPlayerControls, Serializable {
 
         if(completedIndex == 0){
 
-            Log.i(TAG,"No pod found after completed pod, no further playback");
+            // No pod found after completed pod, this is the end of the pod list.
 
             pausePod();
 
@@ -518,7 +511,7 @@ public class PodPlayer implements PodPlayerControls, Serializable {
 
         }
 
-        playPod(podList.get(completedIndex - 1));
+        playPod(podList.get(completedIndex - 1));*/
 
     }
 

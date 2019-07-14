@@ -7,6 +7,7 @@ import android.util.Log;
 import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.podstorage.PodStorageHandle;
+import com.rrpm.mzom.projectrrpm.podstorage.PodUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +24,7 @@ public class PodDownloadsViewModel extends AndroidViewModel {
 
 
     private static final String TAG = "RRP-DownloadsViewModel";
+
 
     @NonNull private final MutableLiveData<ArrayList<RRPod>> observableDownloadQueue = new MutableLiveData<>();
 
@@ -103,7 +105,7 @@ public class PodDownloadsViewModel extends AndroidViewModel {
 
         final boolean removed = downloadQueue.remove(pod);
 
-        Log.i(TAG,pod + " removed successfully: " + removed);
+        //Log.i(TAG,pod + " removed successfully: " + removed);
 
         observableDownloadQueue.setValue(downloadQueue);
 
@@ -114,7 +116,7 @@ public class PodDownloadsViewModel extends AndroidViewModel {
     boolean hasPodInQueue(@NonNull RRPod pod){
 
         return this.observableDownloadQueue.getValue() != null &&
-               this.observableDownloadQueue.getValue().contains(pod);
+                PodUtils.podListContainsPodId(this.observableDownloadQueue.getValue(),pod.getId());
 
     }
 

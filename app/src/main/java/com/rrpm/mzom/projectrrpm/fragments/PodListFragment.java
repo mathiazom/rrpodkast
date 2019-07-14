@@ -22,7 +22,6 @@ import com.rrpm.mzom.projectrrpm.ui.PodsRecyclerAdapter;
 import com.rrpm.mzom.projectrrpm.R;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.pod.PodType;
-import com.rrpm.mzom.projectrrpm.podplayer.PlayerPodViewModel;
 import com.rrpm.mzom.projectrrpm.podfiltering.PodFilterViewModel;
 import com.rrpm.mzom.projectrrpm.podstorage.PodsViewModel;
 
@@ -48,7 +47,7 @@ public class PodListFragment extends Fragment {
     private PodsRecyclerAdapter podsAdapter;
 
 
-    private MainFragmentsHandler mainFragmentsHandler;
+    private MainFragmentsHandler mainFragmentsHandle;
 
 
     // Saved state to restore scrolling position in onResume()
@@ -64,11 +63,10 @@ public class PodListFragment extends Fragment {
     }
 
     @NonNull
-    static PodListFragment newInstance(@NonNull MainFragmentsHandler mainFragmentsHandler, @NonNull final PodType podType) {
+    static PodListFragment newInstance(@NonNull final PodType podType) {
 
         final PodListFragment fragment = new PodListFragment();
 
-        fragment.mainFragmentsHandler = mainFragmentsHandler;
         fragment.podType = podType;
 
         return fragment;
@@ -89,8 +87,6 @@ public class PodListFragment extends Fragment {
         podsViewModel.assureObservablePodList(podType).observe(this, podList -> {
 
             if(podList == null){
-
-                Log.e(TAG,"Observed pod list was null");
 
                 return;
 
@@ -117,6 +113,12 @@ public class PodListFragment extends Fragment {
             displayPods();
 
         });
+
+
+        // Observe main fragments handle
+        final MainFragmentsHandlerViewModel mainFragmentsHandleViewModel = ViewModelProviders.of(requireActivity()).get(MainFragmentsHandlerViewModel.class);
+        mainFragmentsHandleViewModel.getObservableMainFragmentsHandler().observe(this, mainFragmentsHandle -> this.mainFragmentsHandle = mainFragmentsHandle);
+
 
         return view;
 
@@ -182,7 +184,7 @@ public class PodListFragment extends Fragment {
 
         if(podList.isEmpty()){
 
-            Log.i(TAG,"Pod list was empty, will not load recycler");
+            Log.e(TAG,"Pod list was empty, will not load recycler");
 
             setFilterActionClickable(false);
 
@@ -206,19 +208,16 @@ public class PodListFragment extends Fragment {
 
         filterPodListIfNeeded(podFilter,podList,filteredPodList);
 
-        podsAdapter = new PodsRecyclerAdapter(
+        this.podsAdapter = new PodsRecyclerAdapter(
                 filteredPodList,
-                ViewModelProviders.of(requireActivity()).get(PlayerPodViewModel.class),
-                pod -> {
-                    mainFragmentsHandler.hideFilterFragment();
-                    mainFragmentsHandler.loadPodFragment(pod);
-                }
+                pod -> mainFragmentsHandle.loadPodFragment(pod)
         );
 
         podsRecycler.setAdapter(podsAdapter);
 
         podsRecycler.startLayoutAnimation();
 
+        // Alert user that the pod list is now "filterable"
         setFilterActionClickable(true);
 
     }
@@ -268,7 +267,7 @@ public class PodListFragment extends Fragment {
         }
 
         final ImageView showFilterAction = view.findViewById(R.id.podFilterAction);
-        showFilterAction.setOnClickListener(view -> mainFragmentsHandler.loadFilterFragment());
+        showFilterAction.setOnClickListener(view -> mainFragmentsHandle.loadFilterFragment());
 
     }
 

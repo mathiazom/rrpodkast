@@ -33,7 +33,7 @@ public class PodFilterFragment extends Fragment {
 
     private PodFilter podFilter;
 
-    private MainFragmentsHandler mainFragmentsHandler;
+    private MainFragmentsHandler mainFragmentsHandle;
 
     private CheckBox notCompletedCheckBox;
     private CheckBox downloadedCheckBox;
@@ -43,13 +43,10 @@ public class PodFilterFragment extends Fragment {
 
 
     @NonNull
-    static PodFilterFragment newInstance(@NonNull MainFragmentsHandler mainFragmentsLoader) {
+    static PodFilterFragment newInstance() {
 
-        final PodFilterFragment fragment = new PodFilterFragment();
+        return new PodFilterFragment();
 
-        fragment.mainFragmentsHandler = mainFragmentsLoader;
-
-        return fragment;
     }
 
 
@@ -79,20 +76,14 @@ public class PodFilterFragment extends Fragment {
             displayFilter(podFilter);
         });
 
-        //displayFilter(podListFilterViewModel.getPodFilter());
+
+        // Observe main fragments handle
+        final MainFragmentsHandlerViewModel mainFragmentsHandleViewModel = ViewModelProviders.of(requireActivity()).get(MainFragmentsHandlerViewModel.class);
+        mainFragmentsHandleViewModel.getObservableMainFragmentsHandler().observe(this, mainFragmentsHandle -> this.mainFragmentsHandle = mainFragmentsHandle);
+
 
         return view;
     }
-
-
-    /*@Override
-    public void onResume() {
-        super.onResume();
-
-        podListFilterViewModel.setPodFilter(podListFilterViewModel.getPodFilter());
-
-    }*/
-
 
 
     private void initFocusLossListener(){
@@ -100,9 +91,9 @@ public class PodFilterFragment extends Fragment {
         final ConstraintLayout filterContainer = view.findViewById(R.id.filterContainer);
 
         filterContainer.setOnFocusChangeListener((v, hasFocus) -> {
-            if(!hasFocus){
+            if(!hasFocus && getActivity() != null){
 
-                mainFragmentsHandler.hideFilterFragment();
+                mainFragmentsHandle.hideFilterFragment();
 
             }
         });
@@ -112,7 +103,7 @@ public class PodFilterFragment extends Fragment {
         filterBaseContainer.setOnFocusChangeListener((v, hasFocus) -> {
             if(hasFocus){
 
-                mainFragmentsHandler.hideFilterFragment();
+                mainFragmentsHandle.hideFilterFragment();
 
             }
         });

@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.rrpm.mzom.projectrrpm.debugging.LogUtils;
 import com.rrpm.mzom.projectrrpm.pod.PodId;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.pod.PodType;
@@ -70,35 +71,15 @@ public class PodStorageHandle {
 
     public void logAllSharedPreferences(){
 
-        logSharedPreferences(podProgressStorage);
+        LogUtils.logSharedPreferences(podProgressStorage,TAG);
 
-        logSharedPreferences(lastPlayedPodStorage);
+        LogUtils.logSharedPreferences(lastPlayedPodStorage,TAG);
 
-        logSharedPreferences(podDownloadQueueStorage);
-
-    }
-
-    private void logSharedPreferences(@NonNull SharedPreferences sharedPreferences){
-
-        final Map<String,?> keys = sharedPreferences.getAll();
-
-        final StringBuilder stringBuilder = new StringBuilder();
-
-        stringBuilder.append("\n");
-
-        stringBuilder.append("Shared preferences key-value pairs from ").append(sharedPreferences.toString()).append(": {").append("\n");
-
-        for(Map.Entry<String,?> entry : keys.entrySet()){
-
-            stringBuilder.append("  ").append(entry.getKey()).append(": ").append(entry.getValue().toString()).append("\n");
-
-        }
-
-        stringBuilder.append("}");
-
-        Log.i(TAG,stringBuilder.toString());
+        LogUtils.logSharedPreferences(podDownloadQueueStorage,TAG);
 
     }
+
+
 
 
 
@@ -347,8 +328,6 @@ public class PodStorageHandle {
 
 
     public void storePodDownloadQueue(@Nullable ArrayList<RRPod> downloadQueue){
-
-        Log.i(TAG,"Storing pod download queue: " + downloadQueue);
 
         podDownloadQueueStorage
                 .edit()

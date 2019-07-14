@@ -9,6 +9,7 @@ import android.os.Build;
 import android.util.Log;
 
 import com.rrpm.mzom.projectrrpm.activities.MainActivity;
+import com.rrpm.mzom.projectrrpm.annotations.NonEmpty;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -66,9 +67,9 @@ public class NotificationUtils {
     private static final int CLICK_INTENT_REQUEST_CODE = 2573;
 
     @NonNull
-    public static PendingIntent getNotificationClickIntent(@NonNull String notificationChannelId, @NonNull Activity activity) {
+    public static PendingIntent getNotificationClickIntent(@NonNull String notificationChannelId, @NonNull Context context, @NonNull Class activityClass) {
 
-        final Intent notificationClickIntent = new Intent(activity, activity.getClass())
+        final Intent notificationClickIntent = new Intent(context, activityClass)
                 .putExtra(
                         NotificationConstants.INTENT_CLICKED_NOTIFICATION_ID_EXTRA_NAME,
                         notificationChannelId
@@ -77,7 +78,7 @@ public class NotificationUtils {
         notificationClickIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         return PendingIntent.getActivity(
-                activity,
+                context,
                 CLICK_INTENT_REQUEST_CODE,
                 notificationClickIntent,
                 0

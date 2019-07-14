@@ -5,9 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="2dp"
+    android:background="@color/colorPrimary"
     android:orientation="vertical"
-    android:padding="0dp"
-    android:background="@color/colorPrimary">
+    android:padding="0dp">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/month_divider_cont"
@@ -33,21 +33,22 @@
         android:id="@+id/podItemPlayingMarker"
         android:layout_width="25dp"
         android:layout_height="0dp"
-        android:orientation="vertical"
         android:background="@drawable/accent_rounded"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        android:orientation="vertical"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/podViewContent"/>
+        app:layout_constraintEnd_toStartOf="@id/podViewContent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/podViewContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingBottom="17dp"
-        android:paddingEnd="17dp"
-        android:paddingStart="30dp"
+        android:paddingStart="28dp"
         android:paddingTop="17dp"
+        android:paddingEnd="22dp"
+        android:paddingBottom="17dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/month_divider_cont">
@@ -57,10 +58,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/podViewContentMarkers">
+            app:layout_constraintEnd_toStartOf="@id/podViewContentMarkers"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/podViewTopRow"
@@ -77,9 +78,9 @@
                     android:text="@string/pod_title_template"
                     android:textColor="@color/colorWhite"
                     android:textSize="@dimen/podListPodTitleSize"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent">
+                    app:layout_constraintTop_toTopOf="parent">
 
                 </TextView>
 
@@ -88,31 +89,31 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="5dp"
+                    android:contentDescription="@string/downloaded_pod_marker_description"
                     android:scaleX="0.7"
                     android:scaleY="0.7"
                     android:visibility="gone"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toStartOf="@id/podItemNewMark"
-                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintStart_toEndOf="@id/podItemTitle"
-                    app:srcCompat="@drawable/ic_round_get_app_24px"
-                    android:contentDescription="@string/downloaded_pod_marker_description" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:srcCompat="@drawable/ic_round_get_app_24px" />
 
                 <TextView
                     android:id="@+id/podItemNewMark"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
+                    android:layout_marginStart="10dp"
                     android:background="@color/colorAccent"
                     android:paddingStart="10dp"
                     android:paddingEnd="10dp"
                     android:text="@string/new_pod_mark"
                     android:textColor="@color/colorWhite"
-                    android:layout_marginStart="10dp"
                     android:visibility="gone"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/podItemDownloadedMark"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"/>
+                    app:layout_constraintTop_toTopOf="parent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -120,6 +121,7 @@
                 android:id="@+id/podItemDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
                 android:ellipsize="marquee"
                 android:fadingEdge="horizontal"
                 android:marqueeRepeatLimit="marquee_forever"
@@ -128,7 +130,6 @@
                 android:text="@string/pod_description_template"
                 android:textColor="#b7b7b7"
                 android:textSize="12sp"
-                android:layout_marginTop="3dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/podViewTopRow">
 
@@ -181,22 +182,22 @@
             android:id="@+id/podViewContentMarkers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toEndOf="@id/podViewContentMain"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:padding="5dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:padding="5dp">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/podViewContentMain"
+            app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/podViewNewMarker"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
                 android:padding="5dp"
-                android:tint="@color/colorWhiteDark"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
+                android:tint="@color/colorWhite"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:srcCompat="@drawable/ic_round_new_releases_24px"/>
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_round_new_releases_24px" />
 
             <ImageView
                 android:id="@+id/podViewDownloadedMarker"
@@ -204,13 +205,12 @@
                 android:layout_height="32dp"
                 android:padding="5dp"
                 android:tint="@color/colorWhiteDark"
-                app:layout_constraintTop_toBottomOf="@id/podViewNewMarker"
-                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:srcCompat="@drawable/ic_round_get_app_24px"/>
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/podViewNewMarker"
+                app:srcCompat="@drawable/ic_round_get_app_24px" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -10,6 +10,10 @@ import android.util.Log;
 
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 
+import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -23,7 +27,7 @@ class PodPlayerRegulator implements AudioManager.OnAudioFocusChangeListener {
 
     private AudioManager audioManager;
 
-    private final TaskIterator[] playbackIterators;
+    private ArrayList<TaskIterator> playbackIterators = new ArrayList<>();
 
     private RRPod playerPod;
 
@@ -32,13 +36,23 @@ class PodPlayerRegulator implements AudioManager.OnAudioFocusChangeListener {
     private boolean isPlaying;
 
 
-    PodPlayerRegulator(@NonNull final Context context, @NonNull final PodPlayerControls podPlayerControls, @Nullable final TaskIterator[] playbackIterators) {
+    PodPlayerRegulator(@NonNull final Context context, @NonNull final PodPlayerControls podPlayerControls) {
 
         this.context = context;
 
         this.podPlayerControls = podPlayerControls;
 
-        this.playbackIterators = playbackIterators;
+    }
+
+    void addPlaybackIterator(@NonNull final TaskIterator taskIterator){
+
+        this.playbackIterators.add(taskIterator);
+
+        if(isPlaying){
+
+            taskIterator.start();
+
+        }
 
     }
 
@@ -52,7 +66,7 @@ class PodPlayerRegulator implements AudioManager.OnAudioFocusChangeListener {
 
         if(this.isPlaying == isPlaying){
 
-            // No change in playing state
+            // No change in playing state, no further actions required.
             return;
 
         }
@@ -64,10 +78,11 @@ class PodPlayerRegulator implements AudioManager.OnAudioFocusChangeListener {
             // Pause playback if output device change results in "becoming noisy"
             registerBecomingNoisyReceiver();
 
-            if (playbackIterators != null) {
+            if (!playbackIterators.isEmpty()) {
 
+                // Start all playback iterators
                 for (TaskIterator iterator : playbackIterators){
-                    Log.i(TAG,"Starting playback iterators");
+
                     if(!iterator.isStarted()){
 
                         iterator.start();
@@ -91,8 +106,10 @@ class PodPlayerRegulator implements AudioManager.OnAudioFocusChangeListener {
 
             if (playbackIterators != null) {
 
+                // Stop all playback iterators
+
                 for (TaskIterator iterator : playbackIterators){
-                    Log.i(TAG,"Stopping playback iterators");
+
                     if(iterator.isStarted()){
 
                         iterator.stop();
@@ -127,7 +144,7 @@ class PodPlayerRegulator implements AudioManager.OnAudioFocusChangeListener {
 
         int result = audioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
 
-        Log.i(TAG, "AudioFocusRequest result: " + String.valueOf(result));
+        //Log.i(TAG, "AudioFocusRequest result: " + String.valueOf(result));
 
         return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
 
@@ -138,7 +155,7 @@ class PodPlayerRegulator implements AudioManager.OnAudioFocusChangeListener {
     @Override
     public void onAudioFocusChange(int focusChange) {
 
-        Log.i(TAG, "Focus change to: " + String.valueOf(focusChange));
+        //Log.i(TAG, "Focus change to: " + String.valueOf(focusChange));
 
         switch (focusChange) {
 
@@ -193,8 +210,6 @@ class PodPlayerRegulator implements AudioManager.OnAudioFocusChangeListener {
         }
     };
 
-    private boolean registeredBecomingNoisyReceiver;
-
 
     /**
      * Registers a {@link BroadcastReceiver} to catch any {@link AudioManager#ACTION_AUDIO_BECOMING_NOISY} broadcasts.
@@ -204,24 +219,22 @@ class PodPlayerRegulator implements AudioManager.OnAudioFocusChangeListener {
 
     private void registerBecomingNoisyReceiver() {
 
-        if (!registeredBecomingNoisyReceiver) {
-
-            context.registerReceiver(
-                    becomingNoisyReceiver,
-                    new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
-            );
-            registeredBecomingNoisyReceiver = true;
-
-        }
+        context.registerReceiver(
+                becomingNoisyReceiver,
+                new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
+        );
 
     }
 
     private void unregisterBecomingNoisyReceiver() {
 
-        if (registeredBecomingNoisyReceiver) {
+        try{
 
             context.unregisterReceiver(becomingNoisyReceiver);
-            registeredBecomingNoisyReceiver = false;
+
+        }catch (IllegalArgumentException e){
+
+            Log.e(TAG,"Unregistering failed: " + e);
 
         }
 

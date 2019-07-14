@@ -19,7 +19,7 @@ import java.net.URL;
 
 import androidx.annotation.Nullable;
 
-public class PodDownloadService extends IntentService {
+public class PodDownloadingService extends IntentService {
 
     private static final String TAG = "RRP-PodDownloadService";
 
@@ -30,8 +30,8 @@ public class PodDownloadService extends IntentService {
     static final int STATUS_ERROR = 2;
     static final int STATUS_PROGRESS = 3;
 
-    public PodDownloadService() {
-        super(PodDownloadService.class.getName());
+    public PodDownloadingService() {
+        super(PodDownloadingService.class.getName());
     }
 
     @Override

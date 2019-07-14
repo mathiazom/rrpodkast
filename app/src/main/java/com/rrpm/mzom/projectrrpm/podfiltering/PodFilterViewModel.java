@@ -3,6 +3,11 @@ package com.rrpm.mzom.projectrrpm.podfiltering;
 import android.util.Log;
 
 
+import com.rrpm.mzom.projectrrpm.pod.RRPod;
+import com.rrpm.mzom.projectrrpm.podstorage.PodUtils;
+
+import java.util.ArrayList;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
@@ -33,6 +38,24 @@ public class PodFilterViewModel extends ViewModel {
     public void setPodFilter(@Nullable final PodFilter podFilter){
 
         observablePodFilter.setValue(podFilter);
+
+    }
+
+    public boolean prepareMinimumPodFilter(@NonNull ArrayList<RRPod> podList){
+
+        if(podList.isEmpty()){
+
+            return false;
+
+        }
+
+        if(getPodFilter() == null){
+
+            setPodFilter(new PodFilter(PodUtils.getDateRangeFromPodList(podList)));
+
+        }
+
+        return true;
 
     }
 

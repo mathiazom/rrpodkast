@@ -16,7 +16,7 @@ public class FeedPodsRetriever {
     private static final String TAG = "RRP-FeedPodsRetriever";
 
 
-    public static void retrieve(@NonNull final PodType podType, @NonNull final PodsRetrievalCallback.PodListRetrievalCallback retrievePodsCallback){
+    public static void retrieve(@NonNull final PodType podType, @NonNull final PodsRetrievalCallback.PodListRetrievalCallback podListRetrievalCallback){
 
         new AsyncTask<Void,Void,ArrayList<RRPod>>(){
 
@@ -56,7 +56,7 @@ public class FeedPodsRetriever {
 
                     }
 
-                    retrievePodsCallback.onFail(error);
+                    podListRetrievalCallback.onFail(error);
 
                     return null;
 
@@ -69,6 +69,7 @@ public class FeedPodsRetriever {
 
             @Override
             protected void onPostExecute(ArrayList<RRPod> podList) {
+
                 super.onPostExecute(podList);
 
 
@@ -80,7 +81,7 @@ public class FeedPodsRetriever {
 
                 }
 
-                retrievePodsCallback.onPodListRetrieved(podList);
+                podListRetrievalCallback.onPodListRetrieved(podList);
 
 
             }

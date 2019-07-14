@@ -2,7 +2,6 @@ package com.rrpm.mzom.projectrrpm.podplayer;
 
 import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +12,7 @@ import android.widget.TextView;
 
 import com.rrpm.mzom.projectrrpm.R;
 import com.rrpm.mzom.projectrrpm.fragments.MainFragmentsHandler;
+import com.rrpm.mzom.projectrrpm.fragments.MainFragmentsHandlerViewModel;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.podstorage.ConnectionValidator;
 import com.rrpm.mzom.projectrrpm.podstorage.MillisFormatter;
@@ -32,9 +32,9 @@ public class PodPlayerFragment extends Fragment {
 
     private View view;
 
-    private MainFragmentsHandler mainFragmentsHandler;
+    private MainFragmentsHandler mainFragmentsHandle;
 
-    private PlayerPodViewModel playerPodViewModel;
+    private PodPlayerViewModel playerPodViewModel;
 
     private RRPod playerPod;
 
@@ -42,13 +42,9 @@ public class PodPlayerFragment extends Fragment {
 
 
     @NonNull
-    public static PodPlayerFragment newInstance(@NonNull MainFragmentsHandler mainFragmentsHandler) {
+    public static PodPlayerFragment newInstance() {
 
-        final PodPlayerFragment fragment = new PodPlayerFragment();
-
-        fragment.mainFragmentsHandler = mainFragmentsHandler;
-
-        return fragment;
+        return new PodPlayerFragment();
     }
 
 
@@ -56,12 +52,13 @@ public class PodPlayerFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
+        setRetainInstance(true);
 
         this.view = inflater.inflate(R.layout.fragment_podplayer,container,false);
 
 
         // Keep track of player changes
-        playerPodViewModel = ViewModelProviders.of(requireActivity()).get(PlayerPodViewModel.class);
+        playerPodViewModel = ViewModelProviders.of(requireActivity()).get(PodPlayerViewModel.class);
 
         // Player pod change
         playerPodViewModel.getPlayerPodObservable().observe(this, playerPod -> {
@@ -91,14 +88,25 @@ public class PodPlayerFragment extends Fragment {
 
         ConnectionValidator.attemptToRegisterConnectionListener(requireContext(), isConnected -> {
 
-            if(getActivity() == null){
+            if(!isAdded()){
+
+                // No further actions required.
                 return;
+
             }
 
-            getActivity().runOnUiThread(this::displayPlayability);
+            // Since isAdded() is true at this point, activity should be available.
+            requireActivity().runOnUiThread(this::displayPlayability);
 
         });
 
+        // Observe main fragments handle
+        final MainFragmentsHandlerViewModel mainFragmentsHandleViewModel = ViewModelProviders.of(requireActivity()).get(MainFragmentsHandlerViewModel.class);
+        mainFragmentsHandleViewModel.getObservableMainFragmentsHandler().observe(this, mainFragmentsHandle -> {
+
+            this.mainFragmentsHandle = mainFragmentsHandle;
+
+        });
 
         return this.view;
 
@@ -149,9 +157,9 @@ public class PodPlayerFragment extends Fragment {
         final ImageView launchPodFragmentAction = view.findViewById(R.id.launchPodFragmentAction);
         launchPodFragmentAction.setOnClickListener(v -> {
 
-            mainFragmentsHandler.loadPodFragment(playerPod);
+            mainFragmentsHandle.loadPodFragment(playerPod, null);
 
-            mainFragmentsHandler.hidePodPlayerFragment();
+            mainFragmentsHandle.hidePodPlayerFragment();
 
         });
 

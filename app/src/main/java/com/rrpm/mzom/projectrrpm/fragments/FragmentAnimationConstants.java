@@ -2,7 +2,7 @@ package com.rrpm.mzom.projectrrpm.fragments;
 
 import com.rrpm.mzom.projectrrpm.R;
 
-class FragmentAnimationConstants {
+public class FragmentAnimationConstants {
 
 
     private static final FragmentAnimations DEFAULT_SLIDE_FROM_RIGHT_ANIMATIONS = new FragmentAnimations(
@@ -38,6 +38,8 @@ class FragmentAnimationConstants {
 
 
     static final FragmentAnimations FILTER_FRAGMENT_ANIMATIONS = DEFAULT_FADE_ANIMATIONS;
+
+    public static final FragmentAnimations FROM_POD_PLAYER_ANIMATIONS = DEFAULT_FADE_ANIMATIONS;
 
 
 

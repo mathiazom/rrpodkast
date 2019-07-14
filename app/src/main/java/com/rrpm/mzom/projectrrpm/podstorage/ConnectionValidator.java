@@ -48,7 +48,6 @@ public class ConnectionValidator {
 
     public static void attemptToRegisterConnectionListener(@NonNull Context context, @NonNull ConnectionListener connectionListener) {
 
-
         final ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         if(connectivityManager == null){
@@ -87,6 +86,7 @@ public class ConnectionValidator {
 
         }else{
 
+            // TODO: Handle older build versions
             Log.e(TAG,"Build version was too old");
 
             return;

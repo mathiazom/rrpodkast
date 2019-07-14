@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 
 public interface PodPlayerControls{
 
-    boolean loadPod(@NonNull final RRPod pod);
+    void loadPod(@NonNull final RRPod pod);
 
     void playPod(@NonNull final RRPod pod);
 

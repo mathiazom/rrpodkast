@@ -8,6 +8,8 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.DOWNLOAD_WITHOUT_NOTIFICATION" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:allowBackup="true"
@@ -16,7 +18,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity android:name=".activities.SettingsActivity"></activity>
+
         <activity
             android:name=".activities.SplashActivity"
             android:theme="@style/SplashTheme">
@@ -24,16 +28,42 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </activity>
 
         <activity android:name=".activities.MainActivity"/>
-            <!--android:screenOrientation="portrait"
-            />-->
 
         <service
-            android:name=".poddownloading.PodDownloadService"
+            android:name=".poddownloading.PodDownloadingService"
             android:exported="false" />
+
+        <service
+            android:name=".podplayer.PodPlayerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
+        <receiver android:name="androidx.media.session.MediaButtonReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".podplayer.ServiceRestarter"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="RESTART_SERVICE" />
+            </intent-filter>
+        </receiver>
+
+
+
     </application>
 
 </manifest>

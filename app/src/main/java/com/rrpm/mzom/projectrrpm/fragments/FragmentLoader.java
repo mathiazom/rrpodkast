@@ -8,6 +8,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import android.util.Log;
 
+import com.rrpm.mzom.projectrrpm.debugging.Assertions;
+
 class FragmentLoader {
 
 
@@ -32,7 +34,9 @@ class FragmentLoader {
 
     }
 
-
+    public FragmentManager getFragmentManager() {
+        return this.fragmentManager;
+    }
 
     void loadFragment(@IdRes int frameLayout, @NonNull final Fragment fragment, boolean addToBackStack){
 
@@ -138,6 +142,8 @@ class FragmentLoader {
     }
 
     void hideFragment(@NonNull final Fragment fragment, @Nullable FragmentAnimations fragmentAnimations){
+
+        Assertions._assert(fragment != null, "Fragment to be hidden was null");
 
         if(fragmentAnimations == null){
 

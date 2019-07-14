@@ -1,7 +1,9 @@
 package com.rrpm.mzom.projectrrpm.poddownloading;
 
-import android.app.Activity;
+import android.content.Context;
+import android.util.Log;
 
+import com.rrpm.mzom.projectrrpm.activities.MainActivity;
 import com.rrpm.mzom.projectrrpm.annotations.NonEmpty;
 import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 import com.rrpm.mzom.projectrrpm.notifications.NotificationConstants;
@@ -9,8 +11,6 @@ import com.rrpm.mzom.projectrrpm.notifications.NotificationUtils;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 
 import java.util.ArrayList;
-
-import javax.validation.constraints.Null;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,25 +20,28 @@ import androidx.core.app.NotificationManagerCompat;
 class DownloadingNotificationHandle {
 
 
+    private static final String TAG = "RRP-DownloadNotifHandle";
+
+
     @NonNull private NotificationManagerCompat notificationManager;
 
     private NotificationCompat.Builder downloadingNotificationBuilder;
 
-    private Activity activity;
+    private Context context;
 
 
-    DownloadingNotificationHandle(@NonNull Activity activity){
+    DownloadingNotificationHandle(@NonNull Context context){
 
-        this.activity = activity;
+        this.context = context;
 
-        this.notificationManager = NotificationManagerCompat.from(activity);
+        this.notificationManager = NotificationManagerCompat.from(context);
 
     }
 
 
     private void initBuilder(){
 
-        downloadingNotificationBuilder = new NotificationCompat.Builder(activity, NotificationConstants.DOWNLOADING_NOTIFICATION_CHANNEL_ID);
+        downloadingNotificationBuilder = new NotificationCompat.Builder(context, NotificationConstants.DOWNLOADING_NOTIFICATION_CHANNEL_ID);
 
         downloadingNotificationBuilder
                 .setSmallIcon(android.R.drawable.stat_sys_download)
@@ -48,15 +51,17 @@ class DownloadingNotificationHandle {
                 .setContentIntent(
                         NotificationUtils.getNotificationClickIntent(
                                 NotificationConstants.DOWNLOADING_NOTIFICATION_CHANNEL_ID,
-                                activity
+                                context,
+                                MainActivity.class
                         )
                 );
 
     }
 
 
-    void createNotification(@NonNull ArrayList<RRPod> downloadQueue) {
+    private void createNotification(@NonNull ArrayList<RRPod> downloadQueue) {
 
+        Log.i(TAG,"Updating download notification with following queue: " + downloadQueue);
 
         if(downloadingNotificationBuilder == null){
 
@@ -80,6 +85,8 @@ class DownloadingNotificationHandle {
 
 
         notificationManager.notify(NotificationConstants.DOWNLOADING_NOTIFICATION_ID, downloadingNotificationBuilder.build());
+
+        Log.i(TAG,"Creating download notification for following notification manager: " + notificationManager);
 
     }
 

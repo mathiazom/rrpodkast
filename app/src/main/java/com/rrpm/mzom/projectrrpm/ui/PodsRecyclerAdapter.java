@@ -16,7 +16,6 @@ import android.widget.TextView;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.R;
 import com.rrpm.mzom.projectrrpm.podstorage.PodUtils;
-import com.rrpm.mzom.projectrrpm.podplayer.PlayerPodViewModel;
 
 import java.util.ArrayList;
 
@@ -28,8 +27,6 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
 
     @NonNull
     private final ArrayList<RRPod> pods;
-
-    private final PlayerPodViewModel playerPodViewModel;
 
     @NonNull
     private final PodsRecyclerAdapterListener podsRecyclerAdapterListener;
@@ -43,12 +40,10 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
 
     public PodsRecyclerAdapter(
             @NonNull final ArrayList<RRPod> pods,
-            @NonNull PlayerPodViewModel playerPodViewModel,
             @NonNull final PodsRecyclerAdapterListener listener
     ) {
 
         this.pods = pods;
-        this.playerPodViewModel = playerPodViewModel;
         this.podsRecyclerAdapterListener = listener;
     }
 
@@ -64,10 +59,7 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
     @Override
     public void onBindViewHolder(@NonNull final PodViewHolder holder, final int position) {
 
-        final RRPod pod = pods.get(position);
-        final boolean isPlaying = playerPodViewModel.isPlaying() && playerPodViewModel.getPlayerPodObservable().getValue() == pod;
-
-        holder.setPod(pod, isPlaying);
+        holder.setPod(pods.get(position));
 
     }
 
@@ -90,7 +82,6 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
         final ConstraintLayout progressContainer;
         final LinearLayout progressBar;
         final Guideline progressGuideline;
-        final LinearLayout playingMarker;
 
         final PodsRecyclerAdapterListener listener;
 
@@ -116,11 +107,10 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
             this.progressContainer = layout.findViewById(R.id.podItemProgressContainer);
             this.progressBar = layout.findViewById(R.id.podItemProgress);
             this.progressGuideline = layout.findViewById(R.id.podItemProgressGuideline);
-            this.playingMarker = layout.findViewById(R.id.podItemPlayingMarker);
 
         }
 
-        private void setPod(@NonNull final RRPod pod, boolean isPlaying) {
+        private void setPod(@NonNull final RRPod pod) {
 
             itemView.setOnClickListener(v -> listener.onPodClicked(pod));
 
@@ -132,8 +122,6 @@ public class PodsRecyclerAdapter extends RecyclerView.Adapter<PodsRecyclerAdapte
             downloadedMark.setVisibility(pod.isDownloaded() ? View.VISIBLE : View.GONE);
 
             displayNewMark(pod);
-
-            playingMarker.setVisibility(isPlaying ? View.VISIBLE : View.GONE);
 
             final int progress = pod.getProgress();
             progressContainer.setVisibility(progress < SHOW_PROGRESS_LIMIT ? View.GONE : View.VISIBLE);

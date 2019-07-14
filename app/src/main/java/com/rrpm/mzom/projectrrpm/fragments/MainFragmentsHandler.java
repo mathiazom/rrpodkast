@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.rrpm.mzom.projectrrpm.R;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
-import com.rrpm.mzom.projectrrpm.poddownloading.PodDownloader;
 import com.rrpm.mzom.projectrrpm.podfiltering.PodFilter;
 import com.rrpm.mzom.projectrrpm.podfiltering.PodFilterViewModel;
 import com.rrpm.mzom.projectrrpm.podplayer.SmallPodPlayerFragment;
@@ -17,23 +16,18 @@ import com.rrpm.mzom.projectrrpm.pod.PodType;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProviders;
 
-public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
+public class MainFragmentsHandler {
 
 
-    private static final String TAG = "RRP-MainFragmentManager";
+    private static final String TAG = "RRP-MainFragmentsHandlr";
 
 
     @NonNull
-    private final FragmentLoader fragmentLoader;
-
-    @NonNull
-    private final FragmentActivity fragmentActivity;
-
-    @NonNull
-    private final PodDownloader podDownloader;
+    private FragmentLoader fragmentLoader;
 
 
     private PodsViewModel podsViewModel;
@@ -47,13 +41,12 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
     private PodFragment podFragment;
     private PodPlayerFragment podPlayerFragment;
 
-    public MainFragmentsHandler(@NonNull final FragmentActivity fragmentActivity, @NonNull final PodDownloader podDownloader){
 
-        this.fragmentActivity = fragmentActivity;
+    MainFragmentsHandler(@NonNull final FragmentActivity fragmentActivity){
 
-        this.podDownloader = podDownloader;
 
         this.fragmentLoader = new FragmentLoader(fragmentActivity.getSupportFragmentManager());
+
 
         this.podsViewModel = ViewModelProviders.of(fragmentActivity).get(PodsViewModel.class);
 
@@ -61,12 +54,20 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
 
         this.podListFilterViewModel = ViewModelProviders.of(fragmentActivity).get(PodFilterViewModel.class);
 
+
+    }
+
+
+    public void setActivity(@NonNull final FragmentActivity fragmentActivity){
+
+        this.fragmentLoader = new FragmentLoader(fragmentActivity.getSupportFragmentManager());
+
     }
 
 
     public void loadPodListFragment(@NonNull PodType podType){
 
-        this.podListFragment = PodListFragment.newInstance(this,podType);
+        this.podListFragment = PodListFragment.newInstance(podType);
 
         loadPodListFragment(podListFragment);
 
@@ -83,10 +84,22 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
 
     }
 
+    @Nullable
+    public PodType getPodListPodType(){
+
+        return podListFragment != null ? podListFragment.getPodType() : null;
+
+    }
 
 
-    @Override
-    public void loadPodFragment(@NonNull final RRPod pod) {
+    public void loadPodFragment(@NonNull final RRPod pod){
+
+        loadPodFragment(pod,FragmentAnimationConstants.POD_FRAGMENT_ANIMATIONS);
+
+    }
+
+
+    public void loadPodFragment(@NonNull final RRPod pod, @Nullable FragmentAnimations animations) {
 
         final RRPod selectedPod = selectedPodViewModel.getSelectedPodObservable().getValue();
 
@@ -98,25 +111,25 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
 
         if (podFragment == null || !podFragment.isAdded()) {
 
-            podFragment = PodFragment.newInstance(podDownloader);
+            podFragment = PodFragment.newInstance();
 
             fragmentLoader.loadFragment(
                     R.id.frame_main,
                     podFragment,
-                    FragmentAnimationConstants.POD_FRAGMENT_ANIMATIONS,
+                    animations,
                     true);
 
         }
 
     }
 
-    @Override
+
     public void loadPodPlayerFragment() {
 
-        podPlayerFragment = PodPlayerFragment.newInstance(this);
+        podPlayerFragment = PodPlayerFragment.newInstance();
 
         fragmentLoader.loadFragment(
-                R.id.frame_overlay,
+                R.id.frame_pod_player,
                 podPlayerFragment,
                 FragmentAnimationConstants.POD_PLAYER_FULL_FRAGMENT_ANIMATIONS,
                 true);
@@ -124,8 +137,15 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
 
     }
 
-    @Override
+
     public void hidePodPlayerFragment() {
+
+        if(podPlayerFragment == null || !podPlayerFragment.isVisible()){
+
+            // Fragment already hidden, no further actions required
+            return;
+
+        }
 
         fragmentLoader.hideFragment(
                 podPlayerFragment,
@@ -134,52 +154,50 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
 
     }
 
-    @Override
+
+
     public void loadSmallPodPlayerFragment() {
 
         if(smallPodPlayerFragment == null){
 
-            smallPodPlayerFragment = SmallPodPlayerFragment.newInstance(this);
+            smallPodPlayerFragment = SmallPodPlayerFragment.newInstance();
 
         }
 
-        if(smallPodPlayerFragment.isAdded()){
+        if(smallPodPlayerFragment.isAdded() && smallPodPlayerFragment.getFragmentManager() == fragmentLoader.getFragmentManager()){
 
             fragmentLoader.showFragment(smallPodPlayerFragment);
 
         }else{
 
-            fragmentLoader.loadFragment(R.id.frame_podplayer, smallPodPlayerFragment, false);
+            fragmentLoader.loadFragment(R.id.frame_small_pod_player, smallPodPlayerFragment, false);
 
         }
 
     }
 
-    @Override
-    public void hideSmallPodPlayerFragment() {
 
-        if(smallPodPlayerFragment == null){
+    void loadFilterFragment() {
 
-            Log.e(TAG,"SmallPodPlayerFragment was null, will not attempt to hide it.");
+        final ArrayList<RRPod> podList = podsViewModel.getPodList(podListFragment.getPodType());
+
+        if(podList == null){
+
+            Log.e(TAG,"Pod list was null, will not load PodFilterFragment");
+
+            return;
+
+        }else if (podList.isEmpty()){
+
+            Log.e(TAG,"Pod list was null, will not load PodFilterFragment");
 
             return;
 
         }
 
-        if(!smallPodPlayerFragment.isVisible()){
+        final boolean filterIsPrepared = podListFilterViewModel.prepareMinimumPodFilter(podList);
 
-            Log.e(TAG,"SmallPodPlayerFragment already hidden.");
-
-        }
-
-        fragmentLoader.hideFragment(smallPodPlayerFragment);
-
-    }
-
-    @Override
-    public void loadFilterFragment() {
-
-        if(!prepareMinimumPodFilter()){
+        if(!filterIsPrepared){
 
             Log.e(TAG,"Failed to prepare pod filter, will not load PodFilterFragment");
 
@@ -187,6 +205,7 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
 
         }
 
+        // Check if filter fragment is already loaded, and can simply be shown.
         if(filterFragment != null && filterFragment.isHidden()){
 
             fragmentLoader.showFragment(
@@ -194,47 +213,32 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
                     FragmentAnimationConstants.FILTER_FRAGMENT_ANIMATIONS
             );
 
-        }else{
-
-            filterFragment = PodFilterFragment.newInstance(this);
-
-            fragmentLoader.loadFragment(
-                    R.id.frame_overlay,
-                    filterFragment,
-                    FragmentAnimationConstants.FILTER_FRAGMENT_ANIMATIONS,
-                    true
-            );
+            return;
 
         }
+
+
+        // Fresh loading of filter fragment is required
+
+        filterFragment = PodFilterFragment.newInstance();
+
+        fragmentLoader.loadFragment(
+                R.id.frame_overlay,
+                filterFragment,
+                FragmentAnimationConstants.FILTER_FRAGMENT_ANIMATIONS,
+                true
+        );
 
     }
 
-    private boolean prepareMinimumPodFilter(){
 
-        final ArrayList<RRPod> podList = podsViewModel.getPodList(podListFragment.getPodType());
-
-        if(podList == null || podList.isEmpty()){
-            return false;
-        }
-
-        if(podListFilterViewModel.getPodFilter() == null){
-
-            podListFilterViewModel.setPodFilter(
-                    new PodFilter(PodUtils.getDateRangeFromPodList(podList))
-            );
-
-        }
-
-        return true;
-
-    }
-
-    @Override
-    public void hideFilterFragment() {
+    void hideFilterFragment() {
 
         if(filterFragment == null || !filterFragment.isVisible()){
-            // Already not visible
+
+            // Fragment already hidden, no further actions required
             return;
+
         }
 
         fragmentLoader.hideFragment(
@@ -243,4 +247,15 @@ public class MainFragmentsHandler implements MainFragmentsLoaderInterface {
         );
 
     }
+
+
+    public void hideOverlayFragments(){
+
+        hideFilterFragment();
+
+        hidePodPlayerFragment();
+
+    }
+
+
 }

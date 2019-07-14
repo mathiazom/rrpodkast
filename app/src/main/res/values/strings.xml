@@ -90,6 +90,13 @@
     <string name="playback_notifications_group_name">Avspillinger</string>
     <string name="player_notification_channel_name">Gjeldende avspilling</string>
     <string name="player_notification_channel_description">Gir kontroll over det som spilles for øyeblikket</string>
+    <string name="connecton_status_disconnected">Frakoblet</string>
+
+    <string name="notification_jump_back">Hopp tilbake</string>
+    <string name="notification_play">Spill av</string>
+    <string name="notification_pause">Pause</string>
+    <string name="notification_jump_forth">Hopp fremover</string>
+    <string name="podplayer_notification_subtitle_minutes_left">igjen</string>
 
 
 </resources>

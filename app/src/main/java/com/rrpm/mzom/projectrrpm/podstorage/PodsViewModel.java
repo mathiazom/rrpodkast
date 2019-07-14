@@ -73,6 +73,8 @@ public class PodsViewModel extends AndroidViewModel {
 
         podStorageHandle.storePod(pod);
 
+        Log.i(TAG,"Updated pod in storage with progress: " + MillisFormatter.toFormat(pod.getProgress(), MillisFormatter.MillisFormat.HH_MM_SS));
+
     }
 
 
@@ -179,8 +181,6 @@ public class PodsViewModel extends AndroidViewModel {
     public void requestPodListRetrieval(@NonNull PodType podType, @NonNull PodsRetrievalCallback.PodListRetrievalCallback retrievePodsCallback){
 
 
-        //Log.i(TAG,"TIMESTAMP OF REQUEST: " + System.currentTimeMillis());
-
         final long requestTimestamp = System.currentTimeMillis();
 
 
@@ -236,17 +236,8 @@ public class PodsViewModel extends AndroidViewModel {
         // Retrieve pod list from cache
         final ArrayList<RRPod> cachedPodList = new PodListCacheHandle(context).retrieveCachedPodList(podType);
 
-        // Make sure pod list from cache is valid
+        // Alert caller of cached pod list if available
         if(cachedPodList != null){
-
-            /*// TEST: Remove latest pod to simulate uncaught pod release
-
-            final RRPod removePod = cachedPodList.remove(0);
-            Log.i(TAG,"TESTING: Removed " + removePod + " from cached pod list");
-
-            new PodListCacheHandle(context).cachePodList(cachedPodList,podType);
-
-            // TEST END*/
 
             cachedPodListCallback.onPodListRetrieved(cachedPodList);
 
@@ -256,13 +247,13 @@ public class PodsViewModel extends AndroidViewModel {
         // Check if device is prepared to request retrieval of the feed pod list
         if(!ConnectionValidator.isConnected(context)){
 
-            Log.i(TAG,"Device has no network connection, retrieval of the feed pod list will therefore not be requested");
+            Log.i(TAG,"Device has no network connection, will not request feed pods retrieval");
 
             return;
 
         }
 
-        // Called after feed retrieval. Does NOT alert retrieval requester.
+        // Called after feed pods retrieval. Does NOT alert retrieval requester.
         final PodsRetrievalCallback.PodListRetrievalCallback feedPodListCallback = new PodsRetrievalCallback.PodListRetrievalCallback() {
             @Override
             public void onPodListRetrieved(@NonNull ArrayList<RRPod> retrievedPodList) {
@@ -271,19 +262,21 @@ public class PodsViewModel extends AndroidViewModel {
 
                 baseCallback.onPodListRetrieved(retrievedPodList);
 
-                final PodListCacheHandle cacheHandle = new PodListCacheHandle(context);
+                /*final PodListCacheHandle cacheHandle = new PodListCacheHandle(context);
 
                 final boolean cacheIsUpToDate = PodUtils.cachedPodListIsUpToDate(cacheHandle.retrieveCachedPodList(podType),retrievedPodList);
 
-                Log.i(TAG,"Cached pod list is up to date: " + cacheIsUpToDate);
+                Log.i(TAG,"Cached pod list is up-to-date: " + cacheIsUpToDate);
 
                 if(!cacheIsUpToDate){
 
+                    // Cache the up-to-date feed pod list
                     new PodListCacheHandle(context).cachePodList(retrievedPodList, podType);
 
-                    // TODO: Alert user if cached pod list was out of date
+                }*/
 
-                }
+                // Cache feed pod list
+                new PodListCacheHandle(context).cachePodList(retrievedPodList, podType);
 
             }
 
@@ -297,6 +290,53 @@ public class PodsViewModel extends AndroidViewModel {
 
         // Request the more robust, but slower, retrieval of pods directly from the feed
         FeedPodsRetriever.retrieve(podType, feedPodListCallback);
+
+    }
+
+
+    /**
+     *
+     * Requests pod list retrieval if not already available.
+     *
+     * @param podType: {@link PodType} of pod list to be retrieved.
+     * @param retrievePodsCallback: Called after retrieval completion or failure.
+     *
+     */
+
+    private void requestPodListRetrievalIfNeeded(@NonNull PodType podType, @NonNull PodsRetrievalCallback.PodListRetrievalCallback retrievePodsCallback){
+
+
+        if(getPodList(podType) != null){
+
+            // Pod list already retrieved, no further actions required.
+            return;
+
+        }
+
+        requestPodListRetrieval(podType, retrievePodsCallback);
+
+
+    }
+
+
+    public void requestPodListRetrievalIfNeeded(@NonNull PodType podType){
+
+        requestPodListRetrievalIfNeeded(podType, new PodsRetrievalCallback.PodListRetrievalCallback() {
+            @Override
+            public void onPodListRetrieved(@NonNull ArrayList<RRPod> retrievedPodList) {
+
+                // No further actions needed, pod list observers (e.g. the pod list fragment) will take it from here.
+
+            }
+
+            @Override
+            public void onFail(@NonNull PodsRetrievalError error) {
+
+                Log.e(TAG,"Failed retrieval of " + podType.name() + ": " + error.getMessage());
+
+            }
+        });
+
 
     }
 

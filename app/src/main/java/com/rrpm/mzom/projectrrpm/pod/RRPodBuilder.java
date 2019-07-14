@@ -1,6 +1,7 @@
 package com.rrpm.mzom.projectrrpm.pod;
 
 import android.os.Parcel;
+import android.util.Log;
 
 import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 
@@ -11,6 +12,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public class RRPodBuilder {
+
+
+    private static final String TAG = "RRP-RRPodBuilder";
 
 
     private PodId id = null;
@@ -67,7 +71,9 @@ public class RRPodBuilder {
     @NonNull
     static RRPodBuilder fromParcel(@NonNull Parcel parcel){
 
-        parcel.readInt();
+        Log.i(TAG,"Pod parcel: " + parcel);
+
+        //parcel.readInt();
 
         final RRPodBuilder builder = new RRPodBuilder();
 

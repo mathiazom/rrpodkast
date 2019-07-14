@@ -12,7 +12,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-class TaskIterator {
+public class TaskIterator {
 
 
     private static final String TAG = "RRP-TaskIterator";
@@ -29,7 +29,7 @@ class TaskIterator {
     private boolean isStarted;
 
 
-    TaskIterator(@NonNull TimerTask timerTask, long period){
+    public TaskIterator(@NonNull TimerTask timerTask, long period){
 
         this.timerTask = timerTask;
 
@@ -44,7 +44,7 @@ class TaskIterator {
      *
      */
 
-    void start(){
+    public void start(){
 
         Assertions._assert(!isStarted, "Iterator has already been started");
 
@@ -72,7 +72,7 @@ class TaskIterator {
      *
      */
 
-    void stop(){
+    public void stop(){
 
         Assertions._assert(isStarted, "Iterator has already been stopped");
 

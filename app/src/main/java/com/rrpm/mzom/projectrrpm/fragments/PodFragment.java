@@ -1,5 +1,6 @@
 package com.rrpm.mzom.projectrrpm.fragments;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.os.Bundle;
@@ -22,13 +23,14 @@ import android.widget.TextView;
 
 import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 import com.rrpm.mzom.projectrrpm.poddownloading.DownloadingConstants;
+import com.rrpm.mzom.projectrrpm.poddownloading.PodDownloaderRetriever;
 import com.rrpm.mzom.projectrrpm.podstorage.ConnectionValidator;
 import com.rrpm.mzom.projectrrpm.podstorage.MillisFormatter;
 import com.rrpm.mzom.projectrrpm.poddownloading.PodDownloader;
 import com.rrpm.mzom.projectrrpm.podplayer.PodPlayerControls;
 import com.rrpm.mzom.projectrrpm.R;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
-import com.rrpm.mzom.projectrrpm.podplayer.PlayerPodViewModel;
+import com.rrpm.mzom.projectrrpm.podplayer.PodPlayerViewModel;
 import com.rrpm.mzom.projectrrpm.poddownloading.PodDownloadsViewModel;
 import com.rrpm.mzom.projectrrpm.podstorage.PodsViewModel;
 import com.rrpm.mzom.projectrrpm.podstorage.SelectedPodViewModel;
@@ -54,7 +56,7 @@ public class PodFragment extends Fragment {
 
     private PodsViewModel podsViewModel;
 
-    private PlayerPodViewModel playerPodViewModel;
+    private PodPlayerViewModel playerPodViewModel;
 
     private PodDownloadsViewModel podDownloadsViewModel;
 
@@ -64,21 +66,11 @@ public class PodFragment extends Fragment {
     private boolean hasPlayerPod;
 
 
-    private View.OnClickListener podOptionPlayClickListener;
-
-    private View.OnClickListener podOptionDownloadClickListener;
-
-    private View.OnClickListener podOptionCompletedClickListener;
-
-
     @NonNull
-    static PodFragment newInstance(@NonNull PodDownloader podDownloader) {
+    static PodFragment newInstance() {
 
-        final PodFragment fragment = new PodFragment();
+        return new PodFragment();
 
-        fragment.podDownloader = podDownloader;
-
-        return fragment;
     }
 
 
@@ -93,107 +85,8 @@ public class PodFragment extends Fragment {
 
         this.downloadProgressGuide = view.findViewById(R.id.podOptionDownloadProgressGuide);
 
-        this.podsViewModel = ViewModelProviders.of(this).get(PodsViewModel.class);
 
-
-        this.selectedPodViewModel = ViewModelProviders.of(requireActivity()).get(SelectedPodViewModel.class);
-        this.selectedPodViewModel.getSelectedPodObservable().observe(this, this::displayPod);
-
-        this.playerPodViewModel = ViewModelProviders.of(requireActivity()).get(PlayerPodViewModel.class);
-        this.playerPodViewModel.getPlayerPodObservable().observe(this, playerPod -> {
-
-            if (playerPod.getId().equals(pod.getId())) {
-
-                this.hasPlayerPod = true;
-
-                displayPod();
-
-                return;
-
-            }
-
-            this.hasPlayerPod = false;
-
-        });
-        this.playerPodViewModel.getIsPlayingObservable().observe(this, isPlaying -> displayPlayingState());
-        this.playerPodViewModel.getPlayerProgressObservable().observe(this, playerProgress -> {
-
-            if(hasPlayerPod){
-
-                displayPodProgress(playerProgress);
-
-            }
-
-        });
-
-        this.podDownloadsViewModel = ViewModelProviders.of(requireActivity()).get(PodDownloadsViewModel.class);
-        this.podDownloadsViewModel.getObservableDownloadQueue().observe(this, downloadQueue -> {
-
-            if(downloadQueue == null || !downloadQueue.contains(pod) ) {
-
-                // Pod is not being downloaded
-                return;
-
-            }
-
-            final LiveData<Float> observableDownloadProgress = podDownloadsViewModel.getObservableDownloadProgress(pod);
-
-            Assertions._assert(observableDownloadProgress != null, "Pod had no observable progress despite its presence in the downloadQueue");
-
-            observableDownloadProgress.observe(this, downloadProgress -> {
-
-                downloadProgressGuide.setGuidelinePercent(downloadProgress / (float) DownloadingConstants.DOWNLOAD_PROGRESS_MAX);
-
-            });
-
-        });
-
-        this.podOptionPlayClickListener = v -> {
-
-            if (pod.getDuration() == pod.getProgress()) {
-
-                pod.setProgress(0);
-                podsViewModel.updatePodInStorage(pod);
-                selectedPodViewModel.selectPod(pod);
-
-                if(hasPlayerPod){
-
-                    podPlayerControls.seekTo(0);
-
-                }
-
-            }
-
-            if(hasPlayerPod){
-
-                podPlayerControls.pauseOrContinuePod();
-
-                return;
-
-            }
-
-            podPlayerControls.playPod(pod);
-
-        };
-
-        this.podOptionDownloadClickListener = v -> podDownloader.requestPodDownload(pod);
-
-        this.podOptionCompletedClickListener = v -> {
-
-            pod.setProgress(pod.isCompleted() ? 0 : pod.getDuration());
-
-            podsViewModel.updatePodInStorage(pod);
-            selectedPodViewModel.selectPod(pod);
-
-            if(hasPlayerPod){
-
-                podPlayerControls.pausePod();
-
-                podPlayerControls.seekTo(pod.getProgress());
-
-            }
-
-        };
+        initViewModels();
 
         initToolbar();
 
@@ -202,13 +95,15 @@ public class PodFragment extends Fragment {
 
         ConnectionValidator.attemptToRegisterConnectionListener(requireContext(), isConnected -> {
 
-            if(getActivity() == null){
+            if(!isAdded()){
 
+                // No further actions required.
                 return;
 
             }
 
-            getActivity().runOnUiThread(this::displayAbilities);
+            // Since isAdded() is true at this point, activity should be available.
+            requireActivity().runOnUiThread(this::displayAbilities);
 
         });
 
@@ -231,8 +126,76 @@ public class PodFragment extends Fragment {
 
         }
 
+        try {
+
+            podDownloader = ((PodDownloaderRetriever) context).retrievePodDownloader();
+
+        } catch (ClassCastException e) {
+
+            throw new ClassCastException(context.toString() + " must implement PodDownloaderRetriever");
+
+        }
+
     }
 
+
+    private void initViewModels(){
+
+        this.selectedPodViewModel = ViewModelProviders.of(requireActivity()).get(SelectedPodViewModel.class);
+        selectedPodViewModel.getSelectedPodObservable().observe(this, this::setAndDisplayPod);
+
+        this.podsViewModel = ViewModelProviders.of(requireActivity()).get(PodsViewModel.class);
+
+        this.playerPodViewModel = ViewModelProviders.of(requireActivity()).get(PodPlayerViewModel.class);
+        playerPodViewModel.getPlayerPodObservable().observe(this, playerPod -> {
+
+            if (playerPod.getId().equals(pod.getId())) {
+
+                this.hasPlayerPod = true;
+
+                displayPod();
+
+                return;
+
+            }
+
+            this.hasPlayerPod = false;
+
+        });
+        playerPodViewModel.getIsPlayingObservable().observe(this, isPlaying -> displayPlayingState());
+        playerPodViewModel.getPlayerProgressObservable().observe(this, playerProgress -> {
+
+            if(hasPlayerPod){
+
+                displayPodProgress(playerProgress);
+
+            }
+
+        });
+
+        this.podDownloadsViewModel = ViewModelProviders.of(requireActivity()).get(PodDownloadsViewModel.class);
+        podDownloadsViewModel.getObservableDownloadQueue().observe(this, downloadQueue -> {
+
+            if(downloadQueue == null || !downloadQueue.contains(pod) ) {
+
+                // Pod is not being downloaded, no further actions required
+                return;
+
+            }
+
+            final LiveData<Float> observableDownloadProgress = podDownloadsViewModel.getObservableDownloadProgress(pod);
+
+            Assertions._assert(observableDownloadProgress != null, "Pod had no observable progress despite its presence in the downloadQueue");
+
+            observableDownloadProgress.observe(this, downloadProgress -> {
+
+                downloadProgressGuide.setGuidelinePercent(downloadProgress / (float) DownloadingConstants.DOWNLOAD_PROGRESS_MAX);
+
+            });
+
+        });
+
+    }
 
     private void initToolbar(){
 
@@ -244,19 +207,64 @@ public class PodFragment extends Fragment {
     private void initOptionListeners(){
 
         final ConstraintLayout podOptionPlay = view.findViewById(R.id.podOptionPlay);
-        podOptionPlay.setOnClickListener(podOptionPlayClickListener);
+        podOptionPlay.setOnClickListener(v -> {
+
+            if (pod.getDuration() == pod.getProgress()) {
+
+                pod.setProgress(0);
+
+                podsViewModel.updatePodInStorage(pod);
+                selectedPodViewModel.selectPod(pod);
+
+                if (hasPlayerPod) {
+
+                    podPlayerControls.seekTo(0);
+
+                }
+
+            }
+
+            if (hasPlayerPod) {
+
+                podPlayerControls.pauseOrContinuePod();
+
+                return;
+
+            }
+
+            podPlayerControls.playPod(pod);
+
+        });
 
         final ConstraintLayout podOptionDownload = view.findViewById(R.id.podOptionDownload);
-        podOptionDownload.setOnClickListener(podOptionDownloadClickListener);
+        podOptionDownload.setOnClickListener(v -> podDownloader.requestPodDownload(pod));
 
         final Button podOptionCompleted = view.findViewById(R.id.podOptionCompleted);
-        podOptionCompleted.setOnClickListener(podOptionCompletedClickListener);
+        podOptionCompleted.setOnClickListener(v -> {
+
+            // Mark pod as completed
+            pod.setProgress(pod.isCompleted() ? 0 : pod.getDuration());
+
+            // Store changes
+            podsViewModel.updatePodInStorage(pod);
+
+            displayPod(); //selectedPodViewModel.selectPod(pod);
+
+            if (hasPlayerPod) {
+
+                podPlayerControls.pausePod();
+
+                podPlayerControls.seekTo(pod.getProgress());
+
+            }
+
+        });
 
     }
 
 
 
-    private void displayPod(@NonNull final RRPod pod){
+    private void setAndDisplayPod(@NonNull final RRPod pod){
 
         this.pod = pod;
 

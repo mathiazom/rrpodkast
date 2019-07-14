@@ -20,24 +20,28 @@ import androidx.lifecycle.ViewModelProviders;
 
 public class PodDownloader {
 
+
     private static final String TAG = "RRP-PodDownloader";
+
 
     private static final String POD_DOWNLOADER_WIFI_LOCK_TAG = "com.rrpm.mzom.projectrrpm.PodDownloading.PodDownloader.POD_DOWNLOADER_WIFI_LOCK_TAG";
 
+
     private final Activity activity;
+
 
     private final PodsViewModel podsViewModel;
 
     private final PodDownloadsViewModel podDownloadsViewModel;
 
+
     private final PodStorageHandle podStorageHandle;
 
     private final DownloadingNotificationHandle downloadingNotificationHandle;
 
+
     private boolean isDownloading;
 
-
-    private int downloadingProgress;
 
     public PodDownloader(@NonNull final FragmentActivity activity) {
 
@@ -119,8 +123,7 @@ public class PodDownloader {
 
         if (nextPodInQueue == null) {
 
-            Log.i(TAG, "No next pod in download queue");
-
+            // No next pod in download queue, no further actions required.
             return;
 
         }
@@ -147,7 +150,7 @@ public class PodDownloader {
         downloadReceiver.setReceiver(getDownloadReceiver(pod));
 
         final Intent intent =
-                new Intent(Intent.ACTION_SYNC, null, activity, PodDownloadService.class)
+                new Intent(Intent.ACTION_SYNC, null, activity, PodDownloadingService.class)
                         .putExtra(DownloadingConstants.DOWNLOAD_REQUEST_POD_ID, pod.getId())
                         .putExtra(DownloadingConstants.DOWNLOAD_REQUEST_POD_URL, pod.getUrl())
                         .putExtra(DownloadingConstants.DOWNLOAD_REQUEST_RECEIVER, downloadReceiver);
@@ -173,7 +176,7 @@ public class PodDownloader {
         return (resultCode, resultData) -> {
 
             switch (resultCode) {
-                case PodDownloadService.STATUS_FINISHED:
+                case PodDownloadingService.STATUS_FINISHED:
 
                     Log.i(TAG, "Pod download finished");
 
@@ -189,7 +192,7 @@ public class PodDownloader {
 
                     break;
 
-                case PodDownloadService.STATUS_ERROR:
+                case PodDownloadingService.STATUS_ERROR:
 
                     // TODO: Handle download error
 
@@ -197,9 +200,9 @@ public class PodDownloader {
 
                     break;
 
-                case PodDownloadService.STATUS_PROGRESS:
+                case PodDownloadingService.STATUS_PROGRESS:
 
-                    downloadingProgress = (int) resultData.getFloat(DownloadingConstants.DOWNLOAD_PROGRESS_TAG);
+                    final int downloadingProgress = (int) resultData.getFloat(DownloadingConstants.DOWNLOAD_PROGRESS_TAG);
 
                     podDownloadsViewModel.postDownloadProgress(pod, downloadingProgress);
 

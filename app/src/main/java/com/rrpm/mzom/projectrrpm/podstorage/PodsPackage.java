@@ -1,6 +1,8 @@
 package com.rrpm.mzom.projectrrpm.podstorage;
 
 
+import android.util.Log;
+
 import com.rrpm.mzom.projectrrpm.debugging.Assertions;
 import com.rrpm.mzom.projectrrpm.pod.RRPod;
 import com.rrpm.mzom.projectrrpm.pod.PodType;
@@ -94,15 +96,13 @@ public class PodsPackage {
     @NonNull
     private MutableLiveData<ArrayList<RRPod>> assureMutablePodList(@NonNull final PodType podType){
 
-        MutableLiveData<ArrayList<RRPod>> mutablePods = getMutablePodList(podType);
+        final MutableLiveData<ArrayList<RRPod>> mutablePods = getMutablePodList(podType);
 
-        if(!podListIsObservable(podType)){
+        if(mutablePods == null){
 
-            mutablePods = createObservablePodList(podType);
+            return createObservablePodList(podType);
 
         }
-
-        Assertions._assert(mutablePods != null, "Pod list observable was null despite use of createObservablePodList(podType).");
 
         return mutablePods;
 

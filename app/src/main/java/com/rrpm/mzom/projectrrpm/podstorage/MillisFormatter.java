@@ -9,7 +9,8 @@ public class MillisFormatter {
 
 
     public enum MillisFormat{
-        HH_MM_SS // "HH:MM:SS"
+        HH_MM_SS, // "HH:MM:SS"
+        MIN_TEXT // "75 min"
     }
 
 
@@ -24,10 +25,17 @@ public class MillisFormatter {
     public static String toFormat(int ms, final MillisFormat format){
 
         switch (format){
+
             case HH_MM_SS:
+
                 return String.format(Locale.getDefault(), "%02d:%02d:%02d", TimeUnit.MILLISECONDS.toHours(ms),
                         TimeUnit.MILLISECONDS.toMinutes(ms) % TimeUnit.HOURS.toMinutes(1),
                         TimeUnit.MILLISECONDS.toSeconds(ms) % TimeUnit.MINUTES.toSeconds(1));
+
+            case MIN_TEXT:
+
+                return TimeUnit.MILLISECONDS.toMinutes(ms) + " min";
+
         }
 
         // Format not recognized

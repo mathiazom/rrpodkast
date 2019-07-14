@@ -238,6 +238,15 @@ public class PodUtils {
 
     }
 
+
+    public static boolean podListContainsPodId(@NonNull ArrayList<RRPod> podList, @NonNull PodId podId){
+
+        final ArrayList<PodId> podIds = getPodIdsFromPodList(podList);
+
+        return podIds.contains(podId);
+
+    }
+
     @NonNull
     private static ArrayList<PodId> getPodIdsFromPodList(@NonNull ArrayList<RRPod> podList){
 

@@ -70,6 +70,9 @@ public final class NotificationConstants {
             .setGroupId(NotificationConstants.PLAYBACK_NOTIFICATIONS_GROUP_ID);
 
 
+    public static final int PLAYER_NOTIFICATION_ID = 76589;
+
+
 
 
 
