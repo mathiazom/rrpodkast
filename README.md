@@ -2,6 +2,12 @@
 
 # RRPodkast
 
+---
+
+**[UTDATERT!]** Dette prosjektet er arkivert ettersom NRK har avviklet RSS-strømmen for Radioresepsjonen. Episodene er fortsatt tilgjengelig via [NRK Radio](https://radio.nrk.no/podkast/radioresepsjonen).
+
+---
+
 <a href='https://play.google.com/store/apps/details?id=com.rrpm.mzom.projectrrpm&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img width=180 alt='Tilgjengelig på Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/no_badge_web_generic.png'/></a>
 
 RRPodkast lar deg streame og laste ned over 700 podkaster og over 400 høydepunkter fra Radioresepsjonen, både fra P3 og P13. 
